@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  	<link rel="stylesheet" href="thirdparty/bootstrap.min.css">
+  	<link rel="stylesheet" href="thirdparty/fontawesome/css/all.min.css">
+ 	<script src="thirdparty/jquery-3.4.0.min.js"></script>
+ 	<script src="thirdparty/bootstrap.min.js"></script>
+  	<script defer src="thirdparty/fontawesome/js/all.js"></script>
+    <script src="thirdparty/hive-tx.min.js"></script>
+    <script src="thirdparty/showdown.min.js"></script>
+    <title>Random Hive</title>
+  </head>
+  <body>
+  	<div class="container">
+  		<div class="row">
+  			<div class="col-md-2"></div>
+  			<div class="col-md-8"></div>
+  			<div class="col-md-2">
+
+  		</div>
+  		<div class="row"> <!-- CONTENT -->
+  			<div class="col-md-2"></div>
+  			<div class="col-md-6" id="hr-content">
+  			</div>
+  			<div class="col-md-2">
+	  			<div class=”row”>
+	  				<div class="container float-right">
+		  				<span class="badge badge-light">Login</span>
+		  				<div class="input-group mb-3">
+						  <div class="input-group-prepend">
+						    <span class="input-group-text" id="basic-addon1">@</span>
+						  </div>
+						  <input type="text" class="form-control" placeholder="Username" aria-label="Username">
+						</div>
+					</div>
+				</div>
+				<div class=”row”>
+				   <div class=”col-6 align-self-center”>
+				      <div class=”card card-block”>
+						<button class="btn btn-primary next" title="Next"><i class="fa fa-chevron-right"></i><i class="fa fa-chevron-right"></i></button>
+    			      </div>
+			   		</div>
+			   	</div>
+  			</div>
+		</div>
+  	</div>
+  	  <nav class="navbar fixed-bottom navbar-light bg-light">
+	  	<a id="peakd" href="https://peakd.com" title="View this post on PeakD"><img src="assets/peakd-16.png"></a>
+		<a id="hiveblog" href="https://hive.blog" title="View this post on Hive.blog"><img class="img-fluid" src="assets/hive-16.png"></a>
+		<button class="btn btn-primary" id="upvote" title="Upvote"><i class="fa fa-heart"></i></button>
+		<button class="btn btn-primary" id="follow" title="Follow"><i class="fa fa-users"></i></button>
+		<button class="btn btn-primary" id="reblog" title="Reblog"><i class="fa fa-share"></i></button>
+		<button class="btn btn-primary next" title="Next"><i class="fa fa-chevron-right"></i><i class="fa fa-chevron-right"></i></button>
+	    <span class="badge badge-light">Brought to you by <a href="https://peakd.com/@hivetrending">@HiveTrending</a></span>
+  	  </nav>
+
+  	<script src="index.js"></script>
+  </body>
+</html>
