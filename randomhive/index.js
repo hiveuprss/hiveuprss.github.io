@@ -2,8 +2,8 @@
 
 hiveTx.config.node = 'https://anyx.io'
 
-MIN_BODY_LENGTH = 250
-
+const MIN_BODY_LENGTH   = 250
+var   CURRENT_POST_SLUG = ''
 
 function getPost() {
   hiveTx
@@ -16,6 +16,11 @@ function getPost() {
 
       const post = posts[Math.floor(Math.random() * posts.length)];
       console.log(post)
+
+      CURRENT_POST_SLUG = `/@${post.author}/${post.permlink}`
+      document.querySelector('a#peakd').href = `https://peakd.com${CURRENT_POST_SLUG}`
+      document.querySelector('a#hiveblog').href = `https://hive.blog${CURRENT_POST_SLUG}`
+      
 
       var converter = new showdown.Converter()
       //converter.setFlavor('github')
