@@ -49,7 +49,7 @@ function getPost(start_permlink='') {
       }
 
       // prepare blog post content for display
-      var text = `# ${post.title}\n${post.body}`
+      var text = `# ${post.title}\n## @${post.author}\n${post.body}`
       text.replace('# ![','![')
 
       // fix images missing markup
@@ -58,7 +58,6 @@ function getPost(start_permlink='') {
 
       // convert markdown to HTML
       var converter = new showdown.Converter()
-      converter.setFlavor('github')
       converter.setOption('openLinksInNewWindow', true)
       converter.setOption('simplifiedAutoLink', true)
       
