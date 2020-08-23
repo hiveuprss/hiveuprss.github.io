@@ -1,13 +1,12 @@
 // index.js
 
-hiveTx.config.node = 'https://anyx.io'
+hiveTx.config.node = 'https://api.hive.blog'
 
 const MIN_BODY_LENGTH   = 250
-var   CURRENT_POST_SLUG = ''
 
-function getPost() {
+function getPost(start_permlink='') {
   hiveTx
-    .call('condenser_api.get_discussions_by_created', [{tag:"", limit: 100}])
+    .call('condenser_api.get_discussions_by_created', [{tag:"", limit: 100, start_permlink: start_permlink}])
     .then(res => {
       // skip posts < MIN_BODY_LENGTH chars in length
       var posts = res.result
@@ -21,9 +20,12 @@ function getPost() {
       const post = posts[Math.floor(Math.random() * posts.length)];
       console.log(post)
 
-      CURRENT_POST_SLUG = `/@${post.author}/${post.permlink}`
-      document.querySelector('a#peakd').href = `https://peakd.com${CURRENT_POST_SLUG}`
-      document.querySelector('a#hiveblog').href = `https://hive.blog${CURRENT_POST_SLUG}`
+      document.querySelector('button.next').onclick = () => {
+        const permlink = post.permlink
+        getPost(permlink)
+      }
+      document.querySelector('a#peakd').href = `https://peakd.com/@${post.author}/${post.permlink}`
+      document.querySelector('a#hiveblog').href = `https://hive.blog/@${post.author}/${post.permlink}`
       
 
       var converter = new showdown.Converter()
