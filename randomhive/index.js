@@ -14,45 +14,93 @@ function getPost(start_permlink='') {
       // nsfw category filters
       posts = posts.filter(item => !['porn','dporn','xxx','nsfw'].includes(item.category) )
       
-
       console.log(`${posts.length} posts`)
 
       const post = posts[Math.floor(Math.random() * posts.length)];
-      console.log(post)
+      //console.log(post)
 
+      // update button actions
       document.querySelector('button.next').onclick = () => {
         const permlink = post.permlink
         getPost(permlink)
       }
       document.querySelector('a#peakd').href = `https://peakd.com/@${post.author}/${post.permlink}`
       document.querySelector('a#hiveblog').href = `https://hive.blog/@${post.author}/${post.permlink}`
-      
+      document.querySelector('button#upvote').onclick = () => {
+        var accountName = window.localStorage.getItem('hiveaccount')
+        if (!accountName) {
+          console.log('Sign in first.')
+          return
+        }
 
+        const permlink = post.permlink
+        const author = post.author
+        const weight = 10000
+
+        hive_keychain.requestVote(
+          accountName,
+          permlink,
+          author,
+          weight,
+          function(response) {
+            console.log(response);
+          }
+        )
+      }
+
+      // prepare blog post content for display
+      var text = `# ${post.title}\n${post.body}`
+      text.replace('# ![','![')
+
+      // fix images missing markup
+      text.replace(/[^(]+(http.*\.(png|jpg|jpeg|gif|svg))[^)]+/g, '![$1]($1)')
+
+
+      // convert markdown to HTML
       var converter = new showdown.Converter()
       converter.setFlavor('github')
       converter.setOption('openLinksInNewWindow', true)
       converter.setOption('simplifiedAutoLink', true)
-      var text          = `# ${post.title}\n${post.body}`
-      text.replace('# ![','![')
-
-      // if images missing markup
-      text.replace(/^[^(]+(http.*\.(png|jpg|jpeg|gif|svg))[^)]+$/g, '![$1]($1)')
-
+      
       var html = converter.makeHtml(text)
       html += '<br><br>'
 
       document.querySelector('div#hr-content').innerHTML = html
       //document.querySelector('div#hr-content-md').innerHTML = text
       Array.from(document.querySelectorAll('div#hr-content img')).forEach(img => {
+        // scale images to fit
         img.className = 'w-100'
+        // lazy load images to improve performance
         img.loading = 'lazy'
       })
   })  
 }
 
+
+// handle loading events
 document.onload = getPost()
 document.querySelector('button.next').onclick = getPost
 
+
+// handle sign in events
+function toggleSigninUIState(signedIn) {
+  if (signedIn) {
+    document.querySelector('div#signin-container').style.display = 'none'
+    document.querySelector('div#signout-container').style.display = 'block'
+    document.querySelector('#upvote').disabled = false
+  } else {
+    document.querySelector('div#signin-container').style.display = 'block'
+    document.querySelector('div#signout-container').style.display = 'none'
+    document.querySelector('#upvote').disabled = true
+  }
+}
+
+if (window.localStorage.getItem('hiveaccount')) {
+  // already signed in 
+  toggleSigninUIState(true) 
+} else {
+  toggleSigninUIState(false)
+}
 
 document.querySelector('form#signin').onsubmit = (event) => {
   accountName = event.srcElement[0].value
@@ -66,12 +114,14 @@ document.querySelector('form#signin').onsubmit = (event) => {
     'test',
     'Posting',
     (response) => {
-      console.log('js response requestSignBuffer')
       console.log(response)
 
       if (response.success) {
-        document.querySelector('div#signin-container').style.display = 'none'
-        document.querySelector('div#signout-container').style.display = 'block'
+        toggleSigninUIState(true)
+        localStorage = window.localStorage
+        localStorage.setItem('hiveaccount', accountName)
+      } else {
+        console.log('Sign in error. Please check hive keychain.')
       }
     }
   )
@@ -79,15 +129,13 @@ document.querySelector('form#signin').onsubmit = (event) => {
   return false
 }
 
-document.querySelector('button#upvote').onclick = () => {
-  hive_keychain.requestVote(
-    $("#vote_username").val(),
-    $("#vote_perm").val(),
-    $("#vote_author").val(),
-    $("#vote_weight").val(),
-    function(response) {
-      console.log("main js response - vote");
-      console.log(response);
-    }
-  )
+// handle sign out events
+document.querySelector('#signout').onclick = (event) => {
+  
+  localStorage = window.localStorage
+  if (localStorage.getItem('hiveaccount')) {
+    localStorage.removeItem('hiveaccount')
+  }
+
+  toggleSigninUIState(false)
 }
