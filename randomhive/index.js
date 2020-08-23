@@ -1,6 +1,6 @@
 // index.js
 
-hiveTx.config.node = 'https://anyx.io'
+hiveTx.config.node = 'https://api.hive.blog'
 
 const MIN_BODY_LENGTH   = 250
 
