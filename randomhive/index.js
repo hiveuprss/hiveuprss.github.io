@@ -12,6 +12,10 @@ function getPost() {
       // skip posts < MIN_BODY_LENGTH chars in length
       var posts = res.result
       posts = posts.filter(item => item.body_length >= MIN_BODY_LENGTH)
+      // nsfw category filters
+      posts = posts.filter(item => !['porn','dporn','xxx','nsfw'].includes(item.category) )
+      
+
       console.log(`${posts.length} posts`)
 
       const post = posts[Math.floor(Math.random() * posts.length)];
