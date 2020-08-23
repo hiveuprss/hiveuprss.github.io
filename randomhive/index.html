@@ -19,18 +19,24 @@
 
   		</div>
   		<div class="row"> <!-- CONTENT -->
-  			<div class="col-md-2"></div>
-  			<div class="col-md-6" id="hr-content">
+  			<!--<div class="col-md-2"></div>-->
+  			<div class="col-lg-8" id="hr-content">
   			</div>
-  			<div class="col-md-2">
-				<div class="container float-right" style="display:none">
+  			<div class="col-sm-3" id="hr-content-md">
+				<div id="signin-container" class="container float-right">
 	  				<span class="badge badge-light">Login</span>
-	  				<div class="input-group mb-3">
-					  <div class="input-group-prepend">
-					    <span class="input-group-text" id="basic-addon1">@</span>
-					  </div>
-					  <input type="text" class="form-control" placeholder="Username" aria-label="Username">
-					</div>
+	  				<form id="signin">
+		  				<div class="input-group mb-3">
+						  <div class="input-group-prepend">
+						    <span class="input-group-text" id="basic-addon1">@</span>
+						  </div>
+						  <input type="text" class="form-control" placeholder="Username" aria-label="Username">
+						  <button class="btn btn-primary" type="submit"><i class="fas fa-sign-in-alt"></i></button>
+						</div>
+					</form>
+				</div>
+				<div id="signout-container" class="container float-right" style="display: none">
+					<button class="btn btn-primary" type="submit"><i class="fas fa-sign-out-alt"></i></button>
 				</div>
 			</div>
 		</div>
