@@ -88,7 +88,7 @@ function getApp(operation) {
       } else if (id.includes('ssc-mainnet-hive')) {
         return 'HE'
       } else {
-        return 'Unkown'
+        return 'Unknown'
       }
 
     }
@@ -148,7 +148,7 @@ function runLoop () {
           //console.log(`${id} - ${app}`)
 
           if (getApp(tx.operations[0]) == 'Unknown') {
-            console.log(`Unkown app`)
+            console.log(`Unknown app`)
             console.log(tx.operations[0])
           }
         } else {
