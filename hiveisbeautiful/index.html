@@ -1,0 +1,186 @@
+<!-- <!DOCTYPE html> -->
+<meta charset="utf-8">
+<head>
+  <title>Hive is Beautiful</title>
+    <link rel="stylesheet" href="thirdparty/bootstrap.min.css">
+  	<link rel="stylesheet" href="thirdparty/fontawesome/css/all.min.css">
+ 	<script src="thirdparty/jquery-3.4.0.min.js"></script>
+ 	<script src="thirdparty/bootstrap.min.js"></script>
+  	<script defer src="thirdparty/fontawesome/js/all.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@hiveio/hive-js/dist/hive.min.js"></script>
+</head>
+
+<style>
+.orange{
+  fill: #FFD166;
+}
+.green{
+  fill: #06D6A0;
+}
+.blue {
+  fill: #118AB2;
+}
+.red {
+  fill: #EF476F;
+}
+.black {
+  fill: #073B4C;
+}
+.center {
+	display: block;
+	margin: auto;"
+}
+</style>
+
+<body>
+  <div class="row"><br></div>
+  <div class="row">
+  	<div class="col-md-2 center"><h1><span class="badge badge-light" id="blockNum"></span></h1></div>
+  </div>
+  <div id="content">
+    <svg width="800" height="800" class="center">
+    </svg>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.2.2/d3.min.js"></script>
+
+
+  <script>
+
+	var width = 800, height = 800
+	
+	var nodes = []
+
+	var simulation = d3.forceSimulation(nodes)
+	  .force('charge', d3.forceManyBody().strength(1))
+	  .force('center', d3.forceCenter(width / 2, height / 2))
+	  .force('collision', d3.forceCollide().radius(function(d) {
+	    return d.radius * 1.5
+	  }))
+	  .on('tick', ticked);
+
+
+	function ticked() {
+	  var u = d3.select('svg')
+	    .selectAll('circle')
+	    .data(nodes)
+
+	  u.enter()
+	  	.append('circle')
+	    .attr("class", function (d) {
+	    	return d.color
+	    })
+	    .attr('r', function(d) {
+	      return d.radius
+	    })
+	    .merge(u)
+	    .attr('cx', function(d) {
+	      return d.x
+	    })
+	    .attr('cy', function(d) {
+	      return d.y
+	    })
+
+	  u.exit().remove()
+	}
+
+
+function drawNodes (transactions) {
+	nodes = []
+	app = ''
+
+	transactions.forEach( tx => {
+		var op = tx.operations[0][0]
+		if (op == 'custom_json') {
+			var json = tx.operations[0][1].json
+		  	var app = JSON.parse(json).app
+		  	if (app) {
+		  		app = app.split('/')[0]
+		  	}			
+		}
+		//console.log(op)
+		nodes.push({radius: 30, name: op, color: getNodeColor(op, app)})
+	})
+
+	//simulation.stop();
+                
+  	simulation.nodes(nodes);
+
+  	simulation.alpha(1);
+              
+  	//simulation.restart();
+}
+
+
+function getNodeColor(operation, app) {
+	if (app && (app == 'steemmonsters' || app == 'splinterlands')) {
+		return 'green'
+	}
+
+	if (operation == 'vote') {
+		return 'red'
+	} else if (operation == 'custom_json') {
+		return 'orange'
+	} else if (operation == 'post') {
+		return 'blue'
+	} else {
+		return 'black'
+	}
+}
+
+
+/*function addNode(operation, app) {
+	nodes.push({radius: 20, name: operation, color: getNodeColor(operation, app)})
+	simulation.nodes(nodes);
+  	simulation.alpha(1);
+}
+
+
+hive.api.streamOperations(function(err, operations) {
+	console.log(operations[0]);
+    addNode(operations[0])
+})*/
+
+
+
+setInterval( () => {
+	hive.api.getDynamicGlobalProperties(function(err, result) {
+	  //console.log(err, result.head_block_number)
+	  var blockNum = result.head_block_number
+	  document.querySelector('#blockNum').innerText = `Hive Block #: ${blockNum}`
+	  hive.api.getBlock(blockNum, function(err, result) {
+		  //console.log(err, result);
+
+		  var block = result
+		  drawNodes(block.transactions)
+
+
+		  block.transactions.forEach( (tx) => {
+		  	if (tx.operations[0][0] == 'custom_json') {
+	 		  	var id = tx.operations[0][1].id
+			  	var json = tx.operations[0][1].json
+			  	var app = JSON.parse(json).app
+			  	if (app) {
+			  		app = app.split('/')[0]
+			  	}
+			  	console.log(`${id} - ${app}`)
+		  	} else {
+		  		console.log(tx.operations[0][0])
+		  	}
+
+		  })
+		});
+	})
+},
+3000)
+
+
+
+
+
+
+
+
+  </script>
+</body>
+</html>
