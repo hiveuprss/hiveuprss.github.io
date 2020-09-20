@@ -187,6 +187,14 @@ function runLoop () {
     
     var blockNum = result.head_block_number
     console.log(document.querySelector('#blockNum').data)
+
+    // don't repeat blocks
+    if (document.querySelector('#blockNum').data == blockNum) {
+      // skip this one
+      return
+    }
+
+
     document.querySelector('#blockNum').innerText = `${blockNum}`
     document.querySelector('#blockNum').data = blockNum
     hive.api.getBlock(blockNum, function(err, result) {
@@ -197,6 +205,11 @@ function runLoop () {
       }
 
       var block = result
+      // check if the block looks okay
+      if (!block.transactions) {
+        return
+      }
+
       drawNodes(block.transactions)
       updateData()
 
@@ -219,4 +232,4 @@ runLoop()
 setInterval( () => {
   runLoop()
 },
-2900)
+1000)
