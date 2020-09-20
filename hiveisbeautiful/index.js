@@ -111,6 +111,8 @@ function getLabel(operation) {
         return 'Community'
       } else if (id.includes('esteem_')) {
         return 'Ecency'
+      } else if (id == 'rabona') {
+        return 'Rabona'
       } else {
         return 'Other'
       }
