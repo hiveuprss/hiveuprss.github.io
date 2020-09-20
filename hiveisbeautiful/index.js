@@ -136,9 +136,9 @@ function getNodeColor(label) {
     return 'red'
   } else if (label == 'Other') {
     return 'gray'
-  } else if (label == 'post') {
+  } else if (label == 'Post') {
     return 'lightblue'
-  } else if (label == 'comment') {
+  } else if (label == 'Comment') {
     return 'yellow-orange'
   } else if (label == 'CBM') {
     return 'lightgreen'
