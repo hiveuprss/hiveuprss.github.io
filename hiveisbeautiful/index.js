@@ -38,6 +38,14 @@ function updateData() {
         .text(function(d) { return d.label })
         //.style("stroke", "black") 
         .style("font-size", '17px')
+
+        // Add image to node
+        /*d3.select(this).append("svg:image")
+        .attr('x', -9)
+        .attr('y', -12)
+        .attr('width', 20)
+        .attr('height', 24)
+        .attr("xlink:href", "assets/splinterlands.png")*/
       })
 
   u.exit().remove()
@@ -113,6 +121,8 @@ function getLabel(operation) {
         return 'Rabona'
       } else if (id == 'sensorlog') {
         return 'Kinoko'
+      } else if (id == 'actifit') {
+        return 'Actifit'
       } else {
         return 'Other'
       }
@@ -233,4 +243,4 @@ runLoop()
 setInterval( () => {
   runLoop()
 },
-1000)
+2000)
