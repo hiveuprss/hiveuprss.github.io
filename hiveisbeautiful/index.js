@@ -166,7 +166,6 @@ hive.api.streamOperations(function(err, operations) {
     addNode(operations[0])
 })*/
 
-
 function runLoop () {
   /*hive.api.getAccounts(['mahdiyari'], function(err, response){
       //console.log(err, response);
@@ -206,7 +205,7 @@ function runLoop () {
 
       var block = result
       // check if the block looks okay
-      if (!block.transactions) {
+      if (!block || !block.transactions) {
         return
       }
 
