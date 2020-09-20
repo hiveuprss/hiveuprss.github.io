@@ -1,5 +1,5 @@
 
-var width = 800, height = 800
+var width = 800, height = 700
 
 var nodes = []
 
@@ -11,7 +11,7 @@ var simulation = d3.forceSimulation(nodes)
   .force('charge', d3.forceManyBody().strength(5))
   .force('center', d3.forceCenter(width / 2, height / 2))
   .force('collision', d3.forceCollide().radius(function(d) {
-    return d.radius * 1.5
+    return d.radius * 1.25
   }))
   .on('tick', ticked);
 
@@ -35,11 +35,9 @@ function updateData() {
           return d.label.length / 2 * -9
         })
         .attr("dy", ".35em")
-        .text(function(d) { return d.label.replaceAll(' ','\n') })
-        .style("stroke", "black") 
-        .style("font-size", (d) => {
-          return `${clamp(35 / (d.label.length / 2.5), 15, 25)}px`
-        })
+        .text(function(d) { return d.label })
+        //.style("stroke", "black") 
+        .style("font-size", '17px')
       })
 
   u.exit().remove()
@@ -67,7 +65,7 @@ function drawNodes (transactions) {
   transactions.forEach( tx => {
     var label = getLabel(tx.operations[0])
     var color = getNodeColor(label)
-    var radius = clamp(label.length * 5, 30, 40)
+    var radius = clamp(label.length * 6.25, 30, 40)
 
     nodes.push({radius: radius, label: label, color: color})
   })
@@ -89,18 +87,26 @@ function getLabel(operation) {
       var app = json.app
       
 
-      if (app && (app.includes('steemmonsters') || app.includes('splinterlands')) || id.includes('sm_')) {
-        return 'SL'
+      if (app && (app.includes('steemmonsters') || app.includes('splinterlands')) || id.includes('sm_') || id.includes('pm_')) {
+        return 'Splint'
       } else if (id.includes('cbm_')){
         return 'CBM'
       } else if (id.includes('ssc-mainnet-hive') || id == 'scot_claim_token') {
         return 'H-Engine'
-      } else if (json.game == 'Battle for Pigs') {
-        return 'Piggericks'
+      } else if (json.game == 'Battle for Pigs' || id.includes('gmreq_') || id =='game_rewards/1' || id == 'pig_upgrade/1') {
+        return 'Piggies'
       } else if (id.includes('exode')) {
         return 'Exode'
+      } else if (id.includes('hb_')) {
+        return 'Holybread'
       } else if (id == 'GameSeed') {
         return 'KryptoGames'
+      } else if (id == 'notify') {
+        return 'Notify'
+      } else if (id == 'follow') {
+        return 'Follow'
+      } else if (id.includes('dlux_')) {
+        return 'Dlux'
       } else {
         return 'Other'
       }
@@ -112,28 +118,34 @@ function getLabel(operation) {
         return 'Downvote'
       }
   } else {
-    return operation[0].split('_')[0]
+    label = operation[0].split('_')[0]
+    label = label.charAt(0).toUpperCase() + label.slice(1);
+    return label
   }
 }
 
 
 function getNodeColor(label) {
-  if (label == 'SL') {
+  if (label == 'Splint') {
     return 'green'
   } else if (label == 'Upvote') {
     return 'blue'
   } else if (label == 'Downvote') {
     return 'red'
   } else if (label == 'Other') {
-    return 'orange'
+    return 'gray'
   } else if (label == 'post') {
-    return 'blue'
+    return 'lightblue'
+  } else if (label == 'comment') {
+    return 'yellow-orange'
   } else if (label == 'CBM') {
-    return 'green'
+    return 'lightgreen'
   } else if (label == 'H-Engine') {
-    return 'red'
+    return 'yellow'
+  } else if (label == 'Piggies') {
+    return 'bluegreen'
   } else {
-    return 'orange'
+    return 'gray'
   }
 }
 
@@ -153,9 +165,14 @@ hive.api.streamOperations(function(err, operations) {
 
 function runLoop () {
   hive.api.getDynamicGlobalProperties(function(err, result) {
-    //console.log(err, result.head_block_number)
+    //console.log(err, result)
+
+    var currentWitness = result.current_witness;
+    document.querySelector('#currentWitness').innerText = `${currentWitness}`
+    
     var blockNum = result.head_block_number
-    document.querySelector('#blockNum').innerText = `Hive Block #${blockNum}`
+    document.querySelector('#blockNum').innerText = `${blockNum}`
+    document.querySelector('#blockNum').data = blockNum
     hive.api.getBlock(blockNum, function(err, result) {
       //console.log(err, result);
 
@@ -182,4 +199,4 @@ runLoop()
 setInterval( () => {
   runLoop()
 },
-2750)
+2900)

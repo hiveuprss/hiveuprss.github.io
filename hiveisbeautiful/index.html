@@ -12,20 +12,33 @@
 </head>
 
 <style>
-.orange{
-  fill: #FFD166;
-}
-.green{
-  fill: #06D6A0;
-}
+
 .blue {
-  fill: #118AB2;
+  fill: #277da1ff;
+}
+.gray {
+  fill: #577590ff;
+}
+.bluegreen {
+  fill: #4d908eff;
+}
+.yellow-orange{
+  fill: #f8961eff;
+}
+.orange{
+  fill: #f3722cff;
 }
 .red {
-  fill: #EF476F;
+  fill: #f94144ff;
 }
-.black {
-  fill: #073B4C;
+.yellow {
+  fill: #f9c74fff;
+}
+.lightgreen {
+  fill: #90be6dff;
+}
+.green {
+  fill: #43aa8bff;
 }
 .center {
 	display: block;
@@ -35,16 +48,28 @@
 
 <body>
   <div class="row">
-  	<div class="col-md-2 center"><h1><span class="badge">Hive is Beautiful!</span></h1></div>
+  	<div class="center"><h1><span class="badge">Hive is Beautiful!</span></h1></div>
   </div>
   <div class="row">
-  	<div class="col-md-2 center"><h2><span class="badge" id="blockNum">Hive Block #</span></h2></div>
+  	<div class="center"><h2><span class="badge">Hive Block #</span><span class="label label-primary" id="blockNum">#</span></h2></div>
   </div>
-  <div id="content">
-    <svg width="800" height="800" class="center">
-    </svg>
+  <div class="row">
+  	<div class="center"><h6>Witness: </span><span class="label label-primary" id="currentWitness">#</span></h6></div>
   </div>
-
+  <div class="row">
+	  <div id="content" class="center">
+	    <svg width="800" height="700" class="center">
+	    </svg>
+	  </div>
+  </div>
+  <div class="row">
+   <div class="col-md-6 center" style="text-align: center;">Every 3 seconds an immutable Hive block is forged, and this page shows the contents of every block in real-time. <br><br>
+   Each immutable block is verified and linked to a chain of millions of older blocks. <br>A blockchain.</div>
+   <br><br>
+  </div>
+  <div class="row">
+	<span class="badge badge-light">Brought to you by <a href="https://peakd.com/@hivetrending">@HiveTrending</a></span>
+  </div>
   <script src="index.js"></script>
 </body>
 </html>
