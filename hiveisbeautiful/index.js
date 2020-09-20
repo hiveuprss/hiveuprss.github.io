@@ -70,13 +70,11 @@ function drawNodes (transactions) {
     nodes.push({radius: radius, label: label, color: color})
   })
 
-  //simulation.stop();
-                
+    simulation.stop();
     simulation.nodes(nodes);
-
-    simulation.alpha(1);
-              
-    //simulation.restart();
+    // heat it up
+    simulation.alpha(1);          
+    simulation.restart();
 }
 
 function getLabel(operation) {
@@ -113,6 +111,8 @@ function getLabel(operation) {
         return 'Ecency'
       } else if (id == 'rabona') {
         return 'Rabona'
+      } else if (id == 'sensorlog') {
+        return 'Kinoko'
       } else {
         return 'Other'
       }
