@@ -1,13 +1,17 @@
 
 var width = 800, height = 800
 
-var nodes = [{radius: 30, name: 'abc', color: 'green'}]
+var nodes = []
+
+function clamp(num, min, max) {
+  return num <= min ? min : num >= max ? max : num;
+}
 
 var simulation = d3.forceSimulation(nodes)
   .force('charge', d3.forceManyBody().strength(5))
   .force('center', d3.forceCenter(width / 2, height / 2))
   .force('collision', d3.forceCollide().radius(function(d) {
-    return d.radius * 1.25
+    return d.radius * 1.5
   }))
   .on('tick', ticked);
 
@@ -27,9 +31,15 @@ function updateData() {
         })
 
         d3.select(this).append("text")
-        .attr("dx", -20)
+        .attr('dx', (d) => {
+          return d.label.length / 2 * -9
+        })
         .attr("dy", ".35em")
-        .text(function(d) { return d.name });
+        .text(function(d) { return d.label.replaceAll(' ','\n') })
+        .style("stroke", "black") 
+        .style("font-size", (d) => {
+          return `${clamp(35 / (d.label.length / 2.5), 15, 25)}px`
+        })
       })
 
   u.exit().remove()
@@ -55,12 +65,11 @@ function drawNodes (transactions) {
   app = ''
 
   transactions.forEach( tx => {
-    var op = tx.operations[0][0]
-    var app = getApp(tx.operations[0])
+    var label = getLabel(tx.operations[0])
+    var color = getNodeColor(label)
+    var radius = clamp(label.length * 5, 30, 40)
 
-    var label = app ? app : op
-
-    nodes.push({radius: 30, name: label, color: getNodeColor(op, app)})
+    nodes.push({radius: radius, label: label, color: color})
   })
 
   //simulation.stop();
@@ -72,42 +81,57 @@ function drawNodes (transactions) {
     //simulation.restart();
 }
 
-function getApp(operation) {
+function getLabel(operation) {
   if (operation[0] == 'custom_json') {
       var id = operation[1].id
       var json = operation[1].json
-      var app = JSON.parse(json).app
-      if (app) {
-        app = app.split('/')[0]
-      }
+      var json = JSON.parse(json)    
+      var app = json.app
+      
 
-      if (app == 'steemmonsters' || app == 'splinterlands' || id.includes('sm_')) {
+      if (app && (app.includes('steemmonsters') || app.includes('splinterlands')) || id.includes('sm_')) {
         return 'SL'
       } else if (id.includes('cbm_')){
-        return 'CBM'
-      } else if (id.includes('ssc-mainnet-hive')) {
-        return 'HE'
+        return 'Crypto Brew Master'
+      } else if (id.includes('ssc-mainnet-hive') || id == 'scot_claim_token') {
+        return 'Hive Engine'
+      } else if (json.game == 'Battle for Pigs') {
+        return 'Piggericks'
+      } else if (id.includes('exode')) {
+        return 'Exode'
+      } else if (id == 'GameSeed') {
+        return 'KryptoGames'
       } else {
-        return 'Unknown'
+        return 'Other JSON'
       }
-
     }
+  else if (operation[0] == 'vote') {
+      if (operation[1].weight > 0) {
+        return 'Upvote'
+      } else {
+        return 'Downvote'
+      }
+  } else {
+    return operation[0].split('_')[0]
+  }
 }
 
 
-function getNodeColor(operation, app) {
-  if (app && (app == 'SL')) {
+function getNodeColor(label) {
+  if (label == 'SL') {
     return 'green'
-  }
-
-  if (operation == 'vote') {
-    return 'red'
-  } else if (operation == 'custom_json') {
-    return 'orange'
-  } else if (operation == 'post') {
+  } else if (label == 'Upvote') {
     return 'blue'
+  } else if (label == 'Downvote') {
+    return 'red'
+  } else if (label == 'Other JSON') {
+    return 'orange'
+  } else if (label == 'post') {
+    return 'blue'
+  } else if (label == 'Crypto Brew Master') {
+    return 'green'
   } else {
-    return 'black'
+    return 'orange'
   }
 }
 
@@ -139,22 +163,12 @@ function runLoop () {
 
       block.transactions.forEach( (tx) => {
         if (tx.operations[0][0] == 'custom_json') {
-          var id = tx.operations[0][1].id
-          var json = tx.operations[0][1].json
-          var app = JSON.parse(json).app
-          if (app) {
-            app = app.split('/')[0]
-          } 
-          //console.log(`${id} - ${app}`)
-
-          if (getApp(tx.operations[0]) == 'Unknown') {
+          // debugging code to identify unclassified apps
+          if (getLabel(tx.operations[0]) == 'Other JSON') {
             console.log(`Unknown app`)
             console.log(tx.operations[0])
           }
-        } else {
-          //console.log(tx.operations[0][0])
         }
-
       })
     });
   })
