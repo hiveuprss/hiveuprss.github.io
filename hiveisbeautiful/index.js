@@ -177,6 +177,10 @@ function runLoop () {
 
   hive.api.getDynamicGlobalProperties(function(err, result) {
     //console.log(err, result)
+    if (err) {
+      console.log(err)
+      return
+    }
 
     var currentWitness = result.current_witness;
     document.querySelector('#currentWitness').innerText = `${currentWitness}`
@@ -188,6 +192,7 @@ function runLoop () {
     hive.api.getBlock(blockNum, function(err, result) {
       //console.log(err, result);
       if (err) {
+        console.log(err)
         return
       }
 
