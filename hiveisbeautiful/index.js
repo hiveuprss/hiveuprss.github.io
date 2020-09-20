@@ -8,7 +8,7 @@ function clamp(num, min, max) {
 }
 
 var simulation = d3.forceSimulation(nodes)
-  .force('charge', d3.forceManyBody().strength(5))
+  .force('charge', d3.forceManyBody().strength(1))
   .force('center', d3.forceCenter(width / 2, height / 2))
   .force('collision', d3.forceCollide().radius(function(d) {
     return d.radius * 1.25
@@ -93,7 +93,7 @@ function getLabel(operation) {
         return 'CBM'
       } else if (id.includes('ssc-mainnet-hive') || id == 'scot_claim_token') {
         return 'H-Engine'
-      } else if (json.game == 'Battle for Pigs' || id.includes('gmreq_') || id == 'start_game/1' || id =='game_rewards/1' || id == 'pig_upgrade/1') {
+      } else if (json.game == 'Battle for Pigs' || id.includes('end_game/1') || id.includes('gmreq_') || id == 'start_game/1' || id =='game_rewards/1' || id == 'pig_upgrade/1' || id == 'fulfill_points/1') {
         return 'Piggies'
       } else if (id.includes('exode')) {
         return 'Exode'
@@ -109,6 +109,8 @@ function getLabel(operation) {
         return 'Dlux'
       } else if (id == 'community') {
         return 'Community'
+      } else if (id.includes('esteem_')) {
+        return 'Ecency'
       } else {
         return 'Other'
       }
@@ -185,6 +187,9 @@ function runLoop () {
     document.querySelector('#blockNum').data = blockNum
     hive.api.getBlock(blockNum, function(err, result) {
       //console.log(err, result);
+      if (err) {
+        return
+      }
 
       var block = result
       drawNodes(block.transactions)
