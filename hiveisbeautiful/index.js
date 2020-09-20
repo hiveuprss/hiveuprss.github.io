@@ -99,7 +99,7 @@ function getLabel(operation) {
         return 'CBM'
       } else if (id.includes('ssc-mainnet-hive') || id == 'scot_claim_token') {
         return 'H-Engine'
-      } else if (id == 'game_request/1' || id == 'pack_purchase/1' || id == 'confirm_order/1' || id == 'fulfill_pigs/1' || id == 'end_game/1' || id.includes('gmreq_') || id == 'start_game/1' || id =='game_rewards/1' || id == 'pig_upgrade/1' || id == 'fulfill_points/1') {
+      } else if (id =='reject_order/1' || id == 'game_request/1' || id == 'pack_purchase/1' || id == 'confirm_order/1' || id == 'fulfill_pigs/1' || id == 'end_game/1' || id.includes('gmreq_') || id == 'start_game/1' || id =='game_rewards/1' || id == 'pig_upgrade/1' || id == 'fulfill_points/1') {
         return 'Piggies'
       } else if (id.includes('exode')) {
         return 'Exode'
@@ -183,7 +183,7 @@ hive.api.streamOperations(function(err, operations) {
   console.log(operations[0]);
     addNode(operations[0])
 })*/
-hive.api.setOptions({url: "https://anyx.io/"})
+hive.api.setOptions({url: "https://api.pharesim.me/"})
 
 function runLoop () {
   /*hive.api.getAccounts(['mahdiyari'], function(err, response){
