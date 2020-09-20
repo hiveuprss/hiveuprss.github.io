@@ -107,6 +107,8 @@ function getLabel(operation) {
         return 'Follow'
       } else if (id.includes('dlux_')) {
         return 'Dlux'
+      } else if (id == 'community') {
+        return 'Community'
       } else {
         return 'Other'
       }
@@ -171,6 +173,7 @@ function runLoop () {
     document.querySelector('#currentWitness').innerText = `${currentWitness}`
     
     var blockNum = result.head_block_number
+    console.log(document.querySelector('#blockNum').data)
     document.querySelector('#blockNum').innerText = `${blockNum}`
     document.querySelector('#blockNum').data = blockNum
     hive.api.getBlock(blockNum, function(err, result) {
