@@ -92,9 +92,9 @@ function getLabel(operation) {
       if (app && (app.includes('steemmonsters') || app.includes('splinterlands')) || id.includes('sm_')) {
         return 'SL'
       } else if (id.includes('cbm_')){
-        return 'Crypto Brew Master'
+        return 'CBM'
       } else if (id.includes('ssc-mainnet-hive') || id == 'scot_claim_token') {
-        return 'Hive Engine'
+        return 'H-Engine'
       } else if (json.game == 'Battle for Pigs') {
         return 'Piggericks'
       } else if (id.includes('exode')) {
@@ -102,7 +102,7 @@ function getLabel(operation) {
       } else if (id == 'GameSeed') {
         return 'KryptoGames'
       } else {
-        return 'Other JSON'
+        return 'Other'
       }
     }
   else if (operation[0] == 'vote') {
@@ -124,12 +124,14 @@ function getNodeColor(label) {
     return 'blue'
   } else if (label == 'Downvote') {
     return 'red'
-  } else if (label == 'Other JSON') {
+  } else if (label == 'Other') {
     return 'orange'
   } else if (label == 'post') {
     return 'blue'
-  } else if (label == 'Crypto Brew Master') {
+  } else if (label == 'CBM') {
     return 'green'
+  } else if (label == 'H-Engine') {
+    return 'red'
   } else {
     return 'orange'
   }
@@ -164,7 +166,7 @@ function runLoop () {
       block.transactions.forEach( (tx) => {
         if (tx.operations[0][0] == 'custom_json') {
           // debugging code to identify unclassified apps
-          if (getLabel(tx.operations[0]) == 'Other JSON') {
+          if (getLabel(tx.operations[0]) == 'Other') {
             console.log(`Unknown app`)
             console.log(tx.operations[0])
           }
