@@ -93,7 +93,7 @@ function getLabel(operation) {
         return 'CBM'
       } else if (id.includes('ssc-mainnet-hive') || id == 'scot_claim_token') {
         return 'H-Engine'
-      } else if (json.game == 'Battle for Pigs' || id.includes('gmreq_') || id =='game_rewards/1' || id == 'pig_upgrade/1') {
+      } else if (json.game == 'Battle for Pigs' || id.includes('gmreq_') || id == 'start_game/1' || id =='game_rewards/1' || id == 'pig_upgrade/1') {
         return 'Piggies'
       } else if (id.includes('exode')) {
         return 'Exode'
@@ -166,6 +166,13 @@ hive.api.streamOperations(function(err, operations) {
 
 
 function runLoop () {
+  /*hive.api.getAccounts(['mahdiyari'], function(err, response){
+      //console.log(err, response);
+
+      var profile_image = JSON.parse(response[0].json_metadata).profile.profile_image
+      //console.log(profile_image)
+  });*/
+
   hive.api.getDynamicGlobalProperties(function(err, result) {
     //console.log(err, result)
 
