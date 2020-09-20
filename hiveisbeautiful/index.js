@@ -94,12 +94,12 @@ function getLabel(operation) {
       
 
       if (app && (app.includes('steemmonsters') || app.includes('splinterlands')) || id.includes('sm_') || id.includes('pm_')) {
-        return 'Splint'
+        return 'SL'
       } else if (id.includes('cbm_')){
         return 'CBM'
       } else if (id.includes('ssc-mainnet-hive') || id == 'scot_claim_token') {
         return 'H-Engine'
-      } else if (json.game == 'Battle for Pigs' || id.includes('confirm_order/1') || id.includes('fulfill_pigs/1') || id.includes('end_game/1') || id.includes('gmreq_') || id == 'start_game/1' || id =='game_rewards/1' || id == 'pig_upgrade/1' || id == 'fulfill_points/1') {
+      } else if (id == 'pack_purchase/1' || id == 'confirm_order/1' || id == 'fulfill_pigs/1' || id == 'end_game/1' || id.includes('gmreq_') || id == 'start_game/1' || id =='game_rewards/1' || id == 'pig_upgrade/1' || id == 'fulfill_points/1') {
         return 'Piggies'
       } else if (id.includes('exode')) {
         return 'Exode'
@@ -136,7 +136,9 @@ function getLabel(operation) {
         return 'Downvote'
       }
   } else {
+    // shorten the label
     label = operation[0].split('_')[0]
+    // capitalize first letter
     label = label.charAt(0).toUpperCase() + label.slice(1);
     return label
   }
@@ -144,7 +146,7 @@ function getLabel(operation) {
 
 
 function getNodeColor(label) {
-  if (label == 'Splint') {
+  if (label == 'SL') {
     return 'green'
   } else if (label == 'Upvote') {
     return 'blue'
@@ -156,9 +158,11 @@ function getNodeColor(label) {
     return 'lightblue'
   } else if (label == 'Comment') {
     return 'yellow-orange'
+  } else if (label == 'Transfer') {
+    return 'orange'
   } else if (label == 'CBM') {
     return 'lightgreen'
-  } else if (label == 'H-Engine') {
+  } else if (label == 'H-Engine' || label == 'Holybread') {
     return 'yellow'
   } else if (label == 'Piggies') {
     return 'bluegreen'
