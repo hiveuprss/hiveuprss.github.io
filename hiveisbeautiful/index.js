@@ -185,7 +185,7 @@ hive.api.streamOperations(function(err, operations) {
   console.log(operations[0]);
     addNode(operations[0])
 })*/
-hive.api.setOptions({url: "https://api.pharesim.me/"})
+hive.api.setOptions({url: "https://anyx.io/"})
 
 function runLoop () {
   /*hive.api.getAccounts(['mahdiyari'], function(err, response){
