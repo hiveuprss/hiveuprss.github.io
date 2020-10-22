@@ -127,6 +127,8 @@ function getLabel(operation) {
         return 'dCity'
       } else if (id.includes('lensy_')) {
         return 'Lensy'
+      } else if (id == 'beacon_custom_json') {
+        return 'PeakD'
       } else {
         return 'Other'
       }
