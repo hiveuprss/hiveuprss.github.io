@@ -175,52 +175,40 @@ function getNodeColor(label) {
   }
 }
 
+hive.api.setOptions({url: "https://api.pharesim.me/"})
 
-/*function addNode(operation, app) {
-  nodes.push({radius: 20, name: operation, color: getNodeColor(operation, app)})
-  simulation.nodes(nodes);
-    simulation.alpha(1);
-}
+// Get the current blocknum
+hive.api.getDynamicGlobalProperties(function(err, result) {
+  if (err) {
+    console.log(err)
+    return
+  }
 
+  var currentWitness = result.current_witness;
+  document.querySelector('#currentWitness').innerText = `${currentWitness}`
 
-hive.api.streamOperations(function(err, operations) {
-  console.log(operations[0]);
-    addNode(operations[0])
-})*/
-hive.api.setOptions({url: "https://anyx.io/"})
+  var blockNum = result.head_block_number
+  document.querySelector('#blockNum').innerText = `${blockNum}`
+  document.querySelector('#blockNum').data = blockNum
+
+})
+
 
 function runLoop () {
-  /*hive.api.getAccounts(['mahdiyari'], function(err, response){
-      //console.log(err, response);
 
-      var profile_image = JSON.parse(response[0].json_metadata).profile.profile_image
-      //console.log(profile_image)
-  });*/
-
-  hive.api.getDynamicGlobalProperties(function(err, result) {
-    //console.log(err, result)
-    if (err) {
-      console.log(err)
+    var blockNum = document.querySelector('#blockNum').data
+    if(!blockNum) {
+      console.log('Failed to find block')
       return
     }
 
-    var currentWitness = result.current_witness;
-    document.querySelector('#currentWitness').innerText = `${currentWitness}`
-    
-    var blockNum = result.head_block_number
-    console.log(document.querySelector('#blockNum').data)
+    console.log(blockNum)
 
     // don't repeat blocks
-    if (document.querySelector('#blockNum').data == blockNum) {
-      // skip this one
-      return
-    }
 
-
-    document.querySelector('#blockNum').innerText = `${blockNum}`
-    document.querySelector('#blockNum').data = blockNum
     hive.api.getBlock(blockNum, function(err, result) {
       //console.log(err, result);
+      //console.log(blockNum)
       if (err) {
         console.log(err)
         return
@@ -244,13 +232,17 @@ function runLoop () {
           }
         }
       })
+
+
+      // if we succeeded so far, advance to next block
+      document.querySelector('#blockNum').data = `${parseInt(blockNum) + 1}`
+      document.querySelector('#blockNum').innerText = `${blockNum}`
     });
-  })
+
 }
 
 
-// run once then repeat every N ms
-runLoop()
+// repeat every N ms
 setInterval( () => {
   runLoop()
 },
