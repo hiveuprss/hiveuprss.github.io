@@ -91,6 +91,10 @@ function getLabel(operation) {
       var json = operation[1].json
       var json = JSON.parse(json)    
       var app = json.app
+
+      if (id == '' && json.prevServerSeed) {
+        return 'EpicDice'
+      }
       
 
       if (app && (app.includes('steemmonsters') || app.includes('splinterlands')) || id.includes('sm_') || id.includes('pm_')) {
