@@ -135,6 +135,8 @@ function getLabel(operation) {
         return 'PeakD'
       } else if (id.includes('nftsr_')) {
         return 'NFTSR'
+      } else if (id.includes('dominuus_')) {
+        return 'Dominuus'
       } else {
         return 'Other'
       }
