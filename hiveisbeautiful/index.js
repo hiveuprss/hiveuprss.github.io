@@ -210,8 +210,6 @@ function runLoop () {
 
     console.log(blockNum)
 
-    // don't repeat blocks
-
     hive.api.getBlock(blockNum, function(err, result) {
       //console.log(err, result);
       //console.log(blockNum)
@@ -243,6 +241,7 @@ function runLoop () {
       // if we succeeded so far, advance to next block
       document.querySelector('#blockNum').data = `${parseInt(blockNum) + 1}`
       document.querySelector('#blockNum').innerText = `${blockNum}`
+      document.querySelector('#currentWitness').innerText = `${block.witness}`
     });
 
 }
