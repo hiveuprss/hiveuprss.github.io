@@ -129,6 +129,8 @@ function getLabel(operation) {
         return 'Lensy'
       } else if (id == 'beacon_custom_json') {
         return 'PeakD'
+      } else if (id.includes('nftsr_')) {
+        return 'NFTSR'
       } else {
         return 'Other'
       }
