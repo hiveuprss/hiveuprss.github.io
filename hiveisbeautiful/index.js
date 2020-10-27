@@ -101,7 +101,7 @@ function getLabel(operation) {
         return 'SL'
       } else if (id.includes('cbm_')){
         return 'CBM'
-      } else if (id.includes('ssc-mainnet-hive') || id.includes('scot_')) {
+      } else if (id.includes('ssc-mainnet') || id.includes('scot_')) {
         return 'H-Engine'
       } else if (id == 'pigs_expired/1' || id =='reject_order/1' || id == 'game_request/1' || id == 'pack_purchase/1' || id == 'confirm_order/1' || id == 'fulfill_pigs/1' || id == 'end_game/1' || id.includes('gmreq_') || id == 'start_game/1' || id =='game_rewards/1' || id == 'pig_upgrade/1' || id == 'fulfill_points/1') {
         return 'Piggies'
