@@ -129,7 +129,7 @@ function getLabel(operation) {
         return 'Kinoko'
       } else if (id == 'actifit') {
         return 'Actifit'
-      } else if (id == 'dcity') {
+      } else if (id.includes('dcity')) {
         return 'dCity'
       } else if (id.includes('lensy_')) {
         return 'Lensy'
