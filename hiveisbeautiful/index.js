@@ -185,11 +185,17 @@ function getNodeColor(label) {
   }
 }
 
+document.querySelector('button#gotoblock').onclick = (e) => {
+  var blockNum = prompt("Enter block number:","NaN")
+  document.querySelector('#blockNum').data = `${parseInt(blockNum) + 1}`
+  document.querySelector('#blockNum').innerText = `${blockNum}`
+}
+
+
 hive.api.setOptions({url: "https://api.pharesim.me/"})
 
 // Get the current blocknum
 hive.api.getDynamicGlobalProperties(function(err, result) {
-  console.log
   if (err) {
     console.log(err)
     return
@@ -200,7 +206,7 @@ hive.api.getDynamicGlobalProperties(function(err, result) {
 
   var blockNum = result.head_block_number
   document.querySelector('#blockNum').innerText = `${blockNum}`
-  document.querySelector('#blockNum').data = blockNum
+  document.querySelector('#blockNum').data = `${blockNum}`
 })
 
 
@@ -243,12 +249,13 @@ function runLoop () {
 
 
       // if we succeeded so far, advance to next block
-      document.querySelector('#blockNum').data = `${parseInt(blockNum) + 1}`
-      document.querySelector('#blockNum').innerText = `${blockNum}`
-      document.querySelector('#currentWitness').innerText = `${block.witness}`
-      document.querySelector('#timestamp').innerText = `${block.timestamp}`
+      if (document.querySelector('#blockNum').data == `${parseInt(blockNum)}`) {
+        document.querySelector('#blockNum').data = `${parseInt(blockNum) + 1}`
+        document.querySelector('#blockNum').innerText = `${blockNum}`
+        document.querySelector('#currentWitness').innerText = `${block.witness}`
+        document.querySelector('#timestamp').innerText = `${block.timestamp}`        
+      }
     });
-
 }
 
 
@@ -256,4 +263,4 @@ function runLoop () {
 setInterval( () => {
   runLoop()
 },
-2000)
+3000)
