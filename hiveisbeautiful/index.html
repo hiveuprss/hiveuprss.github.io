@@ -1,4 +1,6 @@
 <!-- <!DOCTYPE html> -->
+<!-- Created by peakd.com/@hivetrending -->
+
 <meta charset="utf-8">
 <head>
   <title>Hive is Beautiful</title>
@@ -6,7 +8,7 @@
   	<link rel="stylesheet" href="thirdparty/fontawesome/css/all.min.css">
  	<script src="thirdparty/jquery-3.4.0.min.js"></script>
  	<script src="thirdparty/bootstrap.min.js"></script>
-  	<script defer src="thirdparty/fontawesome/js/all.js"></script>
+  	<script defer src="thirdparty/fontawesome/js/all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@hiveio/hive-js/dist/hive.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.2.2/d3.min.js"></script>
 </head>
@@ -48,20 +50,25 @@
 
 <body>
   <div class="row">
-  	<div class="center"><h1><span class="badge">Hive is Beautiful!</span></h1></div>
+  	<div class="center"><h2><span class="badge"><i class="fab fa-hive"></i></span><span class="badge">Hive Block #</span><span class="badge" id="blockNum">NaN</span></h2></div>
   </div>
   <div class="row">
-  	<div class="center"><h2><span class="badge">Hive Block #</span><span class="label label-primary" id="blockNum">#</span></h2></div>
+    <div class="center"><h6>Timestamp: </span><span class="label label-primary" id="timestamp">NaN</span></h6></div>
   </div>
   <div class="row">
-  	<div class="center"><h6>Witness: </span><span class="label label-primary" id="currentWitness">#</span></h6></div>
+  	<div class="center"><h6>Witness: </span><span class="label label-primary" id="currentWitness">NaN</span></h6></div>
   </div>
+  <div class="row" hidden>
+    <div class="center"><button><i class="fas fa-play"></i></button><button><i class="fas fa-pause"></i></button><button><i class="fas fa-search"></i></button></div>
+  </div>
+  <hr>
   <div class="row">
 	  <div id="content" class="center">
-	    <svg width="800" height="700" class="center">
+	    <svg id="viz" width="800" height="700" class="center">
 	    </svg>
 	  </div>
   </div>
+  <hr>
   <div class="row">
    <div class="col-md-6 center" style="text-align: center;">Every 3 seconds an immutable Hive block is forged. This page shows the contents of those blocks in real-time. <br><br>
    Each immutable block is verified and linked to a chain of millions of older blocks. <br>A blockchain.</div>

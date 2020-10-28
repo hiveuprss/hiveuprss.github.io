@@ -1,3 +1,5 @@
+// Created by peakd.com/@hivetrending
+
 
 var width = 800, height = 700
 
@@ -16,7 +18,7 @@ var simulation = d3.forceSimulation(nodes)
   .on('tick', ticked);
 
 function updateData() {
-  var u = d3.select('svg')
+  var u = d3.select('svg#viz')
     .selectAll('g')
     .data(nodes)
 
@@ -52,7 +54,7 @@ function updateData() {
 }
 
 function ticked() {
-    var node = d3.select('svg')
+    var node = d3.select('svg#viz')
     .selectAll('g')
 
     /*u.attr('cx', function(d) {
@@ -187,6 +189,7 @@ hive.api.setOptions({url: "https://api.pharesim.me/"})
 
 // Get the current blocknum
 hive.api.getDynamicGlobalProperties(function(err, result) {
+  console.log
   if (err) {
     console.log(err)
     return
@@ -198,7 +201,6 @@ hive.api.getDynamicGlobalProperties(function(err, result) {
   var blockNum = result.head_block_number
   document.querySelector('#blockNum').innerText = `${blockNum}`
   document.querySelector('#blockNum').data = blockNum
-
 })
 
 
@@ -244,6 +246,7 @@ function runLoop () {
       document.querySelector('#blockNum').data = `${parseInt(blockNum) + 1}`
       document.querySelector('#blockNum').innerText = `${blockNum}`
       document.querySelector('#currentWitness').innerText = `${block.witness}`
+      document.querySelector('#timestamp').innerText = `${block.timestamp}`
     });
 
 }
