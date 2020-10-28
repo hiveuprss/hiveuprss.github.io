@@ -139,6 +139,8 @@ function getLabel(operation) {
         return 'NFTSR'
       } else if (id.includes('dominuus_')) {
         return 'Dominuus'
+      } else if (id == 'nextcolony') {
+        return 'NextColony'
       } else {
         return 'Other'
       }
