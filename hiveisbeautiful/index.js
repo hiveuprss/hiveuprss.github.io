@@ -141,7 +141,7 @@ function getLabel(operation) {
         return 'Dominuus'
       } else if (id == 'nextcolony') {
         return 'NextColony'
-      } else if (id == 'drugwars') {
+      } else if (id == 'drugwars' || id.includes('dw-')) {
         return 'DrugWars'
       } else {
         return 'Other'
