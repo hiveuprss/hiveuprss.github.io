@@ -88,6 +88,10 @@ function drawNodes (transactions) {
 }
 
 function getLabel(operation) {
+  //if (operation[0] == 'post' || operation[0] == 'comment') {
+  //  console.log(operation)
+  //}
+
   if (operation[0] == 'custom_json') {
       var id = operation[1].id
       var json = operation[1].json
@@ -100,12 +104,11 @@ function getLabel(operation) {
       
 
       if (app && (app.includes('steemmonsters') || app.includes('splinterlands')) || id.includes('sm_') || id.includes('pm_')) {
-        console.log(app + '    -     ' + id)
         return 'SL'
       } else if (id.includes('cbm_')){
         return 'CBM'
       } else if (id.includes('ssc-mainnet') || id.includes('scot_')) {
-        return 'H-Engine'
+        return 'H-E'
       } else if (id == 'pigs_expired/1' || id =='reject_order/1' || id == 'game_request/1' || id == 'pack_purchase/1' || id == 'confirm_order/1' || id == 'fulfill_pigs/1' || id == 'end_game/1' || id.includes('gmreq_') || id == 'start_game/1' || id =='game_rewards/1' || id == 'pig_upgrade/1' || id == 'fulfill_points/1') {
         return 'Piggies'
       } else if (id.includes('exode')) {
@@ -171,7 +174,7 @@ function getNodeColor(label) {
     return 'green'
   } else if (label == 'Upvote') {
     return 'blue'
-  } else if (label == 'Downvote') {
+  } else if (label == 'Downvote' || label == 'H-E') {
     return 'red'
   } else if (label == 'Other') {
     return 'gray'
@@ -183,7 +186,7 @@ function getNodeColor(label) {
     return 'orange'
   } else if (label == 'CBM') {
     return 'lightgreen'
-  } else if (label == 'H-Engine' || label == 'Holybread') {
+  } else if (label == 'Leo' || label == 'Holybread') {
     return 'yellow'
   } else if (label == 'Piggies') {
     return 'bluegreen'
@@ -195,12 +198,24 @@ function getNodeColor(label) {
 document.querySelector('button#gotoblock').onclick = (e) => {
   var blockNum = prompt("Enter block number:","NaN")
 
-  if (!blockNum) {
+  // sanitize
+  blockNum = parseInt(blockNum)
+
+  if (!blockNum || blockNum < 0) {
     getLatestBlocknum()
   } else {
-    document.querySelector('#blockNum').data = `${parseInt(blockNum) + 1}`
+    document.querySelector('#blockNum').data = `${blockNum + 1}`
     document.querySelector('#blockNum').innerText = `${blockNum}`    
   }
+}
+
+document.querySelector('button#pause').onclick = (e) => {
+  document.querySelector('button#pause').hidden = true
+  document.querySelector('button#play').hidden = false
+}
+document.querySelector('button#play').onclick = (e) => {
+  document.querySelector('button#play').hidden = true
+  document.querySelector('button#pause').hidden = false
 }
 
 
@@ -227,6 +242,9 @@ function getLatestBlocknum() {
 
 
 function runLoop () {
+    if (document.querySelector('button#pause').hidden == true) {
+      return
+    }
 
     var blockNum = document.querySelector('#blockNum').data
     if(!blockNum) {

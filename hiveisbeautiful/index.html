@@ -49,34 +49,48 @@
 </style>
 
 <body>
-  <div class="row">
-  	<div class="center"><h2><span class="badge"><i class="fab fa-hive"></i></span><span class="badge">Hive Block #<span id="blockNum">NaN</span></span></h2></div>
-  </div>
-  <div class="row">
-    <div class="center"><h6>Timestamp: </span><span class="label label-primary" id="timestamp">NaN</span></h6></div>
-  </div>
-  <div class="row">
-  	<div class="center"><h6>Witness: </span><span class="label label-primary" id="currentWitness">NaN</span></h6></div>
-  </div>
-  <div class="row">
-    <div class="center"><button id="gotoblock"><i class="fas fa-search"></i></button></div>
-  </div>
-  <hr>
-  <div class="row">
-	  <div id="content" class="center">
-	    <svg id="viz" width="800" height="700" class="center">
-	    </svg>
-	  </div>
-  </div>
-  <hr>
-  <div class="row">
-   <div class="col-md-6 center" style="text-align: center;">Every 3 seconds an immutable Hive block is forged. This page shows the contents of those blocks in real-time. <br><br>
-   Each immutable block is verified and linked to a chain of millions of older blocks. <br>A blockchain.</div>
-   <br><br>
-  </div>
-  <div class="row">
-  	<br><br>
-	<span class="badge badge-light center">Brought to you by <a href="https://peakd.com/@hivetrending">@HiveTrending</a></span>
+  <div class="container-fluid">
+    <div class="row">
+    	<div class="center"><h2><span class="badge"><i class="fab fa-hive"></i></span><span class="badge">Hive Block #<span id="blockNum">NaN</span></span></h2></div>
+    </div>
+    <div class="row">
+      <div class="center"><h6>Timestamp: </span><span class="label label-primary" id="timestamp">NaN</span></h6></div>
+    </div>
+    <div class="row">
+    	<div class="center"><h6>Witness: </span><span class="label label-primary" id="currentWitness">NaN</span></h6></div>
+    </div>
+    <div class="row">
+      <div class="center">
+        <button id="pause"><i class="fas fa-pause"></i></button>
+        <button id="play" hidden><i class="fas fa-play"></i></button>
+        <button id="gotoblock"><i class="fas fa-search"></i></button>
+      </div>
+    </div>
+    <hr>
+    <div class="row">
+      <div class="col col-md-2">
+        <h1 hidden><span class="badge"><i class="fab fa-hive"></i></span></h1>
+      </div>
+      <div class="col col-md-8">
+    	  <div id="content" class="center">
+    	    <svg id="viz" width="800" height="700" class="center">
+    	    </svg>
+    	  </div>
+      </div>
+      <div class="col col-lg-2">
+        <h1 hidden><span class="badge"><i class="fab fa-hive"></i></span></h1>
+      </div>
+    </div>
+    <hr>
+    <div class="row">
+     <div class="col-md-6 center" style="text-align: center;">Every 3 seconds an immutable Hive block is forged. This page shows the contents of those blocks in real-time. <br><br>
+     Each immutable block is verified and linked to a chain of millions of older blocks. <br>A blockchain.</div>
+     <br><br>
+    </div>
+    <div class="row">
+    	<br><br>
+  	<span class="badge badge-light center">Brought to you by <a href="https://peakd.com/@hivetrending">@HiveTrending</a></span>
+    </div>
   </div>
   <script src="index.js"></script>
 </body>
