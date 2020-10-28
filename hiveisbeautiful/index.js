@@ -141,6 +141,8 @@ function getLabel(operation) {
         return 'Dominuus'
       } else if (id == 'nextcolony') {
         return 'NextColony'
+      } else if (id == 'drugwars') {
+        return 'DrugWars'
       } else {
         return 'Other'
       }
@@ -189,27 +191,36 @@ function getNodeColor(label) {
 
 document.querySelector('button#gotoblock').onclick = (e) => {
   var blockNum = prompt("Enter block number:","NaN")
-  document.querySelector('#blockNum').data = `${parseInt(blockNum) + 1}`
-  document.querySelector('#blockNum').innerText = `${blockNum}`
+
+  if (!blockNum) {
+    getLatestBlocknum()
+  } else {
+    document.querySelector('#blockNum').data = `${parseInt(blockNum) + 1}`
+    document.querySelector('#blockNum').innerText = `${blockNum}`    
+  }
 }
 
 
 hive.api.setOptions({url: "https://api.pharesim.me/"})
 
-// Get the current blocknum
-hive.api.getDynamicGlobalProperties(function(err, result) {
-  if (err) {
-    console.log(err)
-    return
-  }
 
-  var currentWitness = result.current_witness;
-  document.querySelector('#currentWitness').innerText = `${currentWitness}`
+function getLatestBlocknum() {
+  // Get the current blocknum
+  hive.api.getDynamicGlobalProperties(function(err, result) {
+    if (err) {
+      console.log(err)
+      return
+    }
 
-  var blockNum = result.head_block_number
-  document.querySelector('#blockNum').innerText = `${blockNum}`
-  document.querySelector('#blockNum').data = `${blockNum}`
-})
+    var currentWitness = result.current_witness;
+    document.querySelector('#currentWitness').innerText = `${currentWitness}`
+
+    var blockNum = result.head_block_number
+    document.querySelector('#blockNum').innerText = `${blockNum}`
+    document.querySelector('#blockNum').data = `${blockNum}`
+  })
+
+}
 
 
 function runLoop () {
@@ -260,6 +271,8 @@ function runLoop () {
     });
 }
 
+
+getLatestBlocknum()
 
 // repeat every N ms
 setInterval( () => {
