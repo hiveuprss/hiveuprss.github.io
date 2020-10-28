@@ -75,7 +75,7 @@ function drawNodes (transactions) {
   transactions.forEach( tx => {
     var label = getLabel(tx.operations[0])
     var color = getNodeColor(label)
-    var radius = clamp(label.length * 6.25, 30, 40)
+    var radius = clamp(label.length * 6.25, 30, 42)
 
     nodes.push({radius: radius, label: label, color: color})
   })
@@ -100,6 +100,7 @@ function getLabel(operation) {
       
 
       if (app && (app.includes('steemmonsters') || app.includes('splinterlands')) || id.includes('sm_') || id.includes('pm_')) {
+        console.log(app + '    -     ' + id)
         return 'SL'
       } else if (id.includes('cbm_')){
         return 'CBM'
@@ -112,7 +113,7 @@ function getLabel(operation) {
       } else if (id.includes('hb_')) {
         return 'Holybread'
       } else if (id == 'GameSeed') {
-        return 'KryptoGames'
+        return 'KryptoG'
       } else if (id == 'notify') {
         return 'Notify'
       } else if (id == 'follow') {
@@ -143,6 +144,8 @@ function getLabel(operation) {
         return 'NextColony'
       } else if (id == 'drugwars' || id.includes('dw-')) {
         return 'DrugWars'
+      } else if (id == 'leoinfra') {
+        return 'Leo'
       } else {
         return 'Other'
       }
