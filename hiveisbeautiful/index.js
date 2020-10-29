@@ -224,11 +224,19 @@ document.querySelector('button#play').onclick = (e) => {
 }
 
 document.querySelector('button#fastforward').onclick = (e) => {
+  var minSpeed = 1.0
+  var maxSpeed = 3.0
+  var speedIncrement = 1.0
+
 
   var currentSpeed = getSpeedSetting()
-
-  var newSpeed = currentSpeed + 1.0
-  newSpeed = clamp(newSpeed,0.0,3.0)
+  if (currentSpeed == maxSpeed) {
+    var newSpeed = minSpeed
+  }
+  else {
+    var newSpeed = currentSpeed + speedIncrement
+    newSpeed = clamp(newSpeed, minSpeed, maxSpeed)    
+  }
 
   // update UI
   document.querySelector('button#speedgauge').data = `${newSpeed}`
