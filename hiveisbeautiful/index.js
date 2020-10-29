@@ -2,27 +2,18 @@
 
 
 var width = 800, height = 700
-
-var nodes = []
+var speed = 3000
 
 function clamp(num, min, max) {
   return num <= min ? min : num >= max ? max : num;
 }
 
-var simulation = d3.forceSimulation(nodes)
-  .force('charge', d3.forceManyBody().strength(1))
-  .force('center', d3.forceCenter(width / 2, height / 2))
-  .force('collision', d3.forceCollide().radius(function(d) {
-    return d.radius * 1.25
-  }))
-  .on('tick', ticked);
-
-function updateData() {
+function updateData(nodes) {
   var u = d3.select('svg#viz')
     .selectAll('g')
     .data(nodes)
 
-  var newNodes = u.enter()
+  u.enter()
       .append('g').attr("class", "node")
       .each(function(d) {
         d3.select(this).append('circle').attr("class", function (d) {
@@ -38,39 +29,25 @@ function updateData() {
         })
         .attr("dy", ".35em")
         .text(function(d) { return d.label })
-        //.style("stroke", "black") 
         .style("font-size", '17px')
-
-        // Add image to node
-        /*d3.select(this).append("svg:image")
-        .attr('x', -9)
-        .attr('y', -12)
-        .attr('width', 20)
-        .attr('height', 24)
-        .attr("xlink:href", "assets/splinterlands.png")*/
       })
 
   u.exit().remove()
 }
 
 function ticked() {
-    var node = d3.select('svg#viz')
-    .selectAll('g')
-
-    /*u.attr('cx', function(d) {
-      return d.x
+    var nodes = d3.select('svg#viz').selectAll('g')
+    nodes.attr("transform", function(d) {
+      return "translate(" + d.x + "," + d.y + ")"
     })
-    .attr('cy', function(d) {
-      return d.y
-    })   */
-    node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
-
 }
 
 
-function drawNodes (transactions) {
-  nodes = []
-  app = ''
+function createNodes(transactions) {
+
+  //transactions = transactions.filter((x) => {return x.operations[0][0] != 'custom_json'})
+  
+  var nodes = []
 
   transactions.forEach( tx => {
     var label = getLabel(tx.operations[0])
@@ -78,31 +55,55 @@ function drawNodes (transactions) {
     var radius = clamp(label.length * 6.25, 30, 42)
 
     nodes.push({radius: radius, label: label, color: color})
-  })
+  })  
 
-    simulation.stop();
-    simulation.nodes(nodes);
-    // heat it up
-    simulation.alpha(1);          
-    simulation.restart();
+  return nodes
 }
 
-function getLabel(operation) {
-  //if (operation[0] == 'post' || operation[0] == 'comment') {
-  //  console.log(operation)
-  //}
 
-  if (operation[0] == 'custom_json') {
-      var id = operation[1].id
-      var json = operation[1].json
-      var json = JSON.parse(json)    
+function getLabel(operation) {
+  var opname = operation[0]
+
+  if (opname == 'comment' || opname == 'post') {
+    var json = operation[1].json_metadata
+    var json = JSON.parse(json) 
+    
+
+    if (json) {
       var app = json.app
+      app = app.split('/')[0]
+      
+      if (app == 'leofinance') {
+        label = 'Leo'
+      } else if (app == 'peakd') {
+        label = 'PeakD'
+      } else if (app == 'hiveblog') {
+        label = 'Hive.blog'
+      } else {
+        label = app
+      }
+
+
+      label = label.charAt(0).toUpperCase() + label.slice(1);
+      console.log(label)
+      return label
+    } else {
+      var label = opname
+      label = label.charAt(0).toUpperCase() + label.slice(1);
+      return label
+    }
+  } else if (opname == 'custom_json') {
+      var id = operation[1].id
+
+      var json = operation[1].json
+      var json = JSON.parse(json) 
+   
 
       if (id == '' && json.prevServerSeed) {
         return 'EpicDice'
       }
       
-
+      var app = json.app
       if (app && (app.includes('steemmonsters') || app.includes('splinterlands')) || id.includes('sm_') || id.includes('pm_')) {
         return 'SL'
       } else if (id.includes('cbm_')){
@@ -153,9 +154,9 @@ function getLabel(operation) {
         return 'Other'
       }
     }
-  else if (operation[0] == 'vote') {
+  else if (opname == 'vote') {
       if (operation[1].weight > 0) {
-        return 'Upvote'
+        return 'Up'
       } else {
         return 'Downvote'
       }
@@ -172,15 +173,15 @@ function getLabel(operation) {
 function getNodeColor(label) {
   if (label == 'SL') {
     return 'green'
-  } else if (label == 'Upvote') {
+  } else if (label == 'Up') {
     return 'blue'
   } else if (label == 'Downvote' || label == 'H-E') {
     return 'red'
   } else if (label == 'Other') {
     return 'gray'
-  } else if (label == 'Post') {
-    return 'lightblue'
-  } else if (label == 'Comment') {
+  } else if (label == 'Post' || label == 'PeakD') {
+    return 'lightgreen'
+  } else if (label == 'Comment' || label == 'Hive.blog') {
     return 'yellow-orange'
   } else if (label == 'Transfer') {
     return 'orange'
@@ -188,12 +189,13 @@ function getNodeColor(label) {
     return 'lightgreen'
   } else if (label == 'Leo' || label == 'Holybread') {
     return 'yellow'
-  } else if (label == 'Piggies') {
+  } else if (label == 'Piggies' || label == '3speak') {
     return 'bluegreen'
   } else {
     return 'gray'
   }
 }
+
 
 document.querySelector('button#gotoblock').onclick = (e) => {
   var blockNum = prompt("Enter block number:","NaN")
@@ -268,19 +270,28 @@ function runLoop () {
         return
       }
 
-      drawNodes(block.transactions)
-      updateData()
+      d3.select('svg#viz').selectAll('g').remove()
+      var nodes = createNodes(block.transactions)
+      updateData(nodes)
+
+      var simulation = d3.forceSimulation(nodes)
+        .force('charge', d3.forceManyBody().strength(0.1))
+        .force('center', d3.forceCenter(width / 2, height / 2))
+        .force('collision', d3.forceCollide().radius(function(d) {
+          return d.radius * 1.00
+        }))
+        .on('tick', ticked)
+        .alpha(100)
 
       block.transactions.forEach( (tx) => {
         if (tx.operations[0][0] == 'custom_json') {
           // debugging code to identify unclassified apps
           if (getLabel(tx.operations[0]) == 'Other') {
-            console.log(`Unknown app`)
+            console.log('Unknown app')
             console.log(tx.operations[0])
           }
         }
       })
-
 
       // if we succeeded so far, advance to next block
       if (document.querySelector('#blockNum').data == `${parseInt(blockNum)}`) {
@@ -299,4 +310,4 @@ getLatestBlocknum()
 setInterval( () => {
   runLoop()
 },
-3000)
+speed)
