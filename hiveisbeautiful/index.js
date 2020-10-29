@@ -66,10 +66,11 @@ function getLabel(operation) {
 
   if (opname == 'comment' || opname == 'post') {
     var json = operation[1].json_metadata
-    var json = JSON.parse(json) 
-    
-
     if (json) {
+      var json = JSON.parse(json)       
+    }
+
+    if (json && json.app) {
       var app = json.app
       app = app.split('/')[0]
       
@@ -107,7 +108,7 @@ function getLabel(operation) {
       if (app && (app.includes('steemmonsters') || app.includes('splinterlands')) || id.includes('sm_') || id.includes('pm_')) {
         return 'SL'
       } else if (id.includes('cbm_')){
-        return 'CBM'
+        return 'Cbm'
       } else if (id.includes('ssc-mainnet') || id.includes('scot_')) {
         return 'H-E'
       } else if (id == 'pigs_expired/1' || id =='reject_order/1' || id == 'game_request/1' || id == 'pack_purchase/1' || id == 'confirm_order/1' || id == 'fulfill_pigs/1' || id == 'end_game/1' || id.includes('gmreq_') || id == 'start_game/1' || id =='game_rewards/1' || id == 'pig_upgrade/1' || id == 'fulfill_points/1') {
@@ -185,7 +186,7 @@ function getNodeColor(label) {
     return 'yellow-orange'
   } else if (label == 'Transfer') {
     return 'orange'
-  } else if (label == 'CBM') {
+  } else if (label == 'Cbm') {
     return 'lightgreen'
   } else if (label == 'Leo' || label == 'Holybread') {
     return 'yellow'
@@ -196,6 +197,8 @@ function getNodeColor(label) {
   }
 }
 
+
+// Start button controls
 
 document.querySelector('button#gotoblock').onclick = (e) => {
   var blockNum = prompt("Enter block number:","NaN")
@@ -219,6 +222,30 @@ document.querySelector('button#play').onclick = (e) => {
   document.querySelector('button#play').hidden = true
   document.querySelector('button#pause').hidden = false
 }
+
+document.querySelector('button#fastforward').onclick = (e) => {
+
+  var currentSpeed = getSpeedSetting()
+
+  var newSpeed = currentSpeed + 1.0
+  newSpeed = clamp(newSpeed,0.0,3.0)
+
+  // update UI
+  document.querySelector('button#speedgauge').data = `${newSpeed}`
+  document.querySelector('button#speedgauge').innerText = `${newSpeed}x`
+}
+
+function getSpeedSetting() {
+  if (!document.querySelector('button#speedgauge').data) {
+      document.querySelector('button#speedgauge').data = '1.0'
+    }
+
+  var currentSpeed = parseFloat(document.querySelector('button#speedgauge').data)
+  return currentSpeed
+}
+
+// End button controls
+
 
 
 hive.api.setOptions({url: "https://api.pharesim.me/"})
@@ -306,8 +333,18 @@ function runLoop () {
 
 getLatestBlocknum()
 
+
+
 // repeat every N ms
-setInterval( () => {
-  runLoop()
-},
-speed)
+function runtimeAdjustSpeed() {
+    var currentSpeed = 3000 / getSpeedSetting()
+
+    runLoop()    
+  
+    setTimeout( () => {
+      runtimeAdjustSpeed()
+    },
+    currentSpeed)
+}
+
+runtimeAdjustSpeed()
