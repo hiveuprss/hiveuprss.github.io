@@ -338,8 +338,21 @@ function runLoop () {
     });
 }
 
-
-getLatestBlocknum()
+// initialize, read params
+var urlParams = new URLSearchParams(window.location.search);
+if (urlParams.has('block')) {
+  var blockNum = urlParams.get('block')
+  var blockNum = parseInt(blockNum)
+  
+  if (isNaN(blockNum) || blockNum < 0) {
+    getLatestBlocknum()
+  } else {
+    document.querySelector('#blockNum').innerText = `${blockNum}`
+    document.querySelector('#blockNum').data = `${blockNum}`
+  }
+} else {
+  getLatestBlocknum()
+}
 
 
 
