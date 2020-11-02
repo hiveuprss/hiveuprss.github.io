@@ -24,10 +24,8 @@ function updateData(nodes) {
         })
 
         d3.select(this).append("text")
-        .attr('dx', (d) => {
-          return d.label.length / 2 * -9
-        })
-        .attr("dy", ".35em")
+        .attr("dominant-baseline", "central")
+        .attr("text-anchor", "middle")
         .text(function(d) { return d.label })
         .style("font-size", '17px')
       })
@@ -108,7 +106,7 @@ function getLabel(operation) {
       if (app && (app.includes('steemmonsters') || app.includes('splinterlands')) || id.includes('sm_') || id.includes('pm_')) {
         return 'SL'
       } else if (id.includes('cbm_')){
-        return 'Cbm'
+        return 'CBM'
       } else if (id.includes('ssc-mainnet') || id.includes('scot_')) {
         return 'H-E'
       } else if (id == 'pigs_expired/1' || id =='reject_order/1' || id == 'game_request/1' || id == 'pack_purchase/1' || id == 'confirm_order/1' || id == 'fulfill_pigs/1' || id == 'end_game/1' || id.includes('gmreq_') || id == 'start_game/1' || id =='game_rewards/1' || id == 'pig_upgrade/1' || id == 'fulfill_points/1') {
@@ -186,7 +184,7 @@ function getNodeColor(label) {
     return 'yellow-orange'
   } else if (label == 'Transfer') {
     return 'orange'
-  } else if (label == 'Cbm') {
+  } else if (label == 'CBM') {
     return 'lightgreen'
   } else if (label == 'Leo' || label == 'Holybread') {
     return 'yellow'
