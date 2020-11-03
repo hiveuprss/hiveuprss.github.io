@@ -28,6 +28,14 @@ function updateData(nodes) {
         .attr("text-anchor", "middle")
         .text(function(d) { return d.label })
         .style("font-size", '17px')
+
+        d3.select(this).append("text")
+        .attr('dy', '12px')
+        .attr("dominant-baseline", "central")
+        .attr("text-anchor", "middle")
+        .text(function(d) { return `@${d.account.substr(0,7)}...` })
+        .style("font-size", '10px')
+        .attr('hidden', 'true')
       })
 
   u.exit().remove()
@@ -43,7 +51,7 @@ function ticked() {
 
 function createNodes(transactions) {
 
-  //transactions = transactions.filter((x) => {return x.operations[0][0] != 'custom_json'})
+  //transactions = transactions.filter((x) => {return x.operations[0][0] == 'custom_json'})
   
   var nodes = []
 
@@ -51,8 +59,9 @@ function createNodes(transactions) {
     var label = getLabel(tx.operations[0])
     var color = getNodeColor(label)
     var radius = clamp(label.length * 6.25, 30, 42)
+    var account = getAccount(tx.operations[0])
 
-    nodes.push({radius: radius, label: label, color: color})
+    nodes.push({radius: radius, label: label, color: color, account: account})
   })  
 
   return nodes
@@ -196,6 +205,21 @@ function getNodeColor(label) {
 }
 
 
+function getAccount(operation) {
+  var opname = operation[0]
+
+
+  if (opname == 'vote') {
+    var voter = operation[1].voter
+    return voter
+  } else if (opname == 'custom_json') {
+    var account = `${operation[1].required_posting_auths}`
+    return account
+  } else {
+    return 'account'
+  }
+}
+
 // Start button controls
 
 document.querySelector('button#gotoblock').onclick = (e) => {
@@ -271,6 +295,7 @@ function getLatestBlocknum() {
     var blockNum = result.head_block_number
     document.querySelector('#blockNum').innerText = `${blockNum}`
     document.querySelector('#blockNum').data = `${blockNum}`
+    runLoop()
   })
 
 }
@@ -347,6 +372,7 @@ if (urlParams.has('block')) {
   } else {
     document.querySelector('#blockNum').innerText = `${blockNum}`
     document.querySelector('#blockNum').data = `${blockNum}`
+    runLoop()
   }
 } else {
   getLatestBlocknum()
