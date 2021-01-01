@@ -158,6 +158,12 @@ function getLabel(operation) {
         return 'DrugWars'
       } else if (id == 'leoinfra') {
         return 'Leo'
+      } else if (id == 'qwoyn_report') {
+        return 'Hashkings'
+      } else if (id == 'dope') {
+        return 'Dope'
+      } else if (id == 'commentcoin') {
+        return 'commentcoin'
       } else {
         return 'Other'
       }
