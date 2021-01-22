@@ -17,12 +17,12 @@ function getPost(start_permlink='') {
       console.log(`${posts.length} posts`)
 
       const post = posts[Math.floor(Math.random() * posts.length)];
-      //console.log(post)
-
+      
       // update button actions
       document.querySelector('button.next').onclick = () => {
-        const permlink = post.permlink
-        getPost(permlink)
+        //const permlink = post.permlink
+        //console.log(permlink)
+        getPost(/*permlink*/)
       }
       document.querySelector('a#peakd').href = `https://peakd.com/@${post.author}/${post.permlink}`
       document.querySelector('a#hiveblog').href = `https://hive.blog/@${post.author}/${post.permlink}`
@@ -78,7 +78,7 @@ function getPost(start_permlink='') {
 
 // handle loading events
 document.onload = getPost()
-document.querySelector('button.next').onclick = getPost
+document.querySelector('#next').onclick = getPost
 
 
 // handle sign in events
