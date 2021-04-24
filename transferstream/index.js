@@ -204,6 +204,9 @@ function getLatestBlocknum() {
 
 function runLoop () {
     //startSimulation()
+    if (document.querySelector('button#pause').hidden == true) {
+      return
+    }
 
     var blockNum = document.querySelector('#blockNum').data
     if(!blockNum) {
