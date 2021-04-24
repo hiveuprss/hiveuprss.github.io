@@ -256,8 +256,12 @@ function runLoop () {
         var opname = tx.operations[0][0]
         //console.log(op)
 
+        var color = 'green'
+
         if (opname == 'custom_json') {
           var he = JSON.parse(op['json'])['contractPayload']
+
+          color = 'lightgreen'
 
           op['to'] = he.to
           op['from'] = op.required_auths[0]
@@ -265,7 +269,7 @@ function runLoop () {
         }
 
         var currentHTML = document.querySelector('div#content').innerHTML
-        document.querySelector('div#content').innerHTML = `<div class="transfer green">${op['from']} => ${op['to']} ( ${op['amount']} )</div>` + currentHTML
+        document.querySelector('div#content').innerHTML = `<div class="transfer ${color}">${op['from']} => ${op['to']} ( ${op['amount']} )</div>` + currentHTML
       })
 
       // if we succeeded so far, advance to next block
