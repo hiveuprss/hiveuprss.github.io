@@ -233,6 +233,10 @@ function runLoop () {
         return
       }
 
+      document.querySelectorAll('div.comment').forEach( (node) => {
+        node.className = "comment gray"
+      })
+
       block.transactions = block.transactions.filter( (tx) => {
         var opname = tx.operations[0][0]
         var op = tx.operations[0][1]
@@ -250,7 +254,7 @@ function runLoop () {
         //console.log(op['author'] + ' => ' + op['parent_author'])
 
         var currentHTML = document.querySelector('div#content').innerHTML
-        document.querySelector('div#content').innerHTML = '<center>' + op['author'] + ' => ' + op['parent_author'] + '</center>' + currentHTML
+        document.querySelector('div#content').innerHTML = `<div class="comment green">${op['author']} => ${op['parent_author']}</div>` + currentHTML
       })
 
       // if we succeeded so far, advance to next block

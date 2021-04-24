@@ -234,10 +234,15 @@ function runLoop () {
         var opname = tx.operations[0][0]
         var op = tx.operations[0][1]
 
-        // filter for comments only (no posts)
+        // filter for transfers only
         if (opname == 'transfer') {
           return true
         }
+
+        if (opname == 'custom_json' && op['id'] == 'ssc-mainnet-hive' && JSON.parse(op['json'])['contractAction'] == 'transfer') {
+          return true
+        }
+
         return false
       })
 
@@ -248,12 +253,16 @@ function runLoop () {
 
       block.transactions.forEach( (tx) => {
         var op = tx.operations[0][1]
+        var opname = tx.operations[0][0]
         //console.log(op)
-        //console.log(op['author'] + ' => ' + op['parent_author'])
 
-        //Array.from(document.querySelectorAll('div.transfer').forEach( (row) => {
-        //  row.className = ""
-        //})
+        if (opname == 'custom_json') {
+          var he = JSON.parse(op['json'])['contractPayload']
+
+          op['to'] = he.to
+          op['from'] = op.required_auths[0]
+          op['amount'] = `${he.quantity} ${he.symbol}`
+        }
 
         var currentHTML = document.querySelector('div#content').innerHTML
         document.querySelector('div#content').innerHTML = `<div class="transfer green">${op['from']} => ${op['to']} ( ${op['amount']} )</div>` + currentHTML
