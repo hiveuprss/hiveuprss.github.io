@@ -238,13 +238,22 @@ function runLoop () {
         return false
       })
 
+      document.querySelectorAll('div.transfer').forEach( (node) => {
+        node.className = "transfer gray"
+      })
+
+
       block.transactions.forEach( (tx) => {
         var op = tx.operations[0][1]
         //console.log(op)
         //console.log(op['author'] + ' => ' + op['parent_author'])
 
+        //Array.from(document.querySelectorAll('div.transfer').forEach( (row) => {
+        //  row.className = ""
+        //})
+
         var currentHTML = document.querySelector('div#content').innerHTML
-        document.querySelector('div#content').innerHTML = `<center>${op['from']} => ${op['to']} ( ${op['amount']} )</center>` + currentHTML
+        document.querySelector('div#content').innerHTML = `<div class="transfer green">${op['from']} => ${op['to']} ( ${op['amount']} )</div>` + currentHTML
       })
 
       // if we succeeded so far, advance to next block
