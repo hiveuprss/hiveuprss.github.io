@@ -284,7 +284,7 @@ function getSpeedSetting() {
 
 
 
-hive.api.setOptions({url: "https://api.pharesim.me/"})
+hive.api.setOptions({url: "https://api.deathwing.me/"})
 
 
 function getLatestBlocknum() {
