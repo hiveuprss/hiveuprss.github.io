@@ -84,6 +84,38 @@ function getPost(start_permlink='') {
         )
       }
 
+      // Reblog button handler
+      document.querySelector('button#reblog').onclick = () => {
+        var accountName = window.localStorage.getItem('hiveaccount')
+        if (!accountName) {
+          console.log('Sign in first.')
+          return
+        }
+
+        const permlink = post.permlink
+        const author = post.author
+
+        let json = JSON.stringify([
+          'reblog',
+          {
+              account: accountName,
+              author: author,
+              permlink: permlink,
+          }])
+        console.log(json)
+
+        hive_keychain.requestCustomJson(
+          accountName,
+          'reblog',
+          'Posting',
+          json,
+          `Reblogging @${author}/${permlink}`,
+          function(response) {
+            console.log(response);
+          }
+        )
+      }
+
       // prepare blog post content for display
       var text = `# ${post.title}\n## @${post.author}\n${post.body}`
       text.replace('# ![','![')
@@ -124,11 +156,13 @@ function toggleSigninUIState(signedIn) {
     document.querySelector('div#signout-container').style.display = 'block'
     document.querySelector('#upvote').disabled = false
     document.querySelector('#follow').disabled = false
+    document.querySelector('#reblog').disabled = false
   } else {
     document.querySelector('div#signin-container').style.display = 'block'
     document.querySelector('div#signout-container').style.display = 'none'
     document.querySelector('#upvote').disabled = true
     document.querySelector('#follow').disabled = true
+    document.querySelector('#reblog').disabled = true
   }
 }
 
