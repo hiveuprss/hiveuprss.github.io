@@ -5,6 +5,7 @@ hiveTx.config.node = 'https://api.hive.blog'
 const MIN_BODY_LENGTH   = 250
 
 function getPost(start_permlink='') {
+  console.log('permlink: ' + start_permlink)
   hiveTx
     .call('condenser_api.get_discussions_by_created', [{tag:"", limit: 100, start_permlink: start_permlink}])
     .then(res => {
@@ -20,12 +21,14 @@ function getPost(start_permlink='') {
       
       // update button actions
       document.querySelector('button.next').onclick = () => {
-        //const permlink = post.permlink
-        //console.log(permlink)
-        getPost(/*permlink*/)
+        const permlink = post.author + '/' + post.permlink
+        console.log(permlink)
+        getPost(permlink)
       }
       document.querySelector('a#peakd').href = `https://peakd.com/@${post.author}/${post.permlink}`
       document.querySelector('a#hiveblog').href = `https://hive.blog/@${post.author}/${post.permlink}`
+
+      // Upvote button handler
       document.querySelector('button#upvote').onclick = () => {
         var accountName = window.localStorage.getItem('hiveaccount')
         if (!accountName) {
@@ -42,6 +45,39 @@ function getPost(start_permlink='') {
           permlink,
           author,
           weight,
+          function(response) {
+            console.log(response);
+          }
+        )
+      }
+
+      // Follow button handler
+      document.querySelector('button#follow').onclick = () => {
+        var accountName = window.localStorage.getItem('hiveaccount')
+        if (!accountName) {
+          console.log('Sign in first.')
+          return
+        }
+
+        const permlink = post.permlink
+        const author = post.author
+        const type = 'blog'
+
+        let json = JSON.stringify([
+          'follow',
+          {
+              follower: accountName,
+              following: author,
+              what: [type], //null value for unfollow, 'blog' for follow
+          }])
+        console.log(json)
+
+        hive_keychain.requestCustomJson(
+          accountName,
+          'follow',
+          'Posting',
+          json,
+          `Following ${author}`,
           function(response) {
             console.log(response);
           }
@@ -87,10 +123,12 @@ function toggleSigninUIState(signedIn) {
     document.querySelector('div#signin-container').style.display = 'none'
     document.querySelector('div#signout-container').style.display = 'block'
     document.querySelector('#upvote').disabled = false
+    document.querySelector('#follow').disabled = false
   } else {
     document.querySelector('div#signin-container').style.display = 'block'
     document.querySelector('div#signout-container').style.display = 'none'
     document.querySelector('#upvote').disabled = true
+    document.querySelector('#follow').disabled = true
   }
 }
 
@@ -110,7 +148,7 @@ document.querySelector('form#signin').onsubmit = (event) => {
 
   hive_keychain.requestSignBuffer(
     accountName,
-    'test',
+    'randomhive test signing',
     'Posting',
     (response) => {
       console.log(response)
