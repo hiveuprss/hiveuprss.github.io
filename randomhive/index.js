@@ -1,29 +1,29 @@
 // index.js
 
-hiveTx.config.node = 'https://api.hive.blog'
+hiveTx.config.node = 'https://api.deathwing.me'
 
 const MIN_BODY_LENGTH   = 250
 
-function getPost(start_permlink='') {
-  console.log('permlink: ' + start_permlink)
+function getPost() {
   hiveTx
-    .call('condenser_api.get_discussions_by_created', [{tag:"", limit: 100, start_permlink: start_permlink}])
+    .call('condenser_api.get_discussions_by_created', [{tag:"", limit: 100}])
     .then(res => {
       // skip posts < MIN_BODY_LENGTH chars in length
       var posts = res.result
+      if (!posts) {
+        console.log('API error')
+        return
+      }
+
       posts = posts.filter(item => item.body_length >= MIN_BODY_LENGTH)
       // nsfw category filters
       posts = posts.filter(item => !['porn','dporn','xxx','nsfw'].includes(item.category) )
       
-      console.log(`${posts.length} posts`)
-
       const post = posts[Math.floor(Math.random() * posts.length)];
       
       // update button actions
       document.querySelector('button.next').onclick = () => {
-        const permlink = post.author + '/' + post.permlink
-        console.log(permlink)
-        getPost(permlink)
+        getPost()
       }
       document.querySelector('a#peakd').href = `https://peakd.com/@${post.author}/${post.permlink}`
       document.querySelector('a#hiveblog').href = `https://hive.blog/@${post.author}/${post.permlink}`
@@ -116,24 +116,28 @@ function getPost(start_permlink='') {
         )
       }
 
+      // remove leading divs, which cause an issue for Showdown rendered
+      post.body = post.body.replaceAll(/<div class="(.*)">/g, "")
+      post.body = post.body.replaceAll('</div>', "")
+
       // prepare blog post content for display
-      var text = `# ${post.title}\n## @${post.author}\n${post.body}`
-      text.replace('# ![','![')
+      var text1 = `# ${post.title}\n## @${post.author}\n`
+      var text2 = `${post.body}`
+
+      // Remove text formatting for image embeds
+      text2 = text2.replace('# ![','![')
 
       // fix images missing markup
-      text.replace(/[^(]+(http.*\.(png|jpg|jpeg|gif|svg))[^)]+/g, '![$1]($1)')
-
+      text2 = text2.replace(/[^(]*(http.*\.(png|jpg|jpeg|gif|svg))[^)]+/g, '![$1]($1)')
 
       // convert markdown to HTML
       var converter = new showdown.Converter()
       converter.setOption('openLinksInNewWindow', true)
       converter.setOption('simplifiedAutoLink', true)
-      
-      var html = converter.makeHtml(text)
-      html += '<br><br>'
 
-      document.querySelector('div#hr-content').innerHTML = html
-      //document.querySelector('div#hr-content-md').innerHTML = text
+      document.querySelector('div#hr-content').innerHTML = converter.makeHtml(text1)
+      document.querySelector('div#hr-content').innerHTML += converter.makeHtml(text2)
+
       Array.from(document.querySelectorAll('div#hr-content img')).forEach(img => {
         // scale images to fit
         img.className = 'w-100'
