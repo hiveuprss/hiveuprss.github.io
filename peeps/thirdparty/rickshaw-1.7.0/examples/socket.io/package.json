@@ -1,0 +1,16 @@
+{
+  "name": "rickshaw-socket.io",
+  "version": "0.0.1",
+  "description": "Rickshaw socket.io support",
+  "main": "app.js",
+  "private": true,
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "express": "4.17.1",
+    "socket.io": "~0.9.16"
+  },
+  "author": "Alex Williams, Unscramble <license@unscramble.jp>",
+  "license": "MIT"
+}
