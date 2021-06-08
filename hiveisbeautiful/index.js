@@ -130,6 +130,8 @@ function getLabel(operation) {
         return 'Notify'
       } else if (id == 'follow') {
         return 'Follow'
+      } else if (id == 'reblog') {
+        return 'Reblog'
       } else if (id.includes('dlux_')) {
         return 'Dlux'
       } else if (id == 'community') {
@@ -158,12 +160,18 @@ function getLabel(operation) {
         return 'DrugWars'
       } else if (id == 'leoinfra') {
         return 'Leo'
-      } else if (id == 'qwoyn_report') {
+      } else if (id == 'qwoyn_report' || id == 'qwoyn_plant_plot') {
         return 'Hashkings'
       } else if (id == 'dope') {
         return 'Dope'
       } else if (id == 'commentcoin') {
         return 'commentcoin'
+      } else if (id == 'podping') {
+        return 'podping'
+      } else if (id == 'ssc-testnet-puzzlr' || id == 'ssc-testnet-reaz') {
+        return 'H-E Testnet'
+      } else if (id == 'dcrops') {
+        return 'dCrops'
       } else {
         return 'Other'
       }
