@@ -209,7 +209,7 @@ function getNodeColor(label) {
     return 'orange'
   } else if (label == 'CBM') {
     return 'lightgreen'
-  } else if (label == 'Leo' || label == 'Holybread') {
+  } else if (label == 'Leo' || label == 'Holybread' || label == 'podping') {
     return 'yellow'
   } else if (label == 'Piggies' || label == '3speak') {
     return 'bluegreen'
