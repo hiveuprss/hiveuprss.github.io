@@ -89,6 +89,8 @@ function getLabel(operation) {
         label = 'Hive.blog'
       } else if (app.includes('Poshtoken')) {
         label = 'Poshtoken'
+      } else if (app == '3speak') {
+        label = '3Speak'
       } else {
         label = app
       }
@@ -215,7 +217,7 @@ function getNodeColor(label) {
     return 'lightgreen'
   } else if (label == 'PIZZA' || label == 'Leo' || label == 'Holybread' || label == 'podping') {
     return 'yellow'
-  } else if (label == 'Piggies' || label == '3speak') {
+  } else if (label == 'Piggies' || label == '3Speak') {
     return 'bluegreen'
   } else {
     return 'gray'
