@@ -87,6 +87,8 @@ function getLabel(operation) {
         label = 'PeakD'
       } else if (app == 'hiveblog') {
         label = 'Hive.blog'
+      } else if (app.includes('Poshtoken')) {
+        label = 'Poshtoken'
       } else {
         label = app
       }
@@ -116,6 +118,8 @@ function getLabel(operation) {
         return 'SL'
       } else if (id.includes('cbm_')){
         return 'CBM'
+      } else if (id.includes('ssc-mainnet') && json.contractPayload && json.contractPayload['symbol'] == 'PIZZA') {
+        return 'PIZZA'
       } else if (id.includes('ssc-mainnet') || id.includes('scot_')) {
         return 'H-E'
       } else if (id == 'pigs_expired/1' || id =='reject_order/1' || id == 'game_request/1' || id == 'pack_purchase/1' || id == 'confirm_order/1' || id == 'fulfill_pigs/1' || id == 'end_game/1' || id.includes('gmreq_') || id == 'start_game/1' || id =='game_rewards/1' || id == 'pig_upgrade/1' || id == 'fulfill_points/1') {
@@ -209,7 +213,7 @@ function getNodeColor(label) {
     return 'orange'
   } else if (label == 'CBM') {
     return 'lightgreen'
-  } else if (label == 'Leo' || label == 'Holybread' || label == 'podping') {
+  } else if (label == 'PIZZA' || label == 'Leo' || label == 'Holybread' || label == 'podping') {
     return 'yellow'
   } else if (label == 'Piggies' || label == '3speak') {
     return 'bluegreen'
