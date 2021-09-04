@@ -128,7 +128,7 @@ function updateData(nodes) {
 // Start button controls
 
 document.querySelector('button#gotoblock').onclick = (e) => {
-  var blockNum = prompt("Enter block number:","NaN")
+  var blockNum = prompt("Enter block number:",document.querySelector('#blockNum').innerText)
 
   // sanitize
   blockNum = parseInt(blockNum)
