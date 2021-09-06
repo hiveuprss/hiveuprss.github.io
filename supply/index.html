@@ -12,13 +12,42 @@
 
   function updateSupplies() {
     hive.api.getDynamicGlobalProperties(function(err, result) {
+        //console.log(result)
+
+        let blockNum = result['head_block_number']
+        console.log(`Block#: ${blockNum}`)
 
         if (result && result['current_supply']) {
-            document.querySelector("div#hivesupply").innerText = result['current_supply']
+            let hivesupply = result['current_supply']
+            let oldsupply = document.querySelector("div#hivesupply").innerText
+
+            let delta = Number(hivesupply.split(' ')[0]) - Number(oldsupply.split(' ')[0])
+            console.log(`Delta: ${delta}`)
+            document.querySelector("div#hivesupply").innerText = hivesupply
+
+            if (delta > 0) {
+                document.querySelector("div#hivesupply").innerText += ` (\u0394+${delta.toLocaleString()})`
+            } else {
+                document.querySelector("div#hivesupply").innerText += ` (\u0394${delta.toLocaleString()})`                
+            }
+            console.log(hivesupply)
         }
 
         if (result && result['current_hbd_supply']) {
-            document.querySelector("div#hbdsupply").innerText = result['current_hbd_supply']
+            let hbdsupply = result['current_hbd_supply']
+            let oldsupply = document.querySelector("div#hbdsupply").innerText
+
+            document.querySelector("div#hbdsupply").innerText = hbdsupply
+
+            let delta = Number(hbdsupply.split(' ')[0]) - Number(oldsupply.split(' ')[0])
+            console.log(`Delta: ${delta}`)
+            if (delta > 0) {
+                document.querySelector("div#hbdsupply").innerText += ` (\u0394+${delta.toLocaleString()})`
+            } else {
+                document.querySelector("div#hbdsupply").innerText += ` (\u0394${delta.toLocaleString()})`                
+            }
+
+            console.log(hbdsupply)
         }
 
         if (err) {
