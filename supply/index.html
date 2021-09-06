@@ -1,0 +1,42 @@
+<!-- <!DOCTYPE html> -->
+<!-- Created by peakd.com/@hivetrending -->
+
+<html>
+<head>
+<title>Hive Supply Clock</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@hiveio/hive-js/dist/hive.min.js"></script>
+
+<script>
+  hive.api.setOptions({url: "https://api.deathwing.me/"})
+
+  function updateSupplies() {
+    hive.api.getDynamicGlobalProperties(function(err, result) {
+
+        if (result && result['current_supply']) {
+            document.querySelector("div#hivesupply").innerText = result['current_supply']
+        }
+
+        if (result && result['current_hbd_supply']) {
+            document.querySelector("div#hbdsupply").innerText = result['current_hbd_supply']
+        }
+
+        if (err) {
+          console.log(err)
+          return
+        }
+        })
+  }
+
+  updateSupplies()
+  window.setInterval( updateSupplies, 3000)
+</script>
+</head>
+<body>
+    <center>
+        <h1><div id="hivesupply"></div></h1>
+        <h2><div id="hbdsupply"></div></h2>
+    </center>
+</body>
+
+</html>
