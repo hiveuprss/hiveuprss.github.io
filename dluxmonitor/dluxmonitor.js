@@ -23,7 +23,6 @@ stats_promise = axios({
 })
 
 
-
 Promise.all([coin_promise, runners_promise, queue_promise, stats_promise])
 .then((values) => {
     console.log(values[0].data)
@@ -43,12 +42,12 @@ Promise.all([coin_promise, runners_promise, queue_promise, stats_promise])
     document.querySelector('span#gov_threshhold').innerHTML = gov_threshhold 
 
     // populate runners table
-    table_markup = '<thead><td><b>Name</b></td><td><b>Above Gov Thresh.</b></td></thead>'
+    table_markup = '<thead><td><b>Name</b></td><td><b>Above Gov Thresh.</b></td><td><b>DLUXG</b></td></thead>'
     for (account in queue) {
         let abovegov = 'False'
         if (runners.hasOwnProperty(account)) {
             abovegov = 'True'
-            table_markup += `<tr><td>@${account}</td><td>${abovegov}</td></tr>`
+            table_markup += `<tr><td>@${account}</td><td>${abovegov}</td><td>${parseInt(queue[account].g)/1000}</td></tr>`
         } 
     }
     document.querySelector('table#dlux_nodes_table').innerHTML = table_markup
