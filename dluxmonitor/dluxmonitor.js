@@ -47,8 +47,10 @@ Promise.all([coin_promise, runners_promise, queue_promise, stats_promise])
         let abovegov = 'False'
         if (runners.hasOwnProperty(account)) {
             abovegov = 'True'
-            table_markup += `<tr><td>@${account}</td><td>${abovegov}</td><td>${parseInt(queue[account].g)/1000}</td></tr>`
-        } 
+        } else {
+            abovegov = 'False'
+        }
+        table_markup += `<tr><td>@${account}</td><td>${abovegov}</td><td>${parseInt(queue[account].g)/1000}</td></tr>`
     }
     document.querySelector('table#dlux_nodes_table').innerHTML = table_markup
 });
