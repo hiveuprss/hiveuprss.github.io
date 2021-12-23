@@ -42,7 +42,7 @@ Promise.all([coin_promise, runners_promise, queue_promise, stats_promise])
     document.querySelector('span#gov_threshhold').innerHTML = gov_threshhold 
 
     // populate runners table
-    table_markup = '<thead><td><b>Name</b></td><td><b>Above Gov Thresh.</b></td><td><b>DLUXG</b></td></thead>'
+    table_markup = '<thead><td><b>Name</b></td><td><b>In Queue?</b></td><td><b>DLUXG</b></td></thead>'
     for (account in queue) {
         let abovegov = 'False'
         if (runners.hasOwnProperty(account)) {
