@@ -5,6 +5,9 @@ const DEFAULT_DLUX_API = 'https://dlux-token.herokuapp.com/'
 var urlParams = new URLSearchParams(window.location.search);
 let DLUX_API = urlParams.has('node') ? urlParams.get('node') : DEFAULT_DLUX_API
 
+if (DLUX_API.slice(-1) !== '/') {
+  DLUX_API += '/'
+}
 
 coin_promise = axios({
   method: 'get',
@@ -74,7 +77,7 @@ Promise.all([coin_promise, runners_promise, queue_promise, stats_promise])
         } else {
             runner = 'No'
         }
-        table_markup += `<tr><td>@${account}</td><td>${runner}</td><td>${dluxg}</td><td><a href="./?node=${api}/">${api}</a></td></tr>`
+        table_markup += `<tr><td>@${account}</td><td>${runner}</td><td>${dluxg}</td><td><a href="./?node=${api}">${api}</a></td></tr>`
     }
     document.querySelector('table#dlux_nodes_table').innerHTML = table_markup
 });
