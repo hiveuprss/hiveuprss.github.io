@@ -3,7 +3,14 @@
 const DEFAULT_DLUX_API = 'https://dlux-token.herokuapp.com/'
 
 var urlParams = new URLSearchParams(window.location.search);
-let DLUX_API = urlParams.has('node') ? urlParams.get('node') : DEFAULT_DLUX_API
+let DLUX_API = urlParams.has('node') ? urlParams.get('node').toLowerCase() : DEFAULT_DLUX_API
+
+
+if (!DLUX_API.startsWith('https')) {
+  window.alert('Sorry, browsers dont allow mixed HTTP/S content. Falling back to default node.')
+  DLUX_API = DEFAULT_DLUX_API
+}
+
 
 if (DLUX_API.slice(-1) !== '/') {
   DLUX_API += '/'
