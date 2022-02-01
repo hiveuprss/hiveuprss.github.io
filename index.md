@@ -9,3 +9,4 @@
 * [randomhive](./randomhive) - show a random recently-published Hive blog post
 * [supply](./supply) - show current Hive and HBD token supply info
 * [DLUXMonitor](./dluxmonitor) - show current DLUX node list and other info
+* [SPKCCMonitor](./spkccmonitor) - show current SPKCC node list and other info
