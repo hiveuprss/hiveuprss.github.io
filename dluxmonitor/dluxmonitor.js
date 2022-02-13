@@ -71,7 +71,7 @@ Promise.all([coin_promise, runners_promise, queue_promise, stats_promise, market
     stats_rows['Liquid Supply'] = (coin_info.liquid_supply / 1000).toLocaleString() + ' DLUX'
 
     stats_rows['Governance Threshold'] = (parseInt(stats.gov_threshhold) / 1000).toLocaleString() + ' DLUX'
-    stats_rows['Dex Fee'] = `${(parseInt(stats.dex_fee) / 1000).toLocaleString()}%`
+    stats_rows['Dex Fee'] = `${(parseFloat(stats.dex_fee) * 100).toLocaleString()}%`
     stats_rows['Blocks Behind'] = coin.behind + ' blocks'
     stats_rows['Consensus / Runners / Total Nodes'] = `${Object.keys(queue).length} / ${Object.keys(runners).length} / ${Object.keys(nodes).length}`
 
