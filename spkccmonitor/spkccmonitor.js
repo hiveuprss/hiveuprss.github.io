@@ -36,20 +36,28 @@ stats_promise = axios({
   url: DLUX_API
 })
 
+markets_promise = axios({
+  method: 'get',
+  url: DLUX_API + 'markets'
+})
 
-Promise.all([coin_promise, runners_promise, queue_promise, stats_promise])
+
+Promise.all([coin_promise, runners_promise, queue_promise, stats_promise, markets_promise])
 .then((values) => {
-    let [coin, runners, queue, stats] = values
+    let [coin, runners, queue, stats, markets] = values
     console.log(coin.data)
     console.log(runners.data)
     console.log(queue.data)
     console.log(stats.data)
+    console.log(markets.data)
 
     coin = coin.data
     let coin_info = coin.info
     runners = runners.data.runners
     queue = queue.data.queue
     stats = stats.data.result
+    markets = markets.data.markets
+    nodes = markets.node
 
     let stats_rows = {}
     stats_rows['Total Supply'] = (stats.tokenSupply / 1000).toLocaleString() + ' LARYNX'
@@ -73,7 +81,7 @@ Promise.all([coin_promise, runners_promise, queue_promise, stats_promise])
     document.querySelector('table#stats').innerHTML += statsTable
 
     // populate runners table
-    table_markup = '<thead><th>Name</th><th>Runner?</th><th>LARYNX</th><th>API</th></thead>'
+    table_markup = '<thead><th>Name</th><th>Runner?</th><th>LARYNX</th><th>Version</th><th>API</th></thead>'
     for (account in queue) {
         let dluxg = parseInt(queue[account].g)/1000
         let api = queue[account].api
@@ -84,7 +92,8 @@ Promise.all([coin_promise, runners_promise, queue_promise, stats_promise])
         } else {
             runner = 'No'
         }
-        table_markup += `<tr><td>@${account}</td><td>${runner}</td><td>${dluxg}</td><td><a href="./?node=${api}">${api}</a></td></tr>`
+        let version = nodes[account].report.version
+        table_markup += `<tr><td>@${account}</td><td>${runner}</td><td>${dluxg}</td><td>${version}</td><td><a href="./?node=${api}">${api}</a></td></tr>`
     }
     document.querySelector('table#dlux_nodes_table').innerHTML = table_markup
 });
