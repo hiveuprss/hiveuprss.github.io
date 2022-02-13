@@ -81,19 +81,30 @@ Promise.all([coin_promise, runners_promise, queue_promise, stats_promise, market
     document.querySelector('table#stats').innerHTML += statsTable
 
     // populate runners table
-    table_markup = '<thead><th>Name</th><th>Runner?</th><th>LARYNX</th><th>Version</th><th>API</th></thead>'
-    for (account in queue) {
-        let dluxg = parseInt(queue[account].g)/1000
-        let api = queue[account].api
+    table_markup = '<thead><th>Name</th><th>Consensus?</th><th>Runner?</th><th>LARYNX</th><th>Version</th><th>API</th></thead>'
+    for (account in nodes) {
+        let dluxg = 0
+        if (account in queue) {
+          dluxg = parseInt(queue[account].g)/1000
+        }
+        let api = nodes[account].domain
 
         let runner
-        if (runners.hasOwnProperty(account)) {
+        if (account in runners) {
             runner = 'Yes'
         } else {
             runner = 'No'
         }
+
+        let consensus
+        if (account in queue) {
+            consensus = 'Yes'
+        } else {
+            consensus = 'No'
+        }
+
         let version = nodes[account].report.version
-        table_markup += `<tr><td>@${account}</td><td>${runner}</td><td>${dluxg}</td><td>${version}</td><td><a href="./?node=${api}">${api}</a></td></tr>`
+        table_markup += `<tr><td>@${account}</td><td>${consensus}</td><td>${runner}</td><td>${dluxg}</td><td>${version}</td><td><a href="./?node=${api}">${api}</a></td></tr>`
     }
     document.querySelector('table#dlux_nodes_table').innerHTML = table_markup
 });
