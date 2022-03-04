@@ -145,7 +145,11 @@ Promise.all([coin_promise, runners_promise, queue_promise, stats_promise, market
 
         let bidrate = nodes[account].bidRate
         let lastgood = nodes[account].lastGood
-        let version = nodes[account].report.version
+        let version = 'v0.0'
+
+        if (nodes[account].report) {
+            version = nodes[account].report.version
+        }
         table_markup += `<tr><td>@${account}</td><td>${consensus}</td><td>${runner}</td><td>${dluxg}</td><td>${bidrate/1000}%</td><td>${lastgood}</td><td>${version}</td><td><a href="./?node=${api}">${api}</a></td></tr>`
     }
     document.querySelector('table#nodes_table').innerHTML = table_markup
