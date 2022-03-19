@@ -70,9 +70,13 @@ Promise.all([coin_promise, runners_promise, queue_promise, stats_promise, market
     //stats_rows['Locked in PowerUps'] = (coin_info.locked_pow / 1000).toLocaleString() + ' LARYNX'
     stats_rows['Liquid Supply'] = (coin_info.liquid_supply / 1000).toLocaleString() + ' LARYNX'
     
-
     stats_rows['Governance Threshold'] = (parseInt(stats.gov_threshhold) / 1000).toLocaleString() + ' LARYNX'
-    stats_rows['Dex Fee'] = `${(parseFloat(stats.dex_fee) * 100).toLocaleString()}%`
+    stats_rows['DEX Safety Limit'] = `${(stats.safetyLimit / 1000).toLocaleString()}` // THIS * DEX.TICK is the max hive or HBD balance for open buy orders
+    stats_rows['DEX Fee'] = `${(parseFloat(stats.dex_fee) * 100).toLocaleString()}%`
+    stats_rows['DEX Max'] = `${stats.dex_max}%` // The max size of an open order(not market order) with respect to the above safety limit
+    stats_rows['DEX Slope'] = `${stats.dex_slope}%` // The penalty for size in percent for providing lower priced liquidity (if it was 100% a 50% priced order could be 50% the size of the max.
+    stats_rows['Multi-sig Holdings'] = `${(stats['MSHeld']['HBD'] / 100).toLocaleString()} HBD | ${(stats['MSHeld']['HIVE'] / 100).toLocaleString()} HIVE`
+
     stats_rows['Blocks Behind'] = coin.behind + ' blocks'
     stats_rows['Consensus / Runners / Total Nodes'] = `${Object.keys(queue).length} / ${Object.keys(runners).length} / ${Object.keys(nodes).length}`
 
