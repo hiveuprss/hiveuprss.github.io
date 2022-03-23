@@ -16,9 +16,15 @@ if (DLUX_API.slice(-1) !== '/') {
   DLUX_API += '/'
 }
 
+
 coin_promise = axios({
   method: 'get',
   url: DLUX_API + 'coin'
+})
+
+totals_promise = axios({
+  method: 'get',
+  url: DLUX_API + '@t'
 })
 
 runners_promise = axios({
@@ -42,20 +48,21 @@ markets_promise = axios({
 })
 
 
-Promise.all([coin_promise, runners_promise, queue_promise, stats_promise, markets_promise])
+Promise.all([coin_promise, totals_promise, runners_promise, queue_promise, stats_promise, markets_promise])
 .then((values) => {
-    let [coin, runners, queue, stats, markets] = values
+    let [coin, totals, runners, queue, stats, markets] = values
     console.log(coin.data)
+    console.log(totals.data)
     console.log(runners.data)
     console.log(queue.data)
     console.log(stats.data)
     console.log(markets.data)
 
-    coin = coin.data
-    let coin_info = coin.info
+    totals = totals.data
     runners = runners.data.runners
     queue = queue.data.queue
     stats = stats.data.result
+    let behind = markets.data.behind
     markets = markets.data.markets
     nodes = markets.node
 
@@ -66,9 +73,9 @@ Promise.all([coin_promise, runners_promise, queue_promise, stats_promise, market
     //stats_rows['Locked in Contracts'] = (coin_info.in_contracts / 1000).toLocaleString() + ' LARYNX'
     //stats_rows['Locked in Dividends'] = (coin_info.in_dividends / 1000).toLocaleString() + ' LARYNX'
     //stats_rows['Locked in Market'] = (coin_info.in_market / 1000).toLocaleString() + ' LARYNX'
-    stats_rows['Locked in Governance'] = (coin_info.locked_gov / 1000).toLocaleString() + ' LARYNX'
+    stats_rows['Locked in Governance'] = (totals.gov / 1000).toLocaleString() + ' LARYNX'
     //stats_rows['Locked in PowerUps'] = (coin_info.locked_pow / 1000).toLocaleString() + ' LARYNX'
-    stats_rows['Liquid Supply'] = (coin_info.liquid_supply / 1000).toLocaleString() + ' LARYNX'
+    stats_rows['Liquid Supply'] = ((stats.tokenSupply - totals.gov - totals.poweredUp) / 1000).toLocaleString() + ' LARYNX'
     
     stats_rows['Governance Threshold'] = (parseInt(stats.gov_threshhold) / 1000).toLocaleString() + ' LARYNX'
     stats_rows['DEX Safety Limit'] = `${(stats.safetyLimit / 1000).toLocaleString()}` // THIS * DEX.TICK is the max hive or HBD balance for open buy orders
@@ -77,7 +84,7 @@ Promise.all([coin_promise, runners_promise, queue_promise, stats_promise, market
     stats_rows['DEX Slope'] = `${stats.dex_slope}%` // The penalty for size in percent for providing lower priced liquidity (if it was 100% a 50% priced order could be 50% the size of the max.
     stats_rows['Multi-sig Holdings'] = `${(stats['MSHeld']['HBD'] / 1000).toLocaleString()} HBD | ${(stats['MSHeld']['HIVE'] / 1000).toLocaleString()} HIVE`
 
-    stats_rows['Blocks Behind'] = coin.behind + ' blocks'
+    stats_rows['Blocks Behind'] = behind + ' blocks'
     stats_rows['Consensus / Runners / Total Nodes'] = `${Object.keys(queue).length} / ${Object.keys(runners).length} / ${Object.keys(nodes).length}`
 
     // populate stats table
