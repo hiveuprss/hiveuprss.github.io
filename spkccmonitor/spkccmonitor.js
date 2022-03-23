@@ -16,12 +16,6 @@ if (DLUX_API.slice(-1) !== '/') {
   DLUX_API += '/'
 }
 
-
-coin_promise = axios({
-  method: 'get',
-  url: DLUX_API + 'coin'
-})
-
 totals_promise = axios({
   method: 'get',
   url: DLUX_API + '@t'
@@ -37,55 +31,48 @@ queue_promise = axios({
   url: DLUX_API + 'queue'
 })
 
-stats_promise = axios({
-  method: 'get',
-  url: DLUX_API
-})
-
 markets_promise = axios({
   method: 'get',
   url: DLUX_API + 'markets'
 })
 
 
-Promise.all([coin_promise, totals_promise, runners_promise, queue_promise, stats_promise, markets_promise])
+Promise.all([totals_promise, runners_promise, queue_promise, markets_promise])
 .then((values) => {
-    let [coin, totals, runners, queue, stats, markets] = values
-    console.log(coin.data)
+    let [totals, runners, queue, markets] = values
     console.log(totals.data)
     console.log(runners.data)
     console.log(queue.data)
-    console.log(stats.data)
     console.log(markets.data)
 
     totals = totals.data
     runners = runners.data.runners
     queue = queue.data.queue
-    stats = stats.data.result
+    stats = markets.data.stats
     let behind = markets.data.behind
     markets = markets.data.markets
     nodes = markets.node
 
     let stats_rows = {}
-    stats_rows['Total Supply'] = (stats.tokenSupply / 1000).toLocaleString() + ' LARYNX'
+    stats_rows['<b>Total Supply</b> (total tokens claimed)'] = (stats.tokenSupply / 1000).toLocaleString() + ' LARYNX'
     //stats_rows['Locked in NFTs'] = (coin_info.in_NFTS / 1000).toLocaleString() + ' LARYNX'
     //stats_rows['Locked in Auctions'] = (coin_info.in_auctions / 1000).toLocaleString() + ' LARYNX'
     //stats_rows['Locked in Contracts'] = (coin_info.in_contracts / 1000).toLocaleString() + ' LARYNX'
     //stats_rows['Locked in Dividends'] = (coin_info.in_dividends / 1000).toLocaleString() + ' LARYNX'
     //stats_rows['Locked in Market'] = (coin_info.in_market / 1000).toLocaleString() + ' LARYNX'
-    stats_rows['Locked in Governance'] = (totals.gov / 1000).toLocaleString() + ' LARYNX'
+    stats_rows['<b>Locked in Governance</b> (total held for node runners to operate the DEX)'] = (totals.gov / 1000).toLocaleString() + ' LARYNX'
     //stats_rows['Locked in PowerUps'] = (coin_info.locked_pow / 1000).toLocaleString() + ' LARYNX'
-    stats_rows['Liquid Supply'] = ((stats.tokenSupply - totals.gov - totals.poweredUp) / 1000).toLocaleString() + ' LARYNX'
+    stats_rows['<b>Liquid Supply</b> (total supply - locked - powered-up)'] = ((stats.tokenSupply - totals.gov - totals.poweredUp) / 1000).toLocaleString() + ' LARYNX'
     
-    stats_rows['Governance Threshold'] = (parseInt(stats.gov_threshhold) / 1000).toLocaleString() + ' LARYNX'
-    stats_rows['DEX Safety Limit'] = `${(stats.safetyLimit / 1000).toLocaleString()}` // THIS * DEX.TICK is the max hive or HBD balance for open buy orders
-    stats_rows['DEX Fee'] = `${(parseFloat(stats.dex_fee) * 100).toLocaleString()}%`
-    stats_rows['DEX Max'] = `${stats.dex_max}%` // The max size of an open order(not market order) with respect to the above safety limit
-    stats_rows['DEX Slope'] = `${stats.dex_slope}%` // The penalty for size in percent for providing lower priced liquidity (if it was 100% a 50% priced order could be 50% the size of the max.
-    stats_rows['Multi-sig Holdings'] = `${(stats['MSHeld']['HBD'] / 1000).toLocaleString()} HBD | ${(stats['MSHeld']['HIVE'] / 1000).toLocaleString()} HIVE`
+    stats_rows['<b>Governance Threshold</b> (minimum required to be locked to contribute as a node)'] = (parseInt(stats.gov_threshhold) / 1000).toLocaleString() + ' LARYNX'
+    stats_rows['<b>DEX Safety Limit</b> (the collective weight of the poorer half of the nodes)'] = `${(stats.safetyLimit / 1000).toLocaleString()}` // THIS * DEX.TICK is the max hive or HBD balance for open buy orders
+    stats_rows['<b>DEX Fee</b> (fees for DEX transactions, up to 1%, bid on by nodes)'] = `${(parseFloat(stats.dex_fee) * 100).toLocaleString()}%`
+    stats_rows['<b>DEX Max</b> (the largest sized order that can be placed, percentage of the above safety limit)'] = `${stats.dex_max}%` // The max size of an open order(not market order) with respect to the above safety limit
+    stats_rows['<b>DEX Slope</b> (controls the size of lower priced orders)'] = `${stats.dex_slope}%` // The penalty for size in percent for providing lower priced liquidity (if it was 100% a 50% priced order could be 50% the size of the max.
+    stats_rows['<b>Multi-sig Holdings</b> (what the DAO believes it holds)'] = `${(stats['MSHeld']['HBD'] / 1000).toLocaleString()} HBD | ${(stats['MSHeld']['HIVE'] / 1000).toLocaleString()} HIVE`
 
-    stats_rows['Blocks Behind'] = behind + ' blocks'
-    stats_rows['Consensus / Runners / Total Nodes'] = `${Object.keys(queue).length} / ${Object.keys(runners).length} / ${Object.keys(nodes).length}`
+    stats_rows['<b>Blocks Behind</b> (for the API node providing this data)'] = behind + ' blocks'
+    stats_rows['<b>Network Node Count</b> (Consensus / Runners / Total)'] = `${Object.keys(queue).length} / ${Object.keys(runners).length} / ${Object.keys(nodes).length}`
 
     // populate stats table
 
@@ -93,12 +80,11 @@ Promise.all([coin_promise, totals_promise, runners_promise, queue_promise, stats
     for (attribute in stats_rows) {
       statsTable += `<tr><td>${attribute}</td><td>${stats_rows[attribute]}</td></tr>`
     }
-    document.querySelector('table#stats').innerHTML += statsTable
+    document.querySelector('table#stats tbody').innerHTML += statsTable
 
     // populate nodes table
 
-    table_markup = '<thead><th>Name</th><th>Consensus?</th><th>Runner?</th><th>LARYNXG</th><th>Bid Rate</th><th>Last Good</th><th>Version</th><th>API</th></thead>'
-    table_markup += `<tr><td colspan="8"><center><b>Nodes in Consensus</b></center></td></tr>`
+    table_markup = `<tr><td colspan="8"><center><b>Nodes in Consensus</b></center></td></tr>`
 
     for (account in queue) {
         let dluxg = 0
@@ -163,5 +149,5 @@ Promise.all([coin_promise, totals_promise, runners_promise, queue_promise, stats
         }
         table_markup += `<tr><td>@${account}</td><td>${consensus}</td><td>${runner}</td><td>${dluxg}</td><td>${bidrate/1000}%</td><td>${lastgood}</td><td>${version}</td><td><a href="./?node=${api}">${api}</a></td></tr>`
     }
-    document.querySelector('table#nodes_table').innerHTML = table_markup
+    document.querySelector('table#nodes_table tbody').innerHTML = table_markup
 });
