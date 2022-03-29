@@ -62,14 +62,14 @@ Promise.all([totals_promise, runners_promise, queue_promise, markets_promise])
     //stats_rows['Locked in Market'] = (coin_info.in_market / 1000).toLocaleString() + ' LARYNX'
     stats_rows['<b>Locked in Governance</b> (total held for node runners to operate the DEX)'] = (totals.gov / 1000).toLocaleString() + ' LARYNX'
     //stats_rows['Locked in PowerUps'] = (coin_info.locked_pow / 1000).toLocaleString() + ' LARYNX'
-    stats_rows['<b>Liquid Supply</b> (total supply - locked - powered-up)'] = ((stats.tokenSupply - totals.gov - totals.poweredUp) / 1000).toLocaleString() + ' LARYNX'
+    stats_rows['<b>Liquid Supply</b> (tokens that are not locked or powered-up)'] = ((stats.tokenSupply - totals.gov - totals.poweredUp) / 1000).toLocaleString() + ' LARYNX'
     
     stats_rows['<b>Governance Threshold</b> (minimum required to be locked to contribute as a node)'] = (parseInt(stats.gov_threshhold) / 1000).toLocaleString() + ' LARYNX'
     stats_rows['<b>DEX Safety Limit</b> (the collective weight of the poorer half of the nodes)'] = `${(stats.safetyLimit / 1000).toLocaleString()}` // THIS * DEX.TICK is the max hive or HBD balance for open buy orders
     stats_rows['<b>DEX Fee</b> (fees for DEX transactions, up to 1%, bid on by nodes)'] = `${(parseFloat(stats.dex_fee) * 100).toLocaleString()}%`
     stats_rows['<b>DEX Max</b> (the largest sized order that can be placed, percentage of the above safety limit)'] = `${stats.dex_max}%` // The max size of an open order(not market order) with respect to the above safety limit
     stats_rows['<b>DEX Slope</b> (controls the size of lower priced orders)'] = `${stats.dex_slope}%` // The penalty for size in percent for providing lower priced liquidity (if it was 100% a 50% priced order could be 50% the size of the max.
-    stats_rows['<b>Multi-sig Holdings</b> (what the DAO believes it holds)'] = `${(stats['MSHeld']['HBD'] / 1000).toLocaleString()} HBD | ${(stats['MSHeld']['HIVE'] / 1000).toLocaleString()} HIVE`
+    stats_rows['<b>Multi-sig Holdings</b> (coins held in escrow for open DEX orders)'] = `${(stats['MSHeld']['HBD'] / 1000).toLocaleString()} HBD | ${(stats['MSHeld']['HIVE'] / 1000).toLocaleString()} HIVE`
 
     stats_rows['<b>Blocks Behind</b> (for the API node providing this data)'] = behind + ' blocks'
     stats_rows['<b>Network Node Count</b> (Consensus / Runners / Total)'] = `${Object.keys(queue).length} / ${Object.keys(runners).length} / ${Object.keys(nodes).length}`
