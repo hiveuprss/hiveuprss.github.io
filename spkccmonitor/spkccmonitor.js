@@ -36,14 +36,20 @@ markets_promise = axios({
   url: DLUX_API + 'markets'
 })
 
+dex_promise = axios({
+  method: 'get',
+  url: DLUX_API + 'dex'
+})
 
-Promise.all([totals_promise, runners_promise, queue_promise, markets_promise])
+  
+Promise.all([totals_promise, runners_promise, queue_promise, markets_promise, dex_promise])
 .then((values) => {
-    let [totals, runners, queue, markets] = values
+    let [totals, runners, queue, markets, dex] = values
     console.log(totals.data)
     console.log(runners.data)
     console.log(queue.data)
-    console.log(markets.data)
+    console.log(markets.data) 
+    console.log(dex.data)
 
     totals = totals.data
     runners = runners.data.runners
@@ -53,33 +59,112 @@ Promise.all([totals_promise, runners_promise, queue_promise, markets_promise])
     markets = markets.data.markets
     nodes = markets.node
 
-    let stats_rows = {}
-    stats_rows['<b>Total Supply</b> (total tokens claimed)'] = (stats.tokenSupply / 1000).toLocaleString() + ' LARYNX'
+    function calcCoinsInContracts(data) {
+          let hivesells = data.markets.hive.sells.sort(function(a, b) {
+            return parseFloat(a.rate) - parseFloat(b.rate)
+          }).reduce((acc, cur) => {
+            if (!acc.length || acc[acc.length - 1].rate != cur.rate) {
+              cur.total = cur.hive + (acc[acc.length - 1]?.total || 0)
+              cur.at = cur.amount + (acc[acc.length - 1]?.amount || 0)
+              acc.push(cur)
+            } else {
+              acc[acc.length - 1].total = cur.hive + acc[acc.length - 1].total
+              acc[acc.length - 1].hive = cur.hive + acc[acc.length - 1].hive
+              acc[acc.length - 1].amount = cur.amount + acc[acc.length - 1].amount
+              acc[acc.length - 1].at = cur.amount + acc[acc.length - 1].at
+            }
+            return acc
+          }, [])
+
+        let hbdsells = data.markets.hbd.sells.sort(function(a, b) {
+          return parseFloat(a.rate) - parseFloat(b.rate)
+        }).reduce((acc, cur) => {
+          if (!acc.length || acc[acc.length - 1].rate != cur.rate) {
+            cur.total = cur.hbd + (acc[acc.length - 1]?.total || 0)
+            cur.at = cur.amount + (acc[acc.length - 1]?.amount || 0)
+            acc.push(cur)
+          } else {
+            acc[acc.length - 1].total = cur.hbd + acc[acc.length - 1].total
+            acc[acc.length - 1].hbd = cur.hbd + acc[acc.length - 1].hbd
+            acc[acc.length - 1].amount = cur.amount + acc[acc.length - 1].amount
+            acc[acc.length - 1].at = cur.amount + acc[acc.length - 1].at
+          }
+          return acc
+        }, [])
+
+        let coinsInHiveSells = hivesells.reduce((acc, cur) => {
+          if (typeof acc === 'object') {
+            acc = parseInt(cur.at)
+          } else {
+            acc += parseInt(cur.at)
+          }
+          return acc
+        })
+
+        let coinsInHBDSells = hbdsells.reduce((acc, cur) => {
+          if (typeof acc === 'object') {
+            acc = parseInt(cur.at)
+          } else {
+            acc += parseInt(cur.at)
+          }
+          return acc
+        })
+
+        return coinsInHiveSells + coinsInHBDSells
+    }
+
+    let coinsInSellerContracts = calcCoinsInContracts(dex.data)
+
+
+    let token_rows = {}
+    token_rows['<b>Total Supply</b> (total tokens claimed)'] = (stats.tokenSupply / 1000).toLocaleString() + ' LARYNX'
     //stats_rows['Locked in NFTs'] = (coin_info.in_NFTS / 1000).toLocaleString() + ' LARYNX'
     //stats_rows['Locked in Auctions'] = (coin_info.in_auctions / 1000).toLocaleString() + ' LARYNX'
     //stats_rows['Locked in Contracts'] = (coin_info.in_contracts / 1000).toLocaleString() + ' LARYNX'
     //stats_rows['Locked in Dividends'] = (coin_info.in_dividends / 1000).toLocaleString() + ' LARYNX'
     //stats_rows['Locked in Market'] = (coin_info.in_market / 1000).toLocaleString() + ' LARYNX'
-    stats_rows['<b>Locked in Governance</b> (total held for node runners to operate the DEX)'] = (totals.gov / 1000).toLocaleString() + ' LARYNX'
+    token_rows['<b>Locked in Governance</b> (total held for node runners to operate the DEX)'] = (totals.gov / 1000).toLocaleString() + ' LARYNX'
     //stats_rows['Locked in PowerUps'] = (coin_info.locked_pow / 1000).toLocaleString() + ' LARYNX'
-    stats_rows['<b>Liquid Supply</b> (tokens that are not locked or powered-up)'] = ((stats.tokenSupply - totals.gov - totals.poweredUp) / 1000).toLocaleString() + ' LARYNX'
-    stats_rows['<b>Governance Threshold</b> (minimum required to be locked to contribute as a node)'] = (parseInt(stats.gov_threshhold) / 1000).toLocaleString() + ' LARYNX'
-    stats_rows['<b>DEX Safety Limit</b> (the collective weight of the poorer half of the nodes)'] = `${(stats.safetyLimit / 1000).toLocaleString()}` // THIS * DEX.TICK is the max hive or HBD balance for open buy orders
-    stats_rows['<b>DEX Fee</b> (fees for DEX transactions, up to 1%, voted by nodes)'] = `${(parseFloat(stats.dex_fee) * 100).toLocaleString()}%`
-    stats_rows['<b>DEX Max</b> (the largest sized order that can be placed, percentage of the above safety limit)'] = `${stats.dex_max}%` // The max size of an open order(not market order) with respect to the above safety limit
-    stats_rows['<b>DEX Slope</b> (controls the size of lower priced orders)'] = `${stats.dex_slope}%` // The penalty for size in percent for providing lower priced liquidity (if it was 100% a 50% priced order could be 50% the size of the max.
+    token_rows['<b>Liquid Supply</b> (tokens that are not locked or powered-up)'] = ((stats.tokenSupply - totals.gov - totals.poweredUp) / 1000).toLocaleString() + ' LARYNX'
+ 
+
+
+    let stats_rows = {}
+       stats_rows['<b>Governance Threshold</b> (minimum required to be locked to contribute as a node)'] = (parseInt(stats.gov_threshhold) / 1000).toLocaleString() + ' LARYNX'
     stats_rows['<b>DAO Claim Percent</b> (percentage of claimed Larynx that will go into the DAO fund)'] = `${stats.daoclaim.v/100}%` // The penalty for size in percent for providing lower priced liquidity (if it was 100% a 50% priced order could be 50% the size of the max.
-    stats_rows['<b>Multi-sig Bidder Pool Holdings</b> (coins held in escrow for open DEX orders)'] = `${(stats['MSHeld']['HBD'] / 1000).toLocaleString()} HBD | ${(stats['MSHeld']['HIVE'] / 1000).toLocaleString()} HIVE`
     stats_rows['<b>Blocks Behind</b> (for the API node providing this data)'] = behind + ' blocks'
-    stats_rows['<b>Network Node Count</b> (Consensus / Runners / Total)'] = `${Object.keys(queue).length} / ${Object.keys(runners).length} / ${Object.keys(nodes).length}`
+    stats_rows['<b>Network Node Count</b> (Runners / Consensus / Total)'] = `${Object.keys(runners).length} / ${Object.keys(queue).length} / ${Object.keys(nodes).length}`
+
+
+    let dex_rows = {}
+    dex_rows['<b>DEX Fee</b> (fees for DEX transactions, up to 1%, voted by nodes)'] = `${(parseFloat(stats.dex_fee) * 100).toLocaleString()}%`
+    dex_rows['<b>DEX Safety Limit</b> (the collective weight of the poorer half of the nodes)'] = `${(stats.safetyLimit / 1000).toLocaleString()}` // THIS * DEX.TICK is the max hive or HBD balance for open buy orders
+    dex_rows['<b>DEX Max</b> (the largest sized order that can be placed, percentage of the above safety limit)'] = `${stats.dex_max}%` // The max size of an open order(not market order) with respect to the above safety limit
+    dex_rows['<b>DEX Slope</b> (controls the size of lower priced orders)'] = `${stats.dex_slope}%` // The penalty for size in percent for providing lower priced liquidity (if it was 100% a 50% priced order could be 50% the size of the max.
+    dex_rows['<b>In Seller Contracts</b> (tokens that are tied up in DEX orders)'] = (coinsInSellerContracts / 1000).toLocaleString() + ' LARYNX'
+    dex_rows['<b>Multi-sig Bidder Pool Holdings</b> (coins held in escrow for open DEX orders)'] = `${(stats['MSHeld']['HIVE'] / 1000).toLocaleString()} HIVE | ${(stats['MSHeld']['HBD'] / 1000).toLocaleString()} HBD`
+
+    // populate token table
+    let tokenTable = ''
+    for (attribute in token_rows) {
+      tokenTable += `<tr><td>${attribute}</td><td>${token_rows[attribute]}</td></tr>`
+    }
+    document.querySelector('table#token tbody').innerHTML += tokenTable
 
     // populate stats table
-
     let statsTable = ''
     for (attribute in stats_rows) {
       statsTable += `<tr><td>${attribute}</td><td>${stats_rows[attribute]}</td></tr>`
     }
     document.querySelector('table#stats tbody').innerHTML += statsTable
+
+    // populate dex table
+    let dexTable = ''
+    for (attribute in dex_rows) {
+      dexTable += `<tr><td>${attribute}</td><td>${dex_rows[attribute]}</td></tr>`
+    }
+    document.querySelector('table#dex tbody').innerHTML += dexTable
+
 
     // populate nodes table
     function renderRow(account, consensus, runner, larynxg, bidrate, dexmax, dexslope, daoclaim, lastgood, version, api) {
