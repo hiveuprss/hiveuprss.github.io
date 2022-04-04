@@ -130,7 +130,7 @@ Promise.all([totals_promise, runners_promise, queue_promise, markets_promise, de
 
 
     let stats_rows = {}
-       stats_rows['<b>Governance Threshold</b> (minimum required to be locked to contribute as a node)'] = (parseInt(stats.gov_threshhold) / 1000).toLocaleString() + ' LARYNX'
+    stats_rows['<b>Governance Threshold</b> (minimum required to be locked to contribute as a node)'] = stats.gov_threshhold === 'FULL' ? 'Runners Full' : (parseInt(stats.gov_threshhold) / 1000).toLocaleString() + ' LARYNX'
     stats_rows['<b>DAO Claim Percent</b> (percentage of claimed Larynx that will go into the DAO fund)'] = `${stats.daoclaim.v/100}%` // The penalty for size in percent for providing lower priced liquidity (if it was 100% a 50% priced order could be 50% the size of the max.
     stats_rows['<b>Blocks Behind</b> (for the API node providing this data)'] = behind + ' blocks'
     stats_rows['<b>Network Node Count</b> (Runners / Consensus / Total)'] = `${Object.keys(runners).length} / ${Object.keys(queue).length} / ${Object.keys(nodes).length}`
