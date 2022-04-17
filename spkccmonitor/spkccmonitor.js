@@ -12,7 +12,7 @@ if (!SPKCC_API.startsWith('https')) {
 }
 
 if (SPKCC_API.slice(-1) !== '/') {
-  DLUX_API += '/'
+  SPKCC_API += '/'
 }
 
 totals_promise = axios({
