@@ -45,7 +45,7 @@ dex_promise = axios({
 
 hive_wallet_promise = axios({
   method: 'post',
-  data: '{"jsonrpc":"2.0", "method":"condenser_api.get_accounts", "params":[["spk-cc"]], "id":1}',
+  data: '{"jsonrpc":"2.0", "method":"condenser_api.get_accounts", "params":[["ragnarok-cc"]], "id":1}',
   url: "https://api.hive.blog"
 })
 
@@ -260,7 +260,7 @@ Promise.all([markets_promise, dex_promise, hive_wallet_promise])
     hiveAmountColor = actual_hive_balance * 1000 == hiveInBuyContracts ? 'green' : hiveAmountColor
     hbdAmountColor = actual_hbd_balance > hbdInBuyContracts ? 'goldenrod' : 'red'
     hbdAmountColor = actual_hbd_balance * 1000 == hbdInBuyContracts ? 'green' : hbdAmountColor
-    dex_rows['<b>@SPK-CC Hive Wallet Balances</b> (actual Hive layer-1 wallet balances)'] = `<font color="${hiveAmountColor}">${(actual_hive_balance).toLocaleString()} HIVE</font> | <font color="${hbdAmountColor}">${actual_hbd_balance} HBD</font>`
+    dex_rows['<b>@ragnarok-cc Hive Wallet Balances</b> (actual Hive layer-1 wallet balances)'] = `<font color="${hiveAmountColor}">${(actual_hive_balance).toLocaleString()} HIVE</font> | <font color="${hbdAmountColor}">${actual_hbd_balance} HBD</font>`
 
 
 
