@@ -256,9 +256,9 @@ Promise.all([markets_promise, dex_promise, hive_wallet_promise])
 
     dex_rows['<b>Multi-sig Bidder Pool Holdings</b> (coins held in escrow for open DEX orders)'] = `<font color="${hiveAmountColor}">${(stats['MSHeld']['HIVE'] / 1000).toLocaleString()} HIVE</font> | <font color="${hbdAmountColor}">${(stats['MSHeld']['HBD'] / 1000).toLocaleString()} HBD</font>`
 
-    hiveAmountColor = actual_hive_balance > hiveInBuyContracts ? 'goldenrod' : 'red'
+    hiveAmountColor = actual_hive_balance * 1000 > hiveInBuyContracts ? 'goldenrod' : 'red'
     hiveAmountColor = actual_hive_balance * 1000 == hiveInBuyContracts ? 'green' : hiveAmountColor
-    hbdAmountColor = actual_hbd_balance > hbdInBuyContracts ? 'goldenrod' : 'red'
+    hbdAmountColor = actual_hbd_balance * 1000 > hbdInBuyContracts ? 'goldenrod' : 'red'
     hbdAmountColor = actual_hbd_balance * 1000 == hbdInBuyContracts ? 'green' : hbdAmountColor
     dex_rows['<b>@ragnarok-cc Hive Wallet Balances</b> (actual Hive layer-1 wallet balances)'] = `<font color="${hiveAmountColor}">${(actual_hive_balance).toLocaleString()} HIVE</font> | <font color="${hbdAmountColor}">${actual_hbd_balance} HBD</font>`
 
