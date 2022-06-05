@@ -166,7 +166,7 @@ function getLabel(operation) {
         return 'DrugWars'
       } else if (id == 'leoinfra') {
         return 'Leo'
-      } else if (id == 'qwoyn_report' || id == 'qwoyn_plant_plot') {
+      } else if (id.includes('qwoyn_')) {
         return 'Hashkings'
       } else if (id == 'dope') {
         return 'Dope'
@@ -178,6 +178,14 @@ function getLabel(operation) {
         return 'H-E Testnet'
       } else if (id == 'dcrops') {
         return 'dCrops'
+      } else if (id.includes('ecency_')) {
+        return 'Ecency'
+      } else if (id.includes('spkcc_')) {
+        return 'SpkNetwork'
+      } else if (id.includes('duat_')) {
+        return 'Ragnarok'
+      } else if (id.includes('op_')) {
+        return 'OceanPlanet'
       } else {
         return 'Other'
       }
