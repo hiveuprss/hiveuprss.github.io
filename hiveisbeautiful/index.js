@@ -186,7 +186,7 @@ function getLabel(operation) {
         return 'Ragnarok'
       } else if (id.includes('op_')) {
         return 'OceanPlanet'
-      } else if (id.includes('woo_') {
+      } else if (id.includes('woo_')) {
         return 'WOO'
       } else {
         return 'Other'
