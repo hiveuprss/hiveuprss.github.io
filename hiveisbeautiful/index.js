@@ -172,7 +172,7 @@ function getLabel(operation) {
         return 'Dope'
       } else if (id == 'commentcoin') {
         return 'commentcoin'
-      } else if (id == 'podping') {
+      } else if (id.includes('pp_')) {
         return 'podping'
       } else if (id == 'ssc-testnet-puzzlr' || id == 'ssc-testnet-reaz') {
         return 'H-E Testnet'
@@ -186,6 +186,8 @@ function getLabel(operation) {
         return 'Ragnarok'
       } else if (id.includes('op_')) {
         return 'OceanPlanet'
+      } else if (id.includes('woo_') {
+        return 'WOO'
       } else {
         return 'Other'
       }
