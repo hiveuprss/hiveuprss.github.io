@@ -67,6 +67,7 @@ Promise.all([totals_promise, runners_promise, queue_promise, markets_promise])
 
 
     let token_rows = {}
+    token_rows['<b>Claim, Power Up, Delegate</b> LARYNX using the <a href="https://vue.dlux.io/me#wallet">dlux.io wallet</a>.'] = ''
     token_rows['<b>Total Supply</b> (total tokens claimed)'] = (stats.tokenSupply / 1000).toLocaleString() + ' LARYNX'
     //stats_rows['Locked in NFTs'] = (coin_info.in_NFTS / 1000).toLocaleString() + ' LARYNX'
     //stats_rows['Locked in Auctions'] = (coin_info.in_auctions / 1000).toLocaleString() + ' LARYNX'
