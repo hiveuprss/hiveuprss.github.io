@@ -98,15 +98,22 @@ Promise.all([totals_promise, runners_promise, queue_promise, markets_promise])
 
 
     // populate nodes table
-    function renderRow(account, consensus, runner, larynxg, bidrate, dexmax, dexslope, daoclaim, lastgood, version, api) {
+    function renderRow(account, consensus, runner, larynxg, bidrate, dexmax, dexslope, daoclaim, lastgood, lastgoodColor, version, api) {
         var row_markup = `<tr><td>@${account}</td><td>${consensus}</td><td>${runner}</td><td>${larynxg}</td><td>${bidrate/1000}%</td>`
         row_markup += `<td>${dexmax/100}%</td><td>${dexslope/100}%</td><td>${daoclaim}</td>`
-        row_markup += `<td>${lastgood}</td><td>${version}</td><td><a href="./?node=${api}">${api}</a></td></tr>`
+        row_markup += `<td><font color="${lastgoodColor}"">${lastgood}</font></td><td>${version}</td><td><a href="./?node=${api}">${api}</a></td></tr>`
         return row_markup
     }
 
     let consensusRows = ''
     let nonConensusRows = ''
+    let lastGoodMax = 0
+
+    for (account in nodes) {
+      if (nodes[account].lastGood > lastGoodMax) {
+        lastGoodMax = nodes[account].lastGood
+      }
+    }
 
     for (account in nodes) {
         let larynxg = account in queue ? parseInt(queue[account].g)/1000 : '?'
@@ -116,6 +123,15 @@ Promise.all([totals_promise, runners_promise, queue_promise, markets_promise])
 
         let bidrate = nodes[account].bidRate
         let lastgood = nodes[account].lastGood
+
+        let lastgoodColor = 'green'
+        if (lastGoodMax - nodes[account].lastGood > 1200) {
+          lastgoodColor = 'yellow'
+        }
+        if (lastGoodMax - nodes[account].lastGood > 28800) {
+          lastgoodColor = 'red'
+        }
+
         let version = nodes[account].report ? nodes[account].report.version : 'Unknown'
 
         let dexmax = nodes[account].dm
@@ -123,10 +139,15 @@ Promise.all([totals_promise, runners_promise, queue_promise, markets_promise])
         let daoclaim = isNaN(nodes[account].dv) ? 'No Vote': nodes[account].dv/100 + '%'
 
         if (account in queue) {
-          consensusRows += renderRow(account, consensus, runner, larynxg, bidrate, dexmax, dexslope, daoclaim, lastgood, version, api)
+          consensusRows += renderRow(account, consensus, runner, larynxg, bidrate, dexmax, dexslope, daoclaim, lastgood, lastgoodColor, version, api)
         } else {
-          nonConensusRows += renderRow(account, consensus, runner, larynxg, bidrate, dexmax, dexslope, daoclaim, lastgood, version, api)
+          nonConensusRows += renderRow(account, consensus, runner, larynxg, bidrate, dexmax, dexslope, daoclaim, lastgood, lastgoodColor, version, api)
         }
+    }
+
+    for (account in nodes) {
+
+
     }
 
     let table_markup = `<tr><td colspan="11"><center><b>Nodes in Consensus</b></center></td></tr>`
