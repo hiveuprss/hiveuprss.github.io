@@ -126,7 +126,7 @@ Promise.all([totals_promise, runners_promise, queue_promise, markets_promise])
 
         let lastgoodColor = 'green'
         if (lastGoodMax - nodes[account].lastGood > 1200) {
-          lastgoodColor = 'yellow'
+          lastgoodColor = 'goldenrod'
         }
         if (lastGoodMax - nodes[account].lastGood > 28800) {
           lastgoodColor = 'red'
