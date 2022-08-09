@@ -89,6 +89,8 @@ Promise.all([totals_promise, runners_promise, queue_promise, markets_promise])
     //stats_rows['Locked in Dividends'] = (coin_info.in_dividends / 1000).toLocaleString() + ' LARYNX'
     //stats_rows['Locked in Market'] = (coin_info.in_market / 1000).toLocaleString() + ' LARYNX'
     token_rows['<b>Locked in Governance</b> (total held for node runners to operate the DEX)'] = (totals.gov / 1000).toLocaleString() + ' LARYNX'
+    token_rows['<b>Powered Up</b> (total in powered-up state)'] = (totals.poweredUp / 1000).toLocaleString() + ' LARYNX'
+    token_rows['<b>Delegated </b> (total powered-up & delegated to nodes)'] = 'TBD'
     //stats_rows['Locked in PowerUps'] = (coin_info.locked_pow / 1000).toLocaleString() + ' LARYNX'
     token_rows['<b>Liquid Supply</b> (tokens that are not locked or powered-up)'] = ((stats.tokenSupply - totals.gov - totals.poweredUp) / 1000).toLocaleString() + ' LARYNX'
 
