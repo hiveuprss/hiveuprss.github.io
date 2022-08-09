@@ -131,7 +131,9 @@ Promise.all([totals_promise, runners_promise, queue_promise, markets_promise])
 
     for (account in nodes) {
         let larynxg = account in queue ? parseInt(queue[account].g)/1000 : '?'
-        larynxg = larynxg.toLocaleString()
+        if (larynxg != '?') {
+          larynxg = larynxg.toLocaleString({minimumFractionDigits: 3})
+        }
         let api = nodes[account].domain
         let runner = account in runners ? 'Yes' : 'No'
         let consensus = account in queue ? 'Yes' : 'No'
@@ -325,14 +327,25 @@ function sortTable(n) {
       y = rows[i + 1].getElementsByTagName("TD")[n];
       /* Check if the two rows should switch place,
       based on the direction, asc or desc: */
+
+      let xContent = x.innerHTML.toLowerCase()
+      let yContent = y.innerHTML.toLowerCase()
+
+      // sort as float for Locked LARYNX Column
+      if (n == 3) {
+        xContent = parseFloat(xContent.replace(',','').replace('.',''))
+        yContent = parseFloat(yContent.replace(',','').replace('.',''))
+      }
+
       if (dir == "asc") {
-        if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+
+        if (xContent > yContent) {
           // If so, mark as a switch and break the loop:
           shouldSwitch = true;
           break;
         }
       } else if (dir == "desc") {
-        if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+        if (xContent < yContent) {
           // If so, mark as a switch and break the loop:
           shouldSwitch = true;
           break;
