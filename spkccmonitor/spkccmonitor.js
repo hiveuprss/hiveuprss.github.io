@@ -114,8 +114,8 @@ Promise.all([totals_promise, runners_promise, queue_promise, markets_promise])
 
 
     // populate nodes table
-    function renderRow(account, consensus, runner, larynxg, stakedSpk, cntDelegators, bidrate, dexmax, dexslope, daoclaim, lastgood, lastgoodColor, version, api) {
-        var row_markup = `<tr><td>@${account}</td><td>${consensus}</td><td>${runner}</td><td id="locked${account.replace('.','')}">${larynxg}</td><td id="staked${account.replace('.','')}">${stakedSpk}</td><td id="cnt${account.replace('.','')}">${cntDelegators}</td><td>${bidrate/1000}%</td>`
+    function renderRow(key, account, consensus, runner, larynxg, stakedSpk, cntDelegators, bidrate, dexmax, dexslope, daoclaim, lastgood, lastgoodColor, version, api) {
+        var row_markup = `<tr><td>@${account}${key}</td><td>${consensus}</td><td>${runner}</td><td id="locked${account.replace('.','')}">${larynxg}</td><td id="staked${account.replace('.','')}">${stakedSpk}</td><td id="cnt${account.replace('.','')}">${cntDelegators}</td><td>${bidrate/1000}%</td>`
         row_markup += `<td>${dexmax/100}%</td><td>${dexslope/100}%</td><td>${daoclaim}</td>`
         row_markup += `<td><font color="${lastgoodColor}"">${lastgood}</font></td><td>${version}</td><td><a href="./?node=${api}">${api}</a></td></tr>`
         return row_markup
@@ -163,11 +163,15 @@ Promise.all([totals_promise, runners_promise, queue_promise, markets_promise])
         let dexslope = nodes[account].ds
         let daoclaim = isNaN(nodes[account].dv) ? 'No Vote': nodes[account].dv/100 + '%'
 
+        let key = ''
+        if (Object.keys(stats.ms.active_account_auths).includes(account)) {
+          key = '🔑'
+        }
 
         if (account in queue) {
-          consensusRows += renderRow(account, consensus, runner, larynxg, stakedSpk, cntDelegators, bidrate, dexmax, dexslope, daoclaim, lastgood, lastgoodColor, version, api)
+          consensusRows += renderRow(key, account, consensus, runner, larynxg, stakedSpk, cntDelegators, bidrate, dexmax, dexslope, daoclaim, lastgood, lastgoodColor, version, api)
         } else {
-          nonConensusRows += renderRow(account, consensus, runner, larynxg, stakedSpk, cntDelegators, bidrate, dexmax, dexslope, daoclaim, lastgood, lastgoodColor, version, api)
+          nonConensusRows += renderRow(key, account, consensus, runner, larynxg, stakedSpk, cntDelegators, bidrate, dexmax, dexslope, daoclaim, lastgood, lastgoodColor, version, api)
         }
     }
 
