@@ -190,6 +190,13 @@ Promise.all([totals_promise, runners_promise, queue_promise, markets_promise])
         staked = staked.toLocaleString({minimumFractionDigits: 3})
         document.querySelector(`td#staked${account.replace('.','')}`).innerHTML = staked
         document.querySelector(`td#cnt${account.replace('.','')}`).innerHTML = cntDelegators
+
+        locked = parseInt(locked)/1000
+        if (locked % 1 == 0) {
+          locked += 0.001
+        }
+        locked = locked.toLocaleString({minimumFractionDigits: 3})
+
         document.querySelector(`td#locked${account.replace('.','')}`).innerHTML = locked
       }
     })
