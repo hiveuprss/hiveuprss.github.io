@@ -49,18 +49,18 @@ hive_wallet_promise = axios({
 })
 
 
-/*function getTotalStaked(account) {
+function getTotalStaked(account) {
   return axios({
     method: 'get',
     url: `${SPKCC_API}@${account}`
   }).then(response => {
     if (response.data.granted && response.data.granted.t) {
-      return response.data.granted.t
+      return [account,response.data.granted.t]
     } else {
-      return 0
+      return [account,0]
     }
   })
-}*/
+}
 
 
 Promise.all([totals_promise, runners_promise, queue_promise, markets_promise])
@@ -112,8 +112,8 @@ Promise.all([totals_promise, runners_promise, queue_promise, markets_promise])
 
 
     // populate nodes table
-    function renderRow(account, consensus, runner, larynxg, bidrate, dexmax, dexslope, daoclaim, lastgood, lastgoodColor, version, api) {
-        var row_markup = `<tr><td>@${account}</td><td>${consensus}</td><td>${runner}</td><td>${larynxg}</td><td>${bidrate/1000}%</td>`
+    function renderRow(account, consensus, runner, larynxg, stakedSpk, bidrate, dexmax, dexslope, daoclaim, lastgood, lastgoodColor, version, api) {
+        var row_markup = `<tr><td>@${account}</td><td>${consensus}</td><td>${runner}</td><td>${larynxg}</td><td id="staked${account.replace('.','')}">${stakedSpk}</td><td>${bidrate/1000}%</td>`
         row_markup += `<td>${dexmax/100}%</td><td>${dexslope/100}%</td><td>${daoclaim}</td>`
         row_markup += `<td><font color="${lastgoodColor}"">${lastgood}</font></td><td>${version}</td><td><a href="./?node=${api}">${api}</a></td></tr>`
         return row_markup
@@ -130,10 +130,12 @@ Promise.all([totals_promise, runners_promise, queue_promise, markets_promise])
     }
 
     for (account in nodes) {
-        let larynxg = account in queue ? parseInt(queue[account].g)/1000 : '?'
+        let larynxg = account in queue ? parseFloat(queue[account].g)/1000 : '?'
         if (larynxg != '?') {
           larynxg = larynxg.toLocaleString({minimumFractionDigits: 3})
         }
+        let stakedSpk = '?'
+
         let api = nodes[account].domain
         let runner = account in runners ? 'Yes' : 'No'
         let consensus = account in queue ? 'Yes' : 'No'
@@ -157,9 +159,9 @@ Promise.all([totals_promise, runners_promise, queue_promise, markets_promise])
 
 
         if (account in queue) {
-          consensusRows += renderRow(account, consensus, runner, larynxg, bidrate, dexmax, dexslope, daoclaim, lastgood, lastgoodColor, version, api)
+          consensusRows += renderRow(account, consensus, runner, larynxg, stakedSpk, bidrate, dexmax, dexslope, daoclaim, lastgood, lastgoodColor, version, api)
         } else {
-          nonConensusRows += renderRow(account, consensus, runner, larynxg, bidrate, dexmax, dexslope, daoclaim, lastgood, lastgoodColor, version, api)
+          nonConensusRows += renderRow(account, consensus, runner, larynxg, stakedSpk, bidrate, dexmax, dexslope, daoclaim, lastgood, lastgoodColor, version, api)
         }
     }
 
@@ -169,6 +171,20 @@ Promise.all([totals_promise, runners_promise, queue_promise, markets_promise])
     table_markup += nonConensusRows
 
     document.querySelector('table#nodes_table tbody').innerHTML = table_markup
+
+    let getStakePromises = []
+    for (account in nodes) {
+        getStakePromises.push(getTotalStaked(account))
+    }
+
+    Promise.all(getStakePromises).then((values) => {
+      for (value of values) {
+        [account,staked] = value
+        staked = parseFloat(staked)/1000
+        staked = staked.toLocaleString({minimumFractionDigits: 3})
+        document.querySelector(`td#staked${account.replace('.','')}`).innerHTML = staked
+      }
+    })
 });
 
 
@@ -332,7 +348,7 @@ function sortTable(n) {
       let yContent = y.innerHTML.toLowerCase()
 
       // sort as float for Locked LARYNX Column
-      if (n == 3) {
+      if (n == 3 || n == 4) {
         xContent = parseFloat(xContent.replace(',','').replace('.',''))
         yContent = parseFloat(yContent.replace(',','').replace('.',''))
       }
