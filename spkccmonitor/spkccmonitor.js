@@ -90,7 +90,7 @@ Promise.all([totals_promise, runners_promise, queue_promise, markets_promise])
     //stats_rows['Locked in Market'] = (coin_info.in_market / 1000).toLocaleString() + ' LARYNX'
     token_rows['<b>Locked in Governance</b> (total held for node runners to operate the DEX)'] = (totals.gov / 1000).toLocaleString() + ' LARYNX'
     token_rows['<b>Powered Up</b> (total in powered-up state)'] = (totals.poweredUp / 1000).toLocaleString() + ' LARYNX'
-    token_rows['<b>Delegated </b> (total powered-up & delegated to nodes)'] = 'TBD'
+    token_rows['<b>Delegated </b> (total powered-up & delegated to nodes)'] = '<span id="totalDelegated">?</span'
     //stats_rows['Locked in PowerUps'] = (coin_info.locked_pow / 1000).toLocaleString() + ' LARYNX'
     token_rows['<b>Liquid Supply</b> (tokens that are not locked or powered-up)'] = ((stats.tokenSupply - totals.gov - totals.poweredUp) / 1000).toLocaleString() + ' LARYNX'
 
@@ -188,9 +188,12 @@ Promise.all([totals_promise, runners_promise, queue_promise, markets_promise])
     }
 
     Promise.all(getStakePromises).then((values) => {
+      let totalDelegated = 0
+
       for (value of values) {
         [account,staked,cntDelegators,locked] = value
         staked = parseFloat(staked)/1000
+        totalDelegated += staked
         staked = staked.toLocaleString({minimumFractionDigits: 3})
         document.querySelector(`td#staked${account.replace('.','')}`).innerHTML = staked
         document.querySelector(`td#cnt${account.replace('.','')}`).innerHTML = cntDelegators
@@ -203,6 +206,8 @@ Promise.all([totals_promise, runners_promise, queue_promise, markets_promise])
 
         document.querySelector(`td#locked${account.replace('.','')}`).innerHTML = locked
       }
+
+      document.querySelector(`span#totalDelegated`).innerHTML = totalDelegated.toLocaleString({minimumFractionDigits: 3}) + ' LARYNX'
     })
 });
 
