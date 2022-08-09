@@ -134,6 +134,9 @@ Promise.all([totals_promise, runners_promise, queue_promise, markets_promise])
     for (account in nodes) {
         let larynxg = account in queue ? parseFloat(queue[account].g)/1000 : '?'
         if (larynxg != '?') {
+          if (larynxg % 1 == 0) {
+            larynxg += 0.001
+          }
           larynxg = larynxg.toLocaleString({minimumFractionDigits: 3})
         }
         let stakedSpk = '?'
@@ -353,8 +356,8 @@ function sortTable(n) {
 
       // sort as float for Locked LARYNX Column
       if (n == 3 || n == 4 || n == 5) {
-        xContent = parseFloat(xContent.replace(',','').replace('.',''))
-        yContent = parseFloat(yContent.replace(',','').replace('.',''))
+        xContent = parseFloat(xContent.replaceAll(',','').replace('.',''))
+        yContent = parseFloat(yContent.replaceAll(',','').replace('.',''))
       }
 
       if (dir == "asc") {
