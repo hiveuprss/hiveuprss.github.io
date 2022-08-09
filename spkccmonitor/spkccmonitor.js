@@ -55,9 +55,9 @@ function getTotalStaked(account) {
     url: `${SPKCC_API}@${account}`
   }).then(response => {
     if (response.data.granted && response.data.granted.t) {
-      return [account,response.data.granted.t]
+      return [account,response.data.granted.t, Object.keys(response.data.granted).length - 1]
     } else {
-      return [account,0]
+      return [account,0,0]
     }
   })
 }
@@ -112,8 +112,8 @@ Promise.all([totals_promise, runners_promise, queue_promise, markets_promise])
 
 
     // populate nodes table
-    function renderRow(account, consensus, runner, larynxg, stakedSpk, bidrate, dexmax, dexslope, daoclaim, lastgood, lastgoodColor, version, api) {
-        var row_markup = `<tr><td>@${account}</td><td>${consensus}</td><td>${runner}</td><td>${larynxg}</td><td id="staked${account.replace('.','')}">${stakedSpk}</td><td>${bidrate/1000}%</td>`
+    function renderRow(account, consensus, runner, larynxg, stakedSpk, cntDelegators, bidrate, dexmax, dexslope, daoclaim, lastgood, lastgoodColor, version, api) {
+        var row_markup = `<tr><td>@${account}</td><td>${consensus}</td><td>${runner}</td><td>${larynxg}</td><td id="staked${account.replace('.','')}">${stakedSpk}</td><td id="cnt${account.replace('.','')}">${cntDelegators}</td><td>${bidrate/1000}%</td>`
         row_markup += `<td>${dexmax/100}%</td><td>${dexslope/100}%</td><td>${daoclaim}</td>`
         row_markup += `<td><font color="${lastgoodColor}"">${lastgood}</font></td><td>${version}</td><td><a href="./?node=${api}">${api}</a></td></tr>`
         return row_markup
@@ -135,6 +135,7 @@ Promise.all([totals_promise, runners_promise, queue_promise, markets_promise])
           larynxg = larynxg.toLocaleString({minimumFractionDigits: 3})
         }
         let stakedSpk = '?'
+        let cntDelegators = '?'
 
         let api = nodes[account].domain
         let runner = account in runners ? 'Yes' : 'No'
@@ -159,9 +160,9 @@ Promise.all([totals_promise, runners_promise, queue_promise, markets_promise])
 
 
         if (account in queue) {
-          consensusRows += renderRow(account, consensus, runner, larynxg, stakedSpk, bidrate, dexmax, dexslope, daoclaim, lastgood, lastgoodColor, version, api)
+          consensusRows += renderRow(account, consensus, runner, larynxg, stakedSpk, cntDelegators, bidrate, dexmax, dexslope, daoclaim, lastgood, lastgoodColor, version, api)
         } else {
-          nonConensusRows += renderRow(account, consensus, runner, larynxg, stakedSpk, bidrate, dexmax, dexslope, daoclaim, lastgood, lastgoodColor, version, api)
+          nonConensusRows += renderRow(account, consensus, runner, larynxg, stakedSpk, cntDelegators, bidrate, dexmax, dexslope, daoclaim, lastgood, lastgoodColor, version, api)
         }
     }
 
@@ -179,10 +180,11 @@ Promise.all([totals_promise, runners_promise, queue_promise, markets_promise])
 
     Promise.all(getStakePromises).then((values) => {
       for (value of values) {
-        [account,staked] = value
+        [account,staked,cntDelegators] = value
         staked = parseFloat(staked)/1000
         staked = staked.toLocaleString({minimumFractionDigits: 3})
         document.querySelector(`td#staked${account.replace('.','')}`).innerHTML = staked
+        document.querySelector(`td#cnt${account.replace('.','')}`).innerHTML = cntDelegators
       }
     })
 });
@@ -348,7 +350,7 @@ function sortTable(n) {
       let yContent = y.innerHTML.toLowerCase()
 
       // sort as float for Locked LARYNX Column
-      if (n == 3 || n == 4) {
+      if (n == 3 || n == 4 || n == 5) {
         xContent = parseFloat(xContent.replace(',','').replace('.',''))
         yContent = parseFloat(yContent.replace(',','').replace('.',''))
       }
