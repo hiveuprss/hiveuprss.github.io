@@ -1,6 +1,6 @@
 //dluxmonitor.js
 
-const DEFAULT_SPKCC_API = 'https://spkinstant.hivehoneycomb.com/'
+const DEFAULT_SPKCC_API = 'https://spkcc.dtools.dev/'
 
 var urlParams = new URLSearchParams(window.location.search);
 let SPKCC_API = urlParams.has('node') ? urlParams.get('node').toLowerCase() : DEFAULT_SPKCC_API
@@ -48,7 +48,21 @@ hive_wallet_promise = axios({
   url: "https://api.hive.blog"
 })
 
-  
+
+/*function getTotalStaked(account) {
+  return axios({
+    method: 'get',
+    url: `${SPKCC_API}@${account}`
+  }).then(response => {
+    if (response.data.granted && response.data.granted.t) {
+      return response.data.granted.t
+    } else {
+      return 0
+    }
+  })
+}*/
+
+
 Promise.all([totals_promise, runners_promise, queue_promise, markets_promise])
 .then((values) => {
     let [totals, runners, queue, markets] = values
@@ -117,6 +131,7 @@ Promise.all([totals_promise, runners_promise, queue_promise, markets_promise])
 
     for (account in nodes) {
         let larynxg = account in queue ? parseInt(queue[account].g)/1000 : '?'
+        larynxg = larynxg.toLocaleString()
         let api = nodes[account].domain
         let runner = account in runners ? 'Yes' : 'No'
         let consensus = account in queue ? 'Yes' : 'No'
@@ -138,6 +153,7 @@ Promise.all([totals_promise, runners_promise, queue_promise, markets_promise])
         let dexslope = nodes[account].ds
         let daoclaim = isNaN(nodes[account].dv) ? 'No Vote': nodes[account].dv/100 + '%'
 
+
         if (account in queue) {
           consensusRows += renderRow(account, consensus, runner, larynxg, bidrate, dexmax, dexslope, daoclaim, lastgood, lastgoodColor, version, api)
         } else {
@@ -145,14 +161,9 @@ Promise.all([totals_promise, runners_promise, queue_promise, markets_promise])
         }
     }
 
-    for (account in nodes) {
 
-
-    }
-
-    let table_markup = `<tr><td colspan="11"><center><b>Nodes in Consensus</b></center></td></tr>`
+    let table_markup = ''
     table_markup += consensusRows
-    table_markup += `<tr><td colspan="11"><center><b>Nodes out of Consensus</b></center></td></tr>`
     table_markup += nonConensusRows
 
     document.querySelector('table#nodes_table tbody').innerHTML = table_markup
@@ -290,3 +301,58 @@ Promise.all([markets_promise, dex_promise, hive_wallet_promise])
       document.querySelector('table#dex tbody').innerHTML += `<tr><td>${attribute}</td><td>${dex_rows[attribute]}</td></tr>`
     }
 })
+
+function sortTable(n) {
+  var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+  table = document.getElementById("nodes_table");
+  switching = true;
+  // Set the sorting direction to ascending:
+  dir = "asc";
+  /* Make a loop that will continue until
+  no switching has been done: */
+  while (switching) {
+    // Start by saying: no switching is done:
+    switching = false;
+    rows = table.rows;
+    /* Loop through all table rows (except the
+    first, which contains table headers): */
+    for (i = 1; i < (rows.length - 1); i++) {
+      // Start by saying there should be no switching:
+      shouldSwitch = false;
+      /* Get the two elements you want to compare,
+      one from current row and one from the next: */
+      x = rows[i].getElementsByTagName("TD")[n];
+      y = rows[i + 1].getElementsByTagName("TD")[n];
+      /* Check if the two rows should switch place,
+      based on the direction, asc or desc: */
+      if (dir == "asc") {
+        if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+          // If so, mark as a switch and break the loop:
+          shouldSwitch = true;
+          break;
+        }
+      } else if (dir == "desc") {
+        if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+          // If so, mark as a switch and break the loop:
+          shouldSwitch = true;
+          break;
+        }
+      }
+    }
+    if (shouldSwitch) {
+      /* If a switch has been marked, make the switch
+      and mark that a switch has been done: */
+      rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+      switching = true;
+      // Each time a switch is done, increase this count by 1:
+      switchcount ++;
+    } else {
+      /* If no switching has been done AND the direction is "asc",
+      set the direction to "desc" and run the while loop again. */
+      if (switchcount == 0 && dir == "asc") {
+        dir = "desc";
+        switching = true;
+      }
+    }
+  }
+}
