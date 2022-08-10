@@ -82,13 +82,13 @@ Promise.all([totals_promise, runners_promise, queue_promise, markets_promise])
 
     let token_rows = {}
     token_rows['<b>Claim, Power Up, Delegate</b> LARYNX using the <a href="https://vue.dlux.io/me#wallet">dlux.io wallet</a>.'] = ''
-    token_rows['<b>Total Supply</b> (total tokens claimed)'] = (stats.tokenSupply / 1000).toLocaleString() + ' LARYNX'
+    token_rows['<b>Total Supply</b> (total tokens claimed)'] = (stats.tokenSupply / 1000).toLocaleString({minimumFractionDigits: 3}) + ' LARYNX'
     //stats_rows['Locked in NFTs'] = (coin_info.in_NFTS / 1000).toLocaleString() + ' LARYNX'
     //stats_rows['Locked in Auctions'] = (coin_info.in_auctions / 1000).toLocaleString() + ' LARYNX'
     //stats_rows['Locked in Contracts'] = (coin_info.in_contracts / 1000).toLocaleString() + ' LARYNX'
     //stats_rows['Locked in Dividends'] = (coin_info.in_dividends / 1000).toLocaleString() + ' LARYNX'
     //stats_rows['Locked in Market'] = (coin_info.in_market / 1000).toLocaleString() + ' LARYNX'
-    token_rows['<b>Locked in Governance</b> (total held for node runners to operate the DEX)'] = (totals.gov / 1000).toLocaleString() + ' LARYNX'
+    token_rows['<b>Locked in Governance</b> (total held for node runners to operate the DEX)'] = (totals.gov / 1000).toLocaleString({minimumFractionDigits: 3}) + ' LARYNX'
     token_rows['<b>Powered Up</b> (total in powered-up state)'] = (totals.poweredUp / 1000).toLocaleString() + ' LARYNX'
     token_rows['<b>Delegated </b> (total powered-up & delegated to nodes)'] = '<span id="totalDelegated">?</span'
     //stats_rows['Locked in PowerUps'] = (coin_info.locked_pow / 1000).toLocaleString() + ' LARYNX'
@@ -134,9 +134,6 @@ Promise.all([totals_promise, runners_promise, queue_promise, markets_promise])
     for (account in nodes) {
         let larynxg = account in queue ? parseFloat(queue[account].g)/1000 : '?'
         if (larynxg != '?') {
-          if (larynxg % 1 == 0) {
-            larynxg += 0.001
-          }
           larynxg = larynxg.toLocaleString({minimumFractionDigits: 3})
         }
         let stakedSpk = '?'
@@ -199,9 +196,6 @@ Promise.all([totals_promise, runners_promise, queue_promise, markets_promise])
         document.querySelector(`td#cnt${account.replace('.','')}`).innerHTML = cntDelegators
 
         locked = parseInt(locked)/1000
-        if (locked % 1 == 0) {
-          locked += 0.001
-        }
         locked = locked.toLocaleString({minimumFractionDigits: 3})
 
         document.querySelector(`td#locked${account.replace('.','')}`).innerHTML = locked
