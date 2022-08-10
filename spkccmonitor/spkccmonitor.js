@@ -48,6 +48,12 @@ hive_wallet_promise = axios({
   url: "https://api.hive.blog"
 })
 
+hive_properties_promise = axios({
+  method: 'post',
+  data: '{"jsonrpc":"2.0", "method":"condenser_api.get_dynamic_global_properties", "params":[], "id":1}',
+  url: "https://api.hive.blog"
+})
+
 
 function getTotalStaked(account) {
   return axios({
@@ -63,13 +69,16 @@ function getTotalStaked(account) {
 }
 
 
-Promise.all([totals_promise, runners_promise, queue_promise, markets_promise])
+Promise.all([totals_promise, runners_promise, queue_promise, markets_promise, hive_properties_promise])
 .then((values) => {
-    let [totals, runners, queue, markets] = values
+    let [totals, runners, queue, markets, hive_properties] = values
     console.log(totals.data)
     console.log(runners.data)
     console.log(queue.data)
     console.log(markets.data) 
+
+    let head_block_number = hive_properties.data.result.head_block_number
+    console.log(hive_properties.data.result)
 
     totals = totals.data
     runners = runners.data.runners
@@ -123,13 +132,6 @@ Promise.all([totals_promise, runners_promise, queue_promise, markets_promise])
 
     let consensusRows = ''
     let nonConensusRows = ''
-    let lastGoodMax = 0
-
-    for (account in nodes) {
-      if (nodes[account].lastGood > lastGoodMax) {
-        lastGoodMax = nodes[account].lastGood
-      }
-    }
 
     for (account in nodes) {
         let larynxg = account in queue ? parseFloat(queue[account].g)/1000 : '?'
@@ -147,10 +149,10 @@ Promise.all([totals_promise, runners_promise, queue_promise, markets_promise])
         let lastgood = nodes[account].lastGood
 
         let lastgoodColor = 'green'
-        if (lastGoodMax - nodes[account].lastGood > 1200) {
+        if (head_block_number - nodes[account].lastGood > 1200) {
           lastgoodColor = 'goldenrod'
         }
-        if (lastGoodMax - nodes[account].lastGood > 28800) {
+        if (head_block_number - nodes[account].lastGood > 28800) {
           lastgoodColor = 'red'
         }
 
