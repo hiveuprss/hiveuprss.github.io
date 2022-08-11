@@ -73,7 +73,8 @@ function getColor(blocksBehind) {
     let color = 'green'
     if (blocksBehind > 1200) {
       color = 'goldenrod'
-    } else if (blocksBehind > 28800) {
+    }
+    if (blocksBehind > 28800) {
       color = 'red'
     }
     return color
