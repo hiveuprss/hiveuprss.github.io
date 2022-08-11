@@ -107,7 +107,16 @@ Promise.all([totals_promise, runners_promise, queue_promise, markets_promise, hi
     let stats_rows = {}
     stats_rows['<b>Governance Threshold</b> (minimum required to be locked to contribute as a node)'] = stats.gov_threshhold === 'FULL' ? 'Runners Full' : (parseInt(stats.gov_threshhold) / 1000).toLocaleString() + ' LARYNX'
     stats_rows['<b>DAO Claim Percent</b> (additional percentage of claimed tokens to put in the Larynx DAO)'] = `${stats.daoclaim.v/100}%`
-    stats_rows['<b>Blocks Behind</b> (for the API node providing this data)'] = behind + ' blocks'
+
+
+    let color = 'green'
+    if (behind > 1200) {
+      color = 'goldenrod'
+    }
+    if (behind > 28800) {
+      color = 'red'
+    }
+    stats_rows['<b>Blocks Behind</b> (for the API node providing this data)'] = `<font color="${color}">${behind} blocks</font>`
     stats_rows['<b>Network Node Count</b> (Runners / Consensus / Total)'] = `${Object.keys(runners).length} / ${Object.keys(queue).length} / ${Object.keys(nodes).length}`
 
 
