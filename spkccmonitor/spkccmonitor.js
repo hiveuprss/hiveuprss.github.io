@@ -69,6 +69,17 @@ function getTotalStaked(account) {
 }
 
 
+function getColor(blocksBehind) {
+    let color = 'green'
+    if (blocksBehind > 1200) {
+      color = 'goldenrod'
+    } else if (blocksBehind > 28800) {
+      color = 'red'
+    }
+    return color
+}
+
+
 Promise.all([totals_promise, runners_promise, queue_promise, markets_promise, hive_properties_promise])
 .then((values) => {
     let [totals, runners, queue, markets, hive_properties] = values
@@ -109,14 +120,8 @@ Promise.all([totals_promise, runners_promise, queue_promise, markets_promise, hi
     stats_rows['<b>DAO Claim Percent</b> (additional percentage of claimed tokens to put in the Larynx DAO)'] = `${stats.daoclaim.v/100}%`
 
 
-    let color = 'green'
-    if (behind > 1200) {
-      color = 'goldenrod'
-    }
-    if (behind > 28800) {
-      color = 'red'
-    }
-    stats_rows['<b>Blocks Behind</b> (for the API node providing this data)'] = `<font color="${color}">${behind} blocks</font>`
+
+    stats_rows['<b>Blocks Behind</b> (for the API node providing this data)'] = `<font color="${getColor(behind)}">${behind} blocks</font>`
     stats_rows['<b>Network Node Count</b> (Runners / Consensus / Total)'] = `${Object.keys(runners).length} / ${Object.keys(queue).length} / ${Object.keys(nodes).length}`
 
 
@@ -157,14 +162,7 @@ Promise.all([totals_promise, runners_promise, queue_promise, markets_promise, hi
         let bidrate = nodes[account].bidRate
         let lastgood = nodes[account].lastGood
 
-        let lastgoodColor = 'green'
-        if (head_block_number - nodes[account].lastGood > 1200) {
-          lastgoodColor = 'goldenrod'
-        }
-        if (head_block_number - nodes[account].lastGood > 28800) {
-          lastgoodColor = 'red'
-        }
-
+        let lastgoodColor = getColor(head_block_number - nodes[account].lastGood)
         let version = nodes[account].report ? nodes[account].report.version : 'Unknown'
 
         let dexmax = nodes[account].dm
