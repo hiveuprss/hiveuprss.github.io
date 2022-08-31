@@ -1,6 +1,6 @@
 //dluxmonitor.js
 
-const DEFAULT_API_URL = 'https://heyhey.hivehoneycomb.com/'
+const DEFAULT_API_URL = 'https://duat.hivehoneycomb.com/'
 const TOKEN_NAME = 'DUAT'
 
 var urlParams = new URLSearchParams(window.location.search);
