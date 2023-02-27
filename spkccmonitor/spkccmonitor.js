@@ -1,6 +1,6 @@
-//dluxmonitor.js
+//spkccmonitor.js
 
-const DEFAULT_SPKCC_API = 'https://spkcc.dtools.dev/'
+const DEFAULT_SPKCC_API = 'https://spkinstant.hivehoneycomb.com/'
 
 var urlParams = new URLSearchParams(window.location.search);
 let SPKCC_API = urlParams.has('node') ? urlParams.get('node').toLowerCase() : DEFAULT_SPKCC_API
