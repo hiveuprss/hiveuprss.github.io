@@ -129,8 +129,51 @@ function runLoop() {
       return false;
     });
 
+    const botNames = [
+      'poshtoken',
+      'pgm-curator',
+      'pizzabot',
+      'beerlover',
+      'pixresteemer',
+      'hivebuzz',
+      'ecency',
+      'youarealive',
+      'lolzbot',
+      'thepimpdistrict',
+      'luvshares',
+      'bbhbot',
+      'hivebits',
+      'meme.bot',
+      'hiq.smartbot',
+      'tipu',
+      'pinmapple',
+      'indiaunited',
+      'cryptobrewmaster',
+      'visualblock',
+      'outdoor.life',
+      'india-leo',
+      'wine.bot',
+      'discovery-it',
+      'diyhub',
+      'gmfrens',
+      'curation-cartel',
+      'innerblocks',
+      'hiveupme',
+      'qurator',
+      'hug.bot',
+      'poshthreads',
+      'redditposh',
+      'hbd.funder',
+      'splinterboost',
+      'ladytoken'
+    ]
+
     block.transactions.forEach((tx) => {
       var op = tx.operations[0][1];
+
+      if (botNames.includes(op.author)) {
+        return;
+      }
       //console.log(op)
       //console.log(op['author'] + ' => ' + op['parent_author'])
 
