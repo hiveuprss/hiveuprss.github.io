@@ -182,6 +182,9 @@ function runLoop() {
 
       var currentHTML = document.querySelector("div#content").innerHTML;
       var commentBody = op["body"].trim();
+      commentBody = commentBody.replaceAll("\n", "");
+      commentBody = commentBody.replaceAll(/<[^>]*>/g, "");
+
       if (commentBody.length > 100) {
         commentBody = commentBody.substr(0,97) + '...';
       }
