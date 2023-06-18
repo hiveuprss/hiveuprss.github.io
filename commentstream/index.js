@@ -57,7 +57,7 @@ document.querySelector("button#fastforward").onclick = (e) => {
 
 function getSpeedSetting() {
   if (!document.querySelector("button#speedgauge").data) {
-    document.querySelector("button#speedgauge").data = "1.0";
+    document.querySelector("button#speedgauge").data = "2.0";
   }
 
   var currentSpeed = parseFloat(
@@ -79,7 +79,7 @@ function getLatestBlocknum() {
     var currentWitness = result.current_witness;
     document.querySelector("#currentWitness").innerText = `${currentWitness}`;
 
-    var blockNum = result.head_block_number;
+    var blockNum = parseInt(result.head_block_number)-20;
     document.querySelector("#blockNum").innerText = `${blockNum}`;
     document.querySelector("#blockNum").data = `${blockNum}`;
     runLoop();
@@ -166,7 +166,9 @@ function runLoop() {
       'hbd.funder',
       'splinterboost',
       'ladytoken',
-      'hk-gifts'
+      'hk-gifts',
+      'actifit',
+      'hivegifbot'
     ]
 
     block.transactions.forEach((tx) => {
