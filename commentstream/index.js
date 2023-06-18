@@ -165,7 +165,8 @@ function runLoop() {
       'redditposh',
       'hbd.funder',
       'splinterboost',
-      'ladytoken'
+      'ladytoken',
+      'hk-gifts'
     ]
 
     block.transactions.forEach((tx) => {
@@ -183,7 +184,7 @@ function runLoop() {
         commentBody = commentBody.substr(0,97) + '...';
       }
       document.querySelector("div#content").innerHTML =
-        `<div class="comment green">${op["author"]} => ${op["parent_author"]}</div>` +
+        `<div class="comment green"><b>${op["author"]} => ${op["parent_author"]}</b></div>` +
         `<div class="comment green">"${commentBody}" (<a href="https://hive.blog/@${op["author"]}/${op["permlink"]}" target="_blank" rel="noopener noreferrer">link</a>)</div>` +
         currentHTML;
     });
