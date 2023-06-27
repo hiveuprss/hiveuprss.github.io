@@ -169,6 +169,7 @@ function runLoop() {
       "hk-gifts",
       "actifit",
       "hivegifbot",
+      "heartbeatonhive"
     ];
 
     block.transactions.forEach((tx) => {
