@@ -79,7 +79,7 @@ function getLatestBlocknum() {
     var currentWitness = result.current_witness;
     document.querySelector("#currentWitness").innerText = `${currentWitness}`;
 
-    var blockNum = parseInt(result.head_block_number)-20;
+    var blockNum = parseInt(result.head_block_number) - 20;
     document.querySelector("#blockNum").innerText = `${blockNum}`;
     document.querySelector("#blockNum").data = `${blockNum}`;
     runLoop();
@@ -130,46 +130,46 @@ function runLoop() {
     });
 
     const botNames = [
-      'poshtoken',
-      'pgm-curator',
-      'pizzabot',
-      'beerlover',
-      'pixresteemer',
-      'hivebuzz',
-      'ecency',
-      'youarealive',
-      'lolzbot',
-      'thepimpdistrict',
-      'luvshares',
-      'bbhbot',
-      'hivebits',
-      'meme.bot',
-      'hiq.smartbot',
-      'tipu',
-      'pinmapple',
-      'indiaunited',
-      'cryptobrewmaster',
-      'visualblock',
-      'outdoor.life',
-      'india-leo',
-      'wine.bot',
-      'discovery-it',
-      'diyhub',
-      'gmfrens',
-      'curation-cartel',
-      'innerblocks',
-      'hiveupme',
-      'qurator',
-      'hug.bot',
-      'poshthreads',
-      'redditposh',
-      'hbd.funder',
-      'splinterboost',
-      'ladytoken',
-      'hk-gifts',
-      'actifit',
-      'hivegifbot'
-    ]
+      "poshtoken",
+      "pgm-curator",
+      "pizzabot",
+      "beerlover",
+      "pixresteemer",
+      "hivebuzz",
+      "ecency",
+      "youarealive",
+      "lolzbot",
+      "thepimpdistrict",
+      "luvshares",
+      "bbhbot",
+      "hivebits",
+      "meme.bot",
+      "hiq.smartbot",
+      "tipu",
+      "pinmapple",
+      "indiaunited",
+      "cryptobrewmaster",
+      "visualblock",
+      "outdoor.life",
+      "india-leo",
+      "wine.bot",
+      "discovery-it",
+      "diyhub",
+      "gmfrens",
+      "curation-cartel",
+      "innerblocks",
+      "hiveupme",
+      "qurator",
+      "hug.bot",
+      "poshthreads",
+      "redditposh",
+      "hbd.funder",
+      "splinterboost",
+      "ladytoken",
+      "hk-gifts",
+      "actifit",
+      "hivegifbot",
+    ];
 
     block.transactions.forEach((tx) => {
       var op = tx.operations[0][1];
@@ -186,10 +186,27 @@ function runLoop() {
       commentBody = commentBody.replaceAll(/<[^>]*>/g, "");
 
       if (commentBody.length > 100) {
-        commentBody = commentBody.substr(0,97) + '...';
+        commentBody = commentBody.substr(0, 97) + "...";
       }
+
+      var appLogoImage = "";
+      try {
+        const metadata = JSON.parse(op["json_metadata"]);
+        if (
+          typeof metadata !== "undefined" &&
+          typeof metadata.app !== "undefined"
+        ) {
+          console.log(metadata.app);
+          if (metadata.app.includes("leothreads")) {
+            appLogoImage = `<img width="15px" src="./assets/leo.png"></img>`;
+          }
+        }
+      } catch (err) {
+        // bad json
+      }
+
       document.querySelector("div#content").innerHTML =
-        `<div class="comment green"><b>${op["author"]} => ${op["parent_author"]}</b></div>` +
+        `<div class="comment green">${appLogoImage}  <b>${op["author"]} => ${op["parent_author"]}</b>  ${appLogoImage}</div>` +
         `<div class="comment green">"${commentBody}" (<a href="https://hive.blog/@${op["author"]}/${op["permlink"]}" target="_blank" rel="noopener noreferrer">link</a>)</div>` +
         currentHTML;
     });
