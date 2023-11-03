@@ -12,3 +12,4 @@
 * [DLUX Monitor](./dluxmonitor) - show current DLUX side-chain node list and other info
 * [SPKCC Monitor](./spkccmonitor) - show current SPKCC (Spk Network Claim Chain) node list and other info
 * [DUAT Monitor](./duatmonitor) - show current DUAT (Ragnarok claim chain) node list and other info
+* [SPK Testnet Monitor](./spktestmonitor) - show current Spk Testnet (Spk Network Test Net) node list and other info
