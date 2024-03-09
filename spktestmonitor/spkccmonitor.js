@@ -136,7 +136,6 @@ Promise.all([totals_promise, runners_promise, queue_promise, markets_promise, hi
       document.querySelector('table#stats tbody').innerHTML += `<tr><td>${attribute}</td><td>${stats_rows[attribute]}</td></tr>`
     }
 
-
     // populate nodes table
     function renderRow(key, account, consensus, runner, larynxg, stakedSpk, cntDelegators, bidrate, dexmax, dexslope, daoclaim, lastgood, lastgoodColor, version, api) {
         var row_markup = `<tr><td>@${account}${key}</td><td>${consensus}</td><td>${runner}</td><td id="locked${account.replace('.','')}">${larynxg}</td><td id="staked${account.replace('.','')}">${stakedSpk}</td><td id="cnt${account.replace('.','')}">${cntDelegators}</td><td>${bidrate/1000}%</td>`
@@ -176,8 +175,16 @@ Promise.all([totals_promise, runners_promise, queue_promise, markets_promise, hi
         }
 
         if (account in queue) {
+          if (version && !version.includes("t")) {
+            continue;
+          }
+
           consensusRows += renderRow(key, account, consensus, runner, larynxg, stakedSpk, cntDelegators, bidrate, dexmax, dexslope, daoclaim, lastgood, lastgoodColor, version, api)
         } else {
+          if (version && !version.includes("t")) {
+            continue;
+          }
+
           nonConensusRows += renderRow(key, account, consensus, runner, larynxg, stakedSpk, cntDelegators, bidrate, dexmax, dexslope, daoclaim, lastgood, lastgoodColor, version, api)
         }
     }
