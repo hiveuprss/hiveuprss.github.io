@@ -1,0 +1,193 @@
+// Created by peakd.com/@hivetrending
+
+hive.api.setOptions({ url: "https://api.deathwing.me/" });
+
+// Start button controls
+
+function clamp(num, min, max) {
+  return num <= min ? min : num >= max ? max : num;
+}
+
+document.querySelector("button#gotoblock").onclick = (e) => {
+  var blockNum = prompt(
+    "Enter block number:",
+    document.querySelector("#blockNum").innerText
+  );
+
+  // sanitize
+  blockNum = parseInt(blockNum);
+
+  if (!blockNum || blockNum < 0) {
+    getLatestBlocknum();
+  } else {
+    document.querySelector("#blockNum").data = `${blockNum + 1}`;
+    document.querySelector("#blockNum").innerText = `${blockNum}`;
+  }
+};
+
+document.querySelector("button#pause").onclick = (e) => {
+  document.querySelector("button#pause").hidden = true;
+  document.querySelector("button#play").hidden = false;
+};
+document.querySelector("button#play").onclick = (e) => {
+  document.querySelector("button#play").hidden = true;
+  document.querySelector("button#pause").hidden = false;
+};
+
+document.querySelector("button#fastforward").onclick = (e) => {
+  var minSpeed = 3.0;
+  var maxblock = 3.0;
+  var speedIncrement = 1.0;
+
+  var currentSpeed = getSpeedSetting();
+  if (currentSpeed == maxSpeed) {
+    var newSpeed = minSpeed;
+  } else {
+    var newSpeed = currentSpeed + speedIncrement;
+    newSpeed = clamp(newSpeed, minSpeed, maxSpeed);
+  }
+
+  // update UI
+  document.querySelector("button#speedgauge").data = `${newSpeed}`;
+  document.querySelector("button#speedgauge").innerText = `${newSpeed}x`;
+};
+
+function getSpeedSetting() {
+  if (!document.querySelector("button#speedgauge").data) {
+    document.querySelector("button#speedgauge").data = "3.0";
+  }
+
+  var currentSpeed = parseFloat(
+    document.querySelector("button#speedgauge").data
+  );
+  return currentSpeed;
+}
+
+// End button controls
+
+function getLatestBlocknum() {
+  // Get the current blocknum
+  hive.api.getDynamicGlobalProperties(function (err, result) {
+    if (err) {
+      console.log(err);
+      return;
+    }
+
+    var currentWitness = result.current_witness;
+    document.querySelector("#currentWitness").innerText = `${currentWitness}`;
+
+    var blockNum = result.head_block_number - 100;
+    document.querySelector("#blockNum").innerText = `${blockNum}`;
+    document.querySelector("#blockNum").data = `${blockNum}`;
+    runLoop();
+  });
+}
+
+function runLoop() {
+  //startSimulation()
+  if (document.querySelector("button#pause").hidden == true) {
+    return;
+  }
+
+  var blockNum = document.querySelector("#blockNum").data;
+  if (!blockNum) {
+    console.log("Failed to find block");
+    return;
+  }
+
+  //console.log(blockNum)
+
+  hive.api.getBlock(blockNum, function (err, result) {
+    //console.log(err, result);
+    //console.log(blockNum)
+    if (err) {
+      console.log(err);
+      return;
+    }
+
+    var block = result;
+    // check if the block looks okay
+    if (!block || !block.transactions) {
+      return;
+    }
+
+    block.transactions = block.transactions.filter((tx) => {
+      var opname = tx.operations[0][0];
+      var op = tx.operations[0][1];
+
+      // filter for transfers only
+      if (op.amount && op.amount.includes("HBD")) {
+        console.log(op.amount);
+
+        if (op.to === op.from) {
+          // exclude self transfers since they are common for claiming interest
+          return false;
+        }
+        return true;
+      }
+      return false;
+    });
+
+    document.querySelectorAll("div.transfer").forEach((node) => {
+      node.className = "transfer gray";
+    });
+
+    block.transactions.forEach((tx) => {
+      var op = tx.operations[0][1];
+
+      var color = "green";
+      color = "lightgreen";
+
+      if (op.memo && op.memo.length > 0) {
+        op.memo = ` [${op.memo}]`
+      }
+
+      var currentHTML = document.querySelector("div#content").innerHTML;
+      document.querySelector("div#content").innerHTML =
+        `<div class="transfer ${color}">${op.from} => ${op.to} ( ${op.amount} )${op.memo}</div>` +
+        currentHTML;
+    });
+
+    // if we succeeded so far, advance to next block
+    if (document.querySelector("#blockNum").data == `${parseInt(blockNum)}`) {
+      document.querySelector("#blockNum").data = `${parseInt(blockNum) + 1}`;
+      document.querySelector("#blockNum").innerText = `${blockNum}`;
+      document.querySelector("#currentWitness").innerText = `${block.witness}`;
+      document.querySelector("#timestamp").innerText = `${block.timestamp}`;
+    }
+
+    if (document.querySelector("button#pause").hidden == true) {
+      return;
+    }
+  });
+}
+
+// initialize, read params
+var urlParams = new URLSearchParams(window.location.search);
+if (urlParams.has("block")) {
+  var blockNum = urlParams.get("block");
+  var blockNum = parseInt(blockNum);
+
+  if (isNaN(blockNum) || blockNum < 0) {
+    getLatestBlocknum();
+  } else {
+    document.querySelector("#blockNum").innerText = `${blockNum}`;
+    document.querySelector("#blockNum").data = `${blockNum}`;
+    runLoop();
+  }
+} else {
+  getLatestBlocknum();
+}
+
+// repeat every N ms
+function runtimeAdjustSpeed() {
+  var currentSpeed = 3000 / getSpeedSetting();
+
+  runLoop();
+
+  setTimeout(() => {
+    runtimeAdjustSpeed();
+  }, currentSpeed);
+}
+
+runtimeAdjustSpeed();

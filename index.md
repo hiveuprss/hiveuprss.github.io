@@ -7,6 +7,7 @@
 * [commentstream](./commentstream) - scrolling stream view of Hive comments
 * [convertstream](./convertstream) - scrolling stream view of Hive collateralized conversions
 * [transferstream](./transferstream) - scrolling stream view of Hive and HiveEngine transfers
+* [hbdstream](./hbdstream) - scrolling stream view of HBD transfers
 * [randomhive](./randomhive) - show a random recently-published Hive blog post
 * [supply](./supply) - show current Hive and HBD token supply info
 * [DLUX Monitor](./dluxmonitor) - show current DLUX side-chain node list and other info
