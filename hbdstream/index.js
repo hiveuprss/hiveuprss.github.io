@@ -35,8 +35,8 @@ document.querySelector("button#play").onclick = (e) => {
 };
 
 document.querySelector("button#fastforward").onclick = (e) => {
-  var minSpeed = 3.0;
-  var maxblock = 3.0;
+  var minSpeed = 1.0;
+  var maxSpeed = 3.0;
   var speedIncrement = 1.0;
 
   var currentSpeed = getSpeedSetting();
@@ -54,7 +54,7 @@ document.querySelector("button#fastforward").onclick = (e) => {
 
 function getSpeedSetting() {
   if (!document.querySelector("button#speedgauge").data) {
-    document.querySelector("button#speedgauge").data = "3.0";
+    document.querySelector("button#speedgauge").data = "1.0";
   }
 
   var currentSpeed = parseFloat(
@@ -76,7 +76,7 @@ function getLatestBlocknum() {
     var currentWitness = result.current_witness;
     document.querySelector("#currentWitness").innerText = `${currentWitness}`;
 
-    var blockNum = result.head_block_number - 100;
+    var blockNum = result.head_block_number;
     document.querySelector("#blockNum").innerText = `${blockNum}`;
     document.querySelector("#blockNum").data = `${blockNum}`;
     runLoop();
