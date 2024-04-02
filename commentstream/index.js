@@ -169,7 +169,8 @@ function runLoop() {
       "hk-gifts",
       "actifit",
       "hivegifbot",
-      "heartbeatonhive"
+      "heartbeatonhive",
+      "hive-lu"
     ];
 
     block.transactions.forEach((tx) => {
