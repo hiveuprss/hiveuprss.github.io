@@ -166,9 +166,11 @@ function runLoop() {
           op["from"] = op.value.creator;
           op["amount"] = op.value.fee ? op.value.fee.amount/1000 : 0.000;
 
+          const timestampe = new Date(block.timestamp).toLocaleString();
+
           var currentHTML = document.querySelector("div#content").innerHTML;
           document.querySelector("div#content").innerHTML =
-            `<div class="transfer ${color}">[${block.timestamp}] <span class="bold"><a href="https://peakd.com/@${op.from}">@${op.from}</a></span> created <span class="bold"><a href="https://peakd.com/@${op.to}">@${op.to}</a></span> ( ${op["amount"]} $Hive fee )</div>` +
+            `<div class="transfer ${color}">[${timestampe} UTC] <span class="bold"><a href="https://peakd.com/@${op.from}">@${op.from}</a></span> created <span class="bold"><a href="https://peakd.com/@${op.to}">@${op.to}</a></span> ( ${op["amount"]} $Hive fee )</div>` +
             currentHTML;
         });
       }
