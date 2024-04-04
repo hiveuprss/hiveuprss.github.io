@@ -163,7 +163,7 @@ function runLoop() {
 
           var currentHTML = document.querySelector("div#content").innerHTML;
           document.querySelector("div#content").innerHTML =
-            `<div class="transfer ${color}">${op["from"]} => ${op["to"]} ( ${op["amount"]} )</div>` +
+            `<div class="transfer ${color}">${op["from"]} => ${op["to"]} ( ${op["amount"]} $Hive fee )</div>` +
             currentHTML;
         });
       }
