@@ -134,7 +134,12 @@ function runLoop() {
 
           // filter for account creation only
           if (["account_create_operation","create_claimed_account_operation"].includes(opname)) {
-            return true;
+            if (!filterByCreator) {
+              return true;
+            } else if (tx.operations[0].value.creator === filterByCreator) {
+              return true;
+            }
+            return false;
           }
           return false;
         });
@@ -163,7 +168,7 @@ function runLoop() {
 
           var currentHTML = document.querySelector("div#content").innerHTML;
           document.querySelector("div#content").innerHTML =
-            `<div class="transfer ${color}">${op["from"]} => ${op["to"]} ( ${op["amount"]} $Hive fee )</div>` +
+            `<div class="transfer ${color}">[${block.timestamp}] <span class="bold">${op.from}</span> created <span class="bold">${op.to}</span> ( ${op["amount"]} $Hive fee )</div>` +
             currentHTML;
         });
       }
@@ -202,6 +207,11 @@ if (urlParams.has("block")) {
   }
 } else {
   getLatestBlocknum();
+}
+
+var filterByCreator;
+if (urlParams.has("creator")) {
+  filterByCreator = urlParams.get("creator");
 }
 
 // repeat every N ms
