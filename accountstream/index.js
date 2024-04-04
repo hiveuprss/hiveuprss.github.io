@@ -159,7 +159,7 @@ function runLoop() {
 
           op["to"] = op.value.new_account_name;
           op["from"] = op.value.creator;
-          op["amount"] = op.value.fee ? op.value.fee.amount : 0.000;
+          op["amount"] = op.value.fee ? op.value.fee.amount/1000 : 0.000;
 
           var currentHTML = document.querySelector("div#content").innerHTML;
           document.querySelector("div#content").innerHTML =
