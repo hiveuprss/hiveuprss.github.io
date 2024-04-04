@@ -168,7 +168,7 @@ function runLoop() {
 
           var currentHTML = document.querySelector("div#content").innerHTML;
           document.querySelector("div#content").innerHTML =
-            `<div class="transfer ${color}">[${block.timestamp}] <span class="bold">${op.from}</span> created <span class="bold">${op.to}</span> ( ${op["amount"]} $Hive fee )</div>` +
+            `<div class="transfer ${color}">[${block.timestamp}] <span class="bold"><a href="https://peakd.com/@${op.from}">@${op.from}</a></span> created <span class="bold"><a href="https://peakd.com/@${op.to}">@${op.to}</a></span> ( ${op["amount"]} $Hive fee )</div>` +
             currentHTML;
         });
       }
