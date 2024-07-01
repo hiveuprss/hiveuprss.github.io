@@ -1,91 +1,88 @@
 <!-- <!DOCTYPE html> -->
 <!-- Created by peakd.com/@hivetrending -->
-
-<meta charset="utf-8">
+<html lang="en">
 <head>
-  <title>Hive is Beautiful</title>
-    <link rel="stylesheet" href="thirdparty/bootstrap.min.css">
-  	<link rel="stylesheet" href="thirdparty/fontawesome/css/all.min.css">
- 	<script src="thirdparty/jquery-3.4.0.min.js"></script>
- 	<script src="thirdparty/bootstrap.min.js"></script>
-  	<script defer src="thirdparty/fontawesome/js/all.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@hiveio/hive-js/dist/hive.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.2.2/d3.min.js"></script>
+  <meta charset="utf-8">
+  <title title>HiveIsBeautiful - Hive Block Visualization</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/js/all.min.js" integrity="sha512-6PM0qYu5KExuNcKt5bURAoT6KCThUmHRewN3zUFNaoI6Di7XJPTMoT6K0nsagZKk2OB4L7E3q1uQKHNHd4stIQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@hiveio/hive-js/dist/hive.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+  
+  <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACN0lEQVQ4T32TzU8TURTFz53WAJIhdF4jhrbgDkWjicC00UQaMHFLJHHhwgiCf4MQd+rfIC5c+LFyoRsXJlYLstDWqDExRkpCsUNJTJwxmSEFpZ1r5qPNQBtm+ebec37nvvsIgU/rHhklCT0xw36xIcKrAPoBvtwmbb3+W5PXQRAE+2Jc//im3kZ7BEQyy8CRD3ru9LmoOsNMCwB/iev5obJQ5xh0D4x3CSM32iSgRYfT4FDW+SHZfLXyx3jeLpQCQH0SMFFhZNuBNY+Cx+N6/q1T2yDQRNJpTvuHP2J63ykt+nOWmO4z8Dmh54Y1oc4T6C7ASwk9X68FtGgqDWbXPYB2bVvXn3UIscJAPwMTnYxspU5BGIv/zmVdgpJQFwnUyOWLrP7SqyePRkLTLNFCnaIs1HkOUFAr9zoFM25YhvW0S5ELoAAFoQhAqRHGSBPqIprdPQ3GmmlYJ0RP+NDudmdbyPy304tPlZJI3SbwHWcWFBxecAZuP2PdMqyBQXzf9YfLXuSAwGb3yIVaSFra3+wR0E3TMB/JQv5G4BjZuNJBtFzxI5ATwanThJoBaHyPCKNoGtbxroh8HRIegPH1oZE7O+MtVOMqXYFyJHXelng5uBdgnjWNrceyIq8Q4RhAk4eZMy2v0ad4BdAlP3sxYVQHSpHwlBRwnxbqXMtF8gRSSYDfuxRN7vbkDkuZA1fZFVHUlwwadNw3IuGpfdlvHfiYHIHNaHKIbZzpNapPykq4wG72g5/zf/hzINSFM5w9AAAAAElFTkSuQmCC">
+  <script type="module" crossorigin src="/assets/index-be356ad5.js"></script>
+  <link rel="stylesheet" href="/assets/index-38969b00.css">
 </head>
-
-<style>
-
-.blue {
-  fill: #277da1ff;
-}
-.gray {
-  fill: #577590ff;
-}
-.bluegreen {
-  fill: #4d908eff;
-}
-.yellow-orange{
-  fill: #f8961eff;
-}
-.orange{
-  fill: #f3722cff;
-}
-.red {
-  fill: #f94144ff;
-}
-.yellow {
-  fill: #f9c74fff;
-}
-.lightgreen {
-  fill: #90be6dff;
-}
-.green {
-  fill: #43aa8bff;
-}
-.center {
-	display: block;
-	margin: auto;"
-}
-</style>
 
 <body>
   <div class="container-fluid">
     <div class="row">
-    	<div class="center"><h2><span class="badge"><i class="fab fa-hive"></i></span><span class="badge">Hive Block #<span id="blockNum">NaN</span></span></h2></div>
-    </div>
-    <div class="row">
-      <div class="center"><h6>Timestamp: </span><span class="label label-primary" id="timestamp">NaN</span></h6></div>
-    </div>
-    <div class="row">
-    	<div class="center"><h6>Witness: </span><span class="label label-primary" id="currentWitness">NaN</span></h6></div>
-    </div>
-    <div class="row">
-      <div class="center">
-        <button id="pause"><i class="fas fa-pause"></i></button>
-        <button id="play" hidden><i class="fas fa-play"></i></button>
-        <button id="gotoblock"><i class="fas fa-search"></i></button>
-        <button id="fastforward"><i class="fas fa-fast-forward"></i></button>
-        <button id="speedgauge" disabled>1x</button>
+      <div class="col-md-6">
+        <div id="controls" class="row mt-2 ml-0">
+          <button class="btn btn-secondary btn-lg mr-1" id="pause"><i class="fas fa-pause"></i></button>
+          <button class="btn btn-secondary btn-lg mr-1" id="play" hidden><i class="fas fa-play"></i></button>
+          <button class="btn btn-secondary btn-lg mr-1" id="gotoblock"><i class="fas fa-search"></i></button>
+          <button class="btn btn-secondary btn-lg mr-1" id="backward"><i class="fas fa-fast-backward"></i></button>
+          <button class="btn btn-secondary btn-lg mr-1" id="fastforward"><i class="fas fa-fast-forward"></i></button>
+          <button class="btn btn-light btn-lg" id="speedgauge" disabled>1x</button>
+        </div>
+        <div class="row">
+          <div class="col form-check">
+            <input class="form-check-input" type="checkbox" value="" id="flexCheckCustomJSONs">
+            <label class="form-check-label" for="flexCheckCustomJSONs">
+              Hide Custom JSONs
+            </label>
+          </div>
+        </div>
       </div>
+      <div class="col-md-6">
+        <div class="row"><div class="col text-right"><h2><span class="badge"><i class="fab fa-hive"></i></span><span class="badge">Hive Block #<span id="blockNum">NaN</span></span></h2></div></div>
+        <div class="row text-right"><div class="col text-right"><h6>Timestamp: </span><span class="label label-primary" id="timestamp">NaN</span></h6></div></div>
+        <div class="row text-right"><div class="col text-right"><h6>Block Size: </span><span class="label label-primary" id="blockSize">NaN</span></h6></div></div>
+        <div class="row text-right"><div class="col text-right"><h6>Witness: </span><span class="label label-primary" id="currentWitness">NaN</span></h6></div></div>
+        <br>
+        <div id="inspector" class="row text-right" hidden><div class="col text-right"><h4>Inspector</h4></div></div>
+      </div>
+      
     </div>
-    <hr>
+
+    </div>
     <div class="row">
-  	  <div id="content" class="center">
+
+    </div>
+    <div class="row">
+
+    </div><div class="row">
+      
+    </div>
+    <div class="row">
+      
+    </div>
+    <div class="row">
+  	  <div id="content" class="col-sm-12 col-md-12 col-lg-12">
   	    <svg id="viz" width="800" height="700" class="center">
   	    </svg>
       </div>
     </div>
     <hr>
     <div class="row">
-     <div class="col-md-6 center" style="text-align: center;">Every 3 seconds an immutable Hive block is forged. This page shows the contents of those blocks in real-time. <br><br>
-     Each immutable block is verified and linked to a chain of millions of older blocks. <br>A blockchain.</div>
-     <br><br>
-    </div>
-    <div class="row">
-    	<br><br>
-  	<span class="badge badge-light center">Brought to you by <a href="https://peakd.com/@hivetrending">@HiveTrending</a> of the <a href="https://vote.hive.uno/@pizza.witness">@pizza.witness</a> team.</span>
+      
+     <div class="col-md-5 ml-3 mr-auto"><p>Every 3 seconds an immutable Hive block is forged. This page shows the contents of those blocks in real-time. <br><br>
+     Each immutable block is verified and linked to a chain of millions of older blocks. A blockchain.</p></div>
+     <div class="col-md-6 mr-3 text-right">
+      <b>Legend</b>
+      <span class="badge badge-light">SL = Splinterlands</span>
+      <span class="badge badge-light">H-E = HiveEngine</span>
+      <span class="badge badge-light">Up = Upvote</span>
+      <span class="badge badge-light">GLS = GenesisLeagueSports</span>
+      <span class="badge badge-light">CS = CryptoShots</span>
+      <span class="badge badge-light">RC = Delegate RC</span>
+      <hr></hr>
+      <div class="text-right">Brought to you by <a href="https://peakd.com/@hivetrending">@HiveTrending</a> of the <a href="https://vote.hive.uno/@pizza.witness">@pizza.witness</a> team. Get support in <a href="https://discord.gg/hivepizza">Discord.</a></div>
     </div>
   </div>
-  <script src="index.js"></script>
 </body>
 </html>
