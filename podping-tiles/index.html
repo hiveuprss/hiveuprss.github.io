@@ -1,55 +1,95 @@
-<script src="https://unpkg.com/@hiveio/dhive@latest/dist/dhive.js"></script>
-<script>
-    var client = new dhive.Client(["https://api.deathwing.me", "https://api.hive.blog", "https://hive-api.arcange.eu", "https://api.openhive.network", "https://techcoderx.com", "https://hive-api.3speak.tv", "https://hiveapi.actifit.io", "https://rpc.mahdiyari.info"]);
+<html>
 
-    (async function () {
-        for await (const op of client.blockchain.getOperations()) {
+<head>
+    <script src="https://unpkg.com/@hiveio/dhive@latest/dist/dhive.js"></script>
+    
+  <link rel="stylesheet" href="/assets/index-c838eea4.css">
+</head>
+
+<body>
+    <script>
+        var client = new dhive.Client(["https://api.deathwing.me", "https://api.hive.blog", "https://hive-api.arcange.eu", "https://api.openhive.network", "https://techcoderx.com", "https://hive-api.3speak.tv", "https://hiveapi.actifit.io", "https://rpc.mahdiyari.info"]);
+
+        const podPingOpsFilter = (op) => {
             if (op.op[0] != 'custom_json' || !op.op[1].id || !op.op[1].id.startsWith('pp_')) {
-                continue;
+                return false;
             }
+            return true;
+        }
 
-            const custom_json_body = JSON.parse(op.op[1].json)
-
-            if (!custom_json_body.iris) {
-                continue
-            }
-
-            const V4V_PROXY = 'https://api.v4v.app/v1/pi/?call='
-
-            const feedUrl = custom_json_body.iris[0]
-            const proxiedUrl = encodeURIComponent('podcasts/byfeedurl?url=' + feedUrl)
-
-            var opts = {
-                method: 'get',
-                headers: {
-                    "Content-Type": "application/xml"
-                }
-            }
-            try {
-                const response = await fetch(V4V_PROXY + proxiedUrl, opts);
-                if (!response.ok) {
-                    throw new Error(`Response status: ${response.status}`);
+        const handlePodPingOps = async (ops) => {
+            for (const op of ops) {
+                let custom_json_body = '';
+                try {
+                    custom_json_body = JSON.parse(op.op[1].json);
+                } catch (error) {
+                    console.error("invalid JSON");
                 }
 
-                const data = await response.json();
-                console.log(data);
-                const imageUrl = data.feed.artwork;
-                const feedTitle = data.feed.title;
-
-                if (!imageUrl || typeof imageUrl === 'undefined') {
-                    continue;
+                if (!custom_json_body.iris) {
+                    continue
                 }
 
-                var newImg = document.createElement("img");
-                newImg.setAttribute('src', imageUrl);
-                newImg.setAttribute('alt', feedTitle);
-                newImg.setAttribute('height', '25%');
+                const V4V_PROXY = 'https://api.v4v.app/v1/pi/?call='
 
-                document.body.insertBefore(newImg, document.body.firstChild);
+                const feedUrl = custom_json_body.iris[0]
+                const proxiedUrl = encodeURIComponent('podcasts/byfeedurl?url=' + feedUrl)
 
-            } catch (error) {
-                console.error(error.message);
+                var opts = {
+                    method: 'get',
+                    headers: {
+                        "Content-Type": "application/xml"
+                    }
+                }
+                try {
+                    const response = await fetch(V4V_PROXY + proxiedUrl, opts);
+                    if (!response.ok) {
+                        throw new Error(`Response status: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    console.log(data);
+                    const imageUrl = data.feed.artwork;
+                    const feedTitle = data.feed.title;
+
+                    if (!imageUrl || typeof imageUrl === 'undefined') {
+                        continue;
+                    }
+
+                    var newImg = document.createElement("img");
+                    newImg.setAttribute('src', imageUrl);
+                    newImg.setAttribute('alt', feedTitle);
+                    newImg.setAttribute('title', feedTitle);
+
+                    document.body.insertBefore(newImg, document.body.firstChild);
+
+                } catch (error) {
+                    console.error(error.message);
+                }
             }
         }
-    })();
-</script>
+
+        // main loop
+        (async function () {
+            // get head block number
+            const dgp = await client.database.getDynamicGlobalProperties();
+
+            // fetch ops for last 20 blocks
+            for (let blockNum = dgp.head_block_number - 20; blockNum < dgp.head_block_number - 1; blockNum++) {
+                const ops = await client.database.getOperations(blockNum)
+                const pp_ops = ops.filter(podPingOpsFilter);
+                handlePodPingOps(pp_ops);
+            }
+
+            // stream forever
+            for await (const op of client.blockchain.getOperations()) {
+                const ops = [op];
+                const pp_ops = ops.filter(podPingOpsFilter);
+                handlePodPingOps(pp_ops);
+            }
+
+        })();
+    </script>
+</body>
+
+</html>
