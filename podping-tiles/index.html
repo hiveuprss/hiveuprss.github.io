@@ -1,0 +1,55 @@
+<script src="https://unpkg.com/@hiveio/dhive@latest/dist/dhive.js"></script>
+<script>
+    var client = new dhive.Client(["https://api.deathwing.me", "https://api.hive.blog", "https://hive-api.arcange.eu", "https://api.openhive.network", "https://techcoderx.com", "https://hive-api.3speak.tv", "https://hiveapi.actifit.io", "https://rpc.mahdiyari.info"]);
+
+    (async function () {
+        for await (const op of client.blockchain.getOperations()) {
+            if (op.op[0] != 'custom_json' || !op.op[1].id || !op.op[1].id.startsWith('pp_')) {
+                continue;
+            }
+
+            const custom_json_body = JSON.parse(op.op[1].json)
+
+            if (!custom_json_body.iris) {
+                continue
+            }
+
+            const V4V_PROXY = 'https://api.v4v.app/v1/pi/?call='
+
+            const feedUrl = custom_json_body.iris[0]
+            const proxiedUrl = encodeURIComponent('podcasts/byfeedurl?url=' + feedUrl)
+
+            var opts = {
+                method: 'get',
+                headers: {
+                    "Content-Type": "application/xml"
+                }
+            }
+            try {
+                const response = await fetch(V4V_PROXY + proxiedUrl, opts);
+                if (!response.ok) {
+                    throw new Error(`Response status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log(data);
+                const imageUrl = data.feed.artwork;
+                const feedTitle = data.feed.title;
+
+                if (!imageUrl || typeof imageUrl === 'undefined') {
+                    continue;
+                }
+
+                var newImg = document.createElement("img");
+                newImg.setAttribute('src', imageUrl);
+                newImg.setAttribute('alt', feedTitle);
+                newImg.setAttribute('height', '25%');
+
+                document.body.insertBefore(newImg, document.body.firstChild);
+
+            } catch (error) {
+                console.error(error.message);
+            }
+        }
+    })();
+</script>
