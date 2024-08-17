@@ -170,7 +170,9 @@ function runLoop() {
       "actifit",
       "hivegifbot",
       "heartbeatonhive",
-      "hive-lu"
+      "hive-lu",
+      "dookbot",
+      "fun.farms"
     ];
 
     block.transactions.forEach((tx) => {
