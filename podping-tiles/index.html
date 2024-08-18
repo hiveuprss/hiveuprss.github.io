@@ -3,11 +3,18 @@
 <head>
     <script src="https://unpkg.com/@hiveio/dhive@latest/dist/dhive.js"></script>
     
-  <link rel="stylesheet" href="/podping-tiles/assets/index-c838eea4.css">
+    <link rel="stylesheet" href="/podping-tiles/assets/index-33238e3b.css">
 </head>
 
 <body>
+    <div class="fixed-footer">
+        <h2>Podping Podcasts on Hive</h2>
+    </div>
     <script>
+        const V4V_PROXY = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+            ? 'http://localhost:1818/v1/pi/?call='
+            : 'https://devapi.v4v.app/v1/pi/?call=';
+
         var client = new dhive.Client(["https://api.deathwing.me", "https://api.hive.blog", "https://hive-api.arcange.eu", "https://api.openhive.network", "https://techcoderx.com", "https://hive-api.3speak.tv", "https://hiveapi.actifit.io", "https://rpc.mahdiyari.info"]);
 
         const podPingOpsFilter = (op) => {
@@ -30,8 +37,6 @@
                     continue
                 }
 
-                const V4V_PROXY = 'https://api.v4v.app/v1/pi/?call='
-
                 const feedUrl = custom_json_body.iris[0]
                 const proxiedUrl = encodeURIComponent('podcasts/byfeedurl?url=' + feedUrl)
 
@@ -41,6 +46,11 @@
                         "Content-Type": "application/xml"
                     }
                 }
+
+                // Add random delay between 0 to 0.5 seconds
+                const delay = Math.random() * 500;
+                await new Promise(resolve => setTimeout(resolve, delay));
+
                 try {
                     const response = await fetch(V4V_PROXY + proxiedUrl, opts);
                     if (!response.ok) {
@@ -48,20 +58,23 @@
                     }
 
                     const data = await response.json();
-                    console.log(data);
                     const imageUrl = data.feed.artwork;
                     const feedTitle = data.feed.title;
+                    const feedLink = data.feed.link; // Extract the link
 
                     if (!imageUrl || typeof imageUrl === 'undefined') {
                         continue;
                     }
-
                     var newImg = document.createElement("img");
                     newImg.setAttribute('src', imageUrl);
                     newImg.setAttribute('alt', feedTitle);
                     newImg.setAttribute('title', feedTitle);
 
-                    document.body.insertBefore(newImg, document.body.firstChild);
+                    var anchor = document.createElement("a");
+                    anchor.setAttribute('href', feedLink); // Set the link
+                    anchor.setAttribute('target', '_blank'); // Open link in a new tab
+                    anchor.appendChild(newImg);
+                    document.body.insertBefore(anchor, document.body.firstChild);
 
                 } catch (error) {
                     console.error(error.message);

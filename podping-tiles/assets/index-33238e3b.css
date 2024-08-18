@@ -1,0 +1,1 @@
+@keyframes fadeIn{0%{opacity:0}to{opacity:1}}img{animation:fadeIn 3s;width:25%;padding:0;margin:0}body{margin:0;padding-bottom:60px}.fixed-footer{position:fixed;bottom:0;width:100%;background-color:#ffffff80;z-index:1000;padding:10px 0;text-align:center;box-shadow:0 2px 4px #0000001a}
