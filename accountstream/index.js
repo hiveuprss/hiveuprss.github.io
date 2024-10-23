@@ -93,6 +93,7 @@ function getLatestBlocknum() {
 }
 
 function runLoop() {
+
   //startSimulation()
   if (document.querySelector("button#pause").hidden == true) {
     return;
@@ -105,7 +106,7 @@ function runLoop() {
   }
 
   //console.log(blockNum)
-  const blockRangeSize = 40;
+  const blockRangeSize = 10;
 
   hive.api.call(
     "block_api.get_block_range",
@@ -144,9 +145,6 @@ function runLoop() {
           return false;
         });
 
-        block.transactions.forEach((tx) => {
-          console.log(tx.operations[0][1]);
-        });
 
         document.querySelectorAll("div.transfer").forEach((node) => {
           node.className = "transfer gray";
@@ -155,22 +153,19 @@ function runLoop() {
         block.transactions.forEach((tx) => {
           var op = tx.operations[0];
           var opname = tx.operations[0].type;
-          console.log(op);
 
           var color = "green";
           color = "lightgreen";
-
-          console.log(op.value);
 
           op["to"] = op.value.new_account_name;
           op["from"] = op.value.creator;
           op["amount"] = op.value.fee ? op.value.fee.amount/1000 : 0.000;
 
-          const timestampe = new Date(block.timestamp).toLocaleString();
+          const timestamp = new Date(block.timestamp).toLocaleString();
 
           var currentHTML = document.querySelector("div#content").innerHTML;
           document.querySelector("div#content").innerHTML =
-            `<div class="transfer ${color}">[${timestampe} UTC] <span class="bold"><a href="https://peakd.com/@${op.from}">@${op.from}</a></span> created <span class="bold"><a href="https://peakd.com/@${op.to}">@${op.to}</a></span> ( ${op["amount"]} $Hive fee )</div>` +
+            `<div class="transfer ${color}">[${timestamp} UTC] <span class="bold"><a href="https://peakd.com/@${op.from}">@${op.from}</a></span> created <span class="bold"><a href="https://peakd.com/@${op.to}">@${op.to}</a></span> ( ${op["amount"]} $Hive fee )</div>` +
             currentHTML;
         });
       }
