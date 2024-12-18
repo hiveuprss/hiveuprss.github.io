@@ -1,12 +1,12 @@
 // index.js
 
-hiveTx.config.node = 'https://api.deathwing.me'
+hiveTx.config.node = 'https://api.syncad.com'
 
 const MIN_BODY_LENGTH   = 250
 
 function getPost() {
   hiveTx
-    .call('condenser_api.get_discussions_by_created', [{tag:"", limit: 100}])
+    .call('condenser_api.get_discussions_by_created', [{tag:"", limit: 20}])
     .then(res => {
       // skip posts < MIN_BODY_LENGTH chars in length
       var posts = res.result
