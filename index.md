@@ -3,6 +3,7 @@
 
 * [hiveRSS](https://hiverss.com) - create RSS feeds for any Hive blog
 * [hiveisbeautiful](./hiveisbeautiful) - real-time visualization of Hive blocks contents
+* [firehive](./firehive) - firehose stream of all hive activities
 * [accountstream](./accountstream) - scrolling stream view of Hive account creation
 * [commentstream](./commentstream) - scrolling stream view of Hive comments
 * [convertstream](./convertstream) - scrolling stream view of Hive collateralized conversions
