@@ -110,8 +110,8 @@ function runLoop() {
       return;
     }
 
-    document.querySelectorAll("div.comment").forEach((node) => {
-      node.className = "comment gray";
+    document.querySelectorAll("div.op").forEach((node) => {
+      node.className = "op gray";
     });
 
     const blockSize = block.transactions.length;
@@ -126,68 +126,34 @@ function runLoop() {
       const hideCustomJson = document.querySelector(
         "#flexCheckCustomJSONs"
       ).checked;
-      const hideVotes = document.querySelector("#flexCheckVotes").checked;
-
+ 
       const hideOpnames = [];
       if (hideCustomJson) {
         hideOpnames.push("custom_json");
       }
 
+      const hideVotes = document.querySelector("#flexCheckVotes").checked;
       if (hideVotes) {
         hideOpnames.push("vote");
       }
+
+      const hideMarket = document.querySelector("#flexCheckMarket").checked;
+      if (hideMarket) {
+        hideOpnames.push("limit_order_create");
+      }
+
+      const hideRewards = document.querySelector("#flexCheckRewards").checked;
+      if (hideRewards) {
+        hideOpnames.push("claim_reward_balance");
+      }
+
+      // transfer
 
       if (hideOpnames.includes(opname)) {
         return false;
       }
       return true;
     });
-
-    const botNames = [
-      "poshtoken",
-      "pgm-curator",
-      "pizzabot",
-      "beerlover",
-      "pixresteemer",
-      "hivebuzz",
-      "ecency",
-      "youarealive",
-      "lolzbot",
-      "thepimpdistrict",
-      "luvshares",
-      "bbhbot",
-      "hivebits",
-      "meme.bot",
-      "hiq.smartbot",
-      "tipu",
-      "pinmapple",
-      "indiaunited",
-      "cryptobrewmaster",
-      "visualblock",
-      "outdoor.life",
-      "india-leo",
-      "wine.bot",
-      "discovery-it",
-      "diyhub",
-      "gmfrens",
-      "curation-cartel",
-      "innerblocks",
-      "hiveupme",
-      "qurator",
-      "hug.bot",
-      "poshthreads",
-      "redditposh",
-      "hbd.funder",
-      "splinterboost",
-      "ladytoken",
-      "hk-gifts",
-      "actifit",
-      "hivegifbot",
-      "heartbeatonhive",
-      "hive-lu",
-      "dookbot",
-      "fun.farms",
-    ];
 
     block.transactions.forEach((tx) => {
       const op = tx.operations[0][1];
@@ -196,10 +162,6 @@ function runLoop() {
       const currentHTML = document.querySelector("div#content").innerHTML;
 
       if (opname == "comment" && op["parent_author"] != "") {
-        if (botNames.includes(op.author)) {
-          return;
-        }
-
         var commentBody = op["body"].trim();
         commentBody = commentBody.replaceAll("\n", "");
         commentBody = commentBody.replaceAll(/<[^>]*>/g, "");
@@ -225,20 +187,19 @@ function runLoop() {
         }
 
         document.querySelector("div#content").innerHTML =
-          `<div class="comment green">Comment: ${appLogoImage}  <b>${op["author"]} => ${op["parent_author"]}</b>  ${appLogoImage}</div>` +
-          `<div class="comment green">"${commentBody}" (<a href="https://hive.blog/@${op["author"]}/${op["permlink"]}" target="_blank" rel="noopener noreferrer">link</a>)</div>` +
+          `<div class="op green">Comment: ${appLogoImage}  <b>${op["author"]} => ${op["parent_author"]}</b>  ${appLogoImage} | "${commentBody}" (<a href="https://hive.blog/@${op["author"]}/${op["permlink"]}" target="_blank" rel="noopener noreferrer">link</a>)</div>` +
           currentHTML;
       } else if (opname == "comment") {
         console.log("post", op);
         document.querySelector("div#content").innerHTML =
-          `<div class="comment green">Post: ${op.title}</div>` + currentHTML;
+          `<div class="op green">Post: ${op.title}</div>` + currentHTML;
       } else if (opname == "vote") {
         document.querySelector("div#content").innerHTML =
-          `<div class="comment green">Vote: ${op.voter} => @${op.author}/${op.permlink}</div>` +
+          `<div class="op green">Vote: ${op.voter} => @${op.author}/${op.permlink}</div>` +
           currentHTML;
       } else {
         document.querySelector("div#content").innerHTML =
-          `<div class="comment green">${opname}: ${JSON.stringify(op)}</div>` +
+          `<div class="op green">${opname}: ${JSON.stringify(op)}</div>` +
           currentHTML;
       }
     });
