@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2020 HiveTrending
+Copyright (c) 2025 HiveTrending
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -21,13 +21,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 /*!
-  * Bootstrap v4.3.1 (https://getbootstrap.com/)
-  * Copyright 2011-2019 The Bootstrap Authors (https://github.com/twbs/bootstrap/graphs/contributors)
+  * Bootstrap v4.6.1 (https://getbootstrap.com/)
+  * Copyright (c) 2011-2025 The Bootstrap Authors (https://github.com/twbs/bootstrap/graphs/contributors)
   * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
   */
-
-/*! jQuery v3.4.0 | (c) JS Foundation and other contributors | jquery.org/license */
-
 
 Font Awesome Free License
 -------------------------

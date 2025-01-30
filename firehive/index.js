@@ -4,8 +4,6 @@ hive.api.setOptions({ url: "https://api.syncad.com/" });
 
 var speed = 3000;
 
-var color = "gray";
-
 function clamp(num, min, max) {
   return num <= min ? min : num >= max ? max : num;
 }
@@ -116,16 +114,33 @@ function runLoop() {
       node.className = "comment gray";
     });
 
+    const blockSize = block.transactions.length;
+    document.querySelector(
+      "#blockSize"
+    ).innerText = `${blockSize.toLocaleString()} transactions`;
+
     block.transactions = block.transactions.filter((tx) => {
       var opname = tx.operations[0][0];
-      var op = tx.operations[0][1];
+      // var op = tx.operations[0][1];
 
-      // filter for comments only (no posts)
-      const opnames = ["comment", "vote"];
-      if (opnames.includes(opname)) {
-        return true;
+      const hideCustomJson = document.querySelector(
+        "#flexCheckCustomJSONs"
+      ).checked;
+      const hideVotes = document.querySelector("#flexCheckVotes").checked;
+
+      const hideOpnames = [];
+      if (hideCustomJson) {
+        hideOpnames.push("custom_json");
       }
-      return false;
+
+      if (hideVotes) {
+        hideOpnames.push("vote");
+      }
+
+      if (hideOpnames.includes(opname)) {
+        return false;
+      }
+      return true;
     });
 
     const botNames = [
@@ -214,13 +229,16 @@ function runLoop() {
           `<div class="comment green">"${commentBody}" (<a href="https://hive.blog/@${op["author"]}/${op["permlink"]}" target="_blank" rel="noopener noreferrer">link</a>)</div>` +
           currentHTML;
       } else if (opname == "comment") {
-        console.log('post', op);
+        console.log("post", op);
         document.querySelector("div#content").innerHTML =
-          `<div class="comment green">Post: ${op.title}</div>` +
-          currentHTML;
+          `<div class="comment green">Post: ${op.title}</div>` + currentHTML;
       } else if (opname == "vote") {
         document.querySelector("div#content").innerHTML =
           `<div class="comment green">Vote: ${op.voter} => @${op.author}/${op.permlink}</div>` +
+          currentHTML;
+      } else {
+        document.querySelector("div#content").innerHTML =
+          `<div class="comment green">${opname}: ${JSON.stringify(op)}</div>` +
           currentHTML;
       }
     });
