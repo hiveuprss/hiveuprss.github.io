@@ -3,7 +3,6 @@
 hive.api.setOptions({ url: "https://api.syncad.com/" });
 
 var speed = 3000;
-var FILTER_PATTERN = '';
 
 function clamp(num, min, max) {
   return num <= min ? min : num >= max ? max : num;
@@ -160,10 +159,6 @@ function runLoop() {
       const op = tx.operations[0][1];
       const opname = tx.operations[0][0];
 
-      if (!JSON.stringify(op).toLowerCase().includes(FILTER_PATTERN)) {
-        return;
-      }
-
       const currentHTML = document.querySelector("div#content").innerHTML;
 
       if (opname == "comment" && op["parent_author"] != "") {
@@ -213,6 +208,8 @@ function runLoop() {
           `<div class="op green">${formattedOpname}: ${JSON.stringify(op)}</div>` +
           currentHTML;
       }
+
+      applyFilter(document.querySelector('textarea#filter').value);
     });
 
     // if we succeeded so far, advance to next block
@@ -259,6 +256,24 @@ function runtimeAdjustSpeed() {
 
 runtimeAdjustSpeed();
 
+
+function applyFilter(filter) {
+  if (!filter) {
+    return;
+  }
+
+  filter = filter.trim();
+
+  Array.from(document.querySelectorAll('div.op')).map((ele) => {
+    if (!ele.innerHTML.toLowerCase().includes(filter)) {
+      ele.hidden = true;
+    } else {
+      ele.hidden = false;
+    }
+  });
+}
+
 document.querySelector('textarea#filter').addEventListener('input', (e) => {
-  FILTER_PATTERN = e.target.value;
+  const filter = e.target.value.toLowerCase();
+  applyFilter(filter);
 });
