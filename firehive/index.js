@@ -185,21 +185,27 @@ function runLoop() {
         } catch (err) {
           // bad json
         }
-
+        const link = `<a href="https://hive.blog/@${op.author}/${op.permlink}" target="_blank" rel="noopener noreferrer">link</a>`;
         document.querySelector("div#content").innerHTML =
-          `<div class="op green">Comment: ${appLogoImage}  <b>${op["author"]} => ${op["parent_author"]}</b>  ${appLogoImage} | "${commentBody}" (<a href="https://hive.blog/@${op["author"]}/${op["permlink"]}" target="_blank" rel="noopener noreferrer">link</a>)</div>` +
+          `<div class="op green">Comment: ${appLogoImage}  <b>${op["author"]} => ${op["parent_author"]}</b>  ${appLogoImage} | "${commentBody}" (${link})</div>` +
           currentHTML;
       } else if (opname == "comment") {
-        console.log("post", op);
+        console.log("Post", op);
+
+        const link = `<a href="https://hive.blog/@${op.author}/${op.permlink}" target="_blank" rel="noopener noreferrer">link</a>`;
+
         document.querySelector("div#content").innerHTML =
-          `<div class="op green">Post: ${op.title}</div>` + currentHTML;
+          `<div class="op green">Post: ${op.title} by ${op.author} (${link})</div>` + currentHTML;
       } else if (opname == "vote") {
+        const link = `<a href="https://hive.blog/@${op.author}/${op.permlink}" target="_blank" rel="noopener noreferrer">link</a>`;
+
         document.querySelector("div#content").innerHTML =
-          `<div class="op green">Vote: ${op.voter} => @${op.author}/${op.permlink}</div>` +
+          `<div class="op green">Vote: ${op.voter} => @${op.author}/${op.permlink} (${link})</div>` +
           currentHTML;
       } else {
+        const formattedOpname = opname.substr(0,1).toUpperCase() + opname.substr(1,opname.length-1);
         document.querySelector("div#content").innerHTML =
-          `<div class="op green">${opname}: ${JSON.stringify(op)}</div>` +
+          `<div class="op green">${formattedOpname}: ${JSON.stringify(op)}</div>` +
           currentHTML;
       }
     });
