@@ -3,6 +3,7 @@
 hive.api.setOptions({ url: "https://api.syncad.com/" });
 
 var speed = 3000;
+var FILTER_PATTERN = '';
 
 function clamp(num, min, max) {
   return num <= min ? min : num >= max ? max : num;
@@ -159,6 +160,10 @@ function runLoop() {
       const op = tx.operations[0][1];
       const opname = tx.operations[0][0];
 
+      if (!JSON.stringify(op).toLowerCase().includes(FILTER_PATTERN)) {
+        return;
+      }
+
       const currentHTML = document.querySelector("div#content").innerHTML;
 
       if (opname == "comment" && op["parent_author"] != "") {
@@ -253,3 +258,7 @@ function runtimeAdjustSpeed() {
 }
 
 runtimeAdjustSpeed();
+
+document.querySelector('textarea#filter').addEventListener('input', (e) => {
+  FILTER_PATTERN = e.target.value;
+});
