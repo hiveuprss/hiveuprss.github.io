@@ -94,11 +94,9 @@ function runLoop() {
     return;
   }
 
-  //console.log(blockNum)
 
   hive.api.getBlock(blockNum, function (err, result) {
-    //console.log(err, result);
-    //console.log(blockNum)
+
     if (err) {
       console.log(err);
       return;
@@ -159,9 +157,14 @@ function runLoop() {
       const op = tx.operations[0][1];
       const opname = tx.operations[0][0];
 
+      const sanitizedOpStr = JSON.stringify(op).replaceAll(/<[^>]*>/g, "");
+
       const currentHTML = document.querySelector("div#content").innerHTML;
 
+      // todo: refactor
+      // todo: add blockNum / tx id / timestamp info
       if (opname == "comment" && op["parent_author"] != "") {
+        
         var commentBody = op["body"].trim();
         commentBody = commentBody.replaceAll("\n", "");
         commentBody = commentBody.replaceAll(/<[^>]*>/g, "");
@@ -183,7 +186,7 @@ function runLoop() {
         }
         const link = `<a href="https://hive.blog/@${op.author}/${op.permlink}" target="_blank" rel="noopener noreferrer">link</a>`;
         document.querySelector("div#content").innerHTML =
-          `<div class="op green">Comment: ${appLogoImage}  <b>${op["author"]} => ${op["parent_author"]}</b>  ${appLogoImage} | "${commentBody}" (${link})<br/>${JSON.stringify(op)}</div>` +
+          `<div class="op green">Comment: ${appLogoImage}  <b>${op["author"]} => ${op["parent_author"]}</b>  ${appLogoImage} | "${commentBody}" (${link})<br/>${sanitizedOpStr}</div>` +
           currentHTML;
       } else if (opname == "comment") {
         console.log("Post", op);
@@ -193,15 +196,15 @@ function runLoop() {
         document.querySelector("div#content").innerHTML =
           `<div class="op green">Post: ${op.title} by ${op.author} (${link})</div>` + currentHTML;
       } else if (opname == "vote") {
-        const link = `<a href="https://hive.blog/@${op.author}/${op.permlink}" target="_blank" rel="noopener noreferrer">link</a><br/>${JSON.stringify(op)}`;
+        const link = `<a href="https://hive.blog/@${op.author}/${op.permlink}" target="_blank" rel="noopener noreferrer">link</a><br/>${sanitizedOpStr}`;
 
         document.querySelector("div#content").innerHTML =
-          `<div class="op green">Vote: ${op.voter} => @${op.author}/${op.permlink} (${link}) <br/>${JSON.stringify(op)}</div>` +
+          `<div class="op green">Vote: ${op.voter} => @${op.author}/${op.permlink} (${link}) <br/>${sanitizedOpStr}</div>` +
           currentHTML;
       } else {
         const formattedOpname = opname.substr(0,1).toUpperCase() + opname.substr(1,opname.length-1);
         document.querySelector("div#content").innerHTML =
-          `<div class="op green">${formattedOpname}: ${JSON.stringify(op)}</div>` +
+          `<div class="op green">${formattedOpname}: ${sanitizedOpStr}</div>` +
           currentHTML;
       }
 
