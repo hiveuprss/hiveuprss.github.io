@@ -166,10 +166,6 @@ function runLoop() {
         commentBody = commentBody.replaceAll("\n", "");
         commentBody = commentBody.replaceAll(/<[^>]*>/g, "");
 
-        if (commentBody.length > 100) {
-          commentBody = commentBody.substr(0, 97) + "...";
-        }
-
         var appLogoImage = "";
         try {
           const metadata = JSON.parse(op["json_metadata"]);
@@ -187,7 +183,7 @@ function runLoop() {
         }
         const link = `<a href="https://hive.blog/@${op.author}/${op.permlink}" target="_blank" rel="noopener noreferrer">link</a>`;
         document.querySelector("div#content").innerHTML =
-          `<div class="op green">Comment: ${appLogoImage}  <b>${op["author"]} => ${op["parent_author"]}</b>  ${appLogoImage} | "${commentBody}" (${link})</div>` +
+          `<div class="op green">Comment: ${appLogoImage}  <b>${op["author"]} => ${op["parent_author"]}</b>  ${appLogoImage} | "${commentBody}" (${link})<br/>${JSON.stringify(op)}</div>` +
           currentHTML;
       } else if (opname == "comment") {
         console.log("Post", op);
@@ -197,10 +193,10 @@ function runLoop() {
         document.querySelector("div#content").innerHTML =
           `<div class="op green">Post: ${op.title} by ${op.author} (${link})</div>` + currentHTML;
       } else if (opname == "vote") {
-        const link = `<a href="https://hive.blog/@${op.author}/${op.permlink}" target="_blank" rel="noopener noreferrer">link</a>`;
+        const link = `<a href="https://hive.blog/@${op.author}/${op.permlink}" target="_blank" rel="noopener noreferrer">link</a><br/>${JSON.stringify(op)}`;
 
         document.querySelector("div#content").innerHTML =
-          `<div class="op green">Vote: ${op.voter} => @${op.author}/${op.permlink} (${link})</div>` +
+          `<div class="op green">Vote: ${op.voter} => @${op.author}/${op.permlink} (${link}) <br/>${JSON.stringify(op)}</div>` +
           currentHTML;
       } else {
         const formattedOpname = opname.substr(0,1).toUpperCase() + opname.substr(1,opname.length-1);
