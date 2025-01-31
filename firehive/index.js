@@ -262,7 +262,7 @@ function applyFilter(filter) {
     return;
   }
 
-  filter = filter.trim();
+  filter = filter.trim().toLowerCase();
 
   Array.from(document.querySelectorAll('div.op')).map((ele) => {
     if (!ele.innerHTML.toLowerCase().includes(filter)) {
@@ -274,6 +274,6 @@ function applyFilter(filter) {
 }
 
 document.querySelector('textarea#filter').addEventListener('input', (e) => {
-  const filter = e.target.value.toLowerCase();
+  const filter = e.target.value;
   applyFilter(filter);
 });
