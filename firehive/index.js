@@ -20,10 +20,10 @@ function clamp(num, min, max) {
 // Start button controls
 
 document.querySelector("button#gotoblock").onclick = (e) => {
-  var blockNum = prompt("Enter block number:", "NaN");
+  var blockNum = prompt("Enter block number:", `${document.querySelector("#blockNum").data}`);
 
   // sanitize
-  blockNum = parseInt(blockNum);
+  blockNum = parseInt(blockNum) - 1;
 
   if (!blockNum || blockNum < 0) {
     getLatestBlocknum();
