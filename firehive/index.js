@@ -1,6 +1,15 @@
 // Created by peakd.com/@hivetrending
 
-hive.api.setOptions({ url: "https://api.syncad.com/" });
+hive.api.setOptions({
+  url: "https://api.deathwing.me/",
+  alternative_api_endpoints: [
+    "https://api.hive.blog/",
+    "https://api.openhive.network/",
+    "https://techcoderx.com/",
+    "https://api.c0ff33a.uk/",
+    "https://hive-api.3speak.tv/",
+  ],
+});
 
 var speed = 3000;
 
