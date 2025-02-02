@@ -155,7 +155,6 @@ function runLoop() {
       const op = tx.operations[0][1];
       const opname = tx.operations[0][0];
 
-      console.log(tx);
       const txFooter = /*HTML*/ `<span>block: ${tx.block_num} | tx id: ${tx.transaction_id}</span>`;
 
       const sanitizedOpStr = JSON.stringify(op).replaceAll(/<[^>]*>/g, "");
