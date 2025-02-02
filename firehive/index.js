@@ -94,9 +94,7 @@ function runLoop() {
     return;
   }
 
-
   hive.api.getBlock(blockNum, function (err, result) {
-
     if (err) {
       console.log(err);
       return;
@@ -124,7 +122,7 @@ function runLoop() {
       const hideCustomJson = document.querySelector(
         "#flexCheckCustomJSONs"
       ).checked;
- 
+
       const hideOpnames = [];
       if (hideCustomJson) {
         hideOpnames.push("custom_json");
@@ -153,9 +151,12 @@ function runLoop() {
       return true;
     });
 
-    block.transactions.forEach((tx) => {
+    for (const tx of block.transactions) {
       const op = tx.operations[0][1];
       const opname = tx.operations[0][0];
+
+      console.log(tx);
+      const txFooter = /*HTML*/ `<span>block: ${tx.block_num} | tx id: ${tx.transaction_id}</span>`;
 
       const sanitizedOpStr = JSON.stringify(op).replaceAll(/<[^>]*>/g, "");
 
@@ -164,7 +165,6 @@ function runLoop() {
       // todo: refactor
       // todo: add blockNum / tx id / timestamp info
       if (opname == "comment" && op["parent_author"] != "") {
-        
         var commentBody = op["body"].trim();
         commentBody = commentBody.replaceAll("\n", "");
         commentBody = commentBody.replaceAll(/<[^>]*>/g, "");
@@ -178,38 +178,41 @@ function runLoop() {
           ) {
             console.log(metadata.app);
             if (metadata.app.includes("leothreads")) {
-              appLogoImage = `<img width="15px" src="./assets/leo.png"></img>`;
+              appLogoImage = /*HTML*/ `<img width="15px" src="./assets/leo.png">`;
             }
           }
         } catch (err) {
           // bad json
         }
-        const link = `<a href="https://hive.blog/@${op.author}/${op.permlink}" target="_blank" rel="noopener noreferrer">link</a>`;
+        const link = /*HTML*/ `<a href="https://hive.blog/@${op.author}/${op.permlink}" target="_blank" rel="noopener noreferrer">link</a>`;
         document.querySelector("div#content").innerHTML =
-          `<div class="op green">Comment: ${appLogoImage}  <b>${op["author"]} => ${op["parent_author"]}</b>  ${appLogoImage} | "${commentBody}" (${link})<br/>${sanitizedOpStr}</div>` +
+          /*HTML*/ `<div class="op green">Comment: ${appLogoImage}  <b>${op["author"]} => ${op["parent_author"]}</b>  ${appLogoImage} | "${commentBody}" (${link})<br/>${sanitizedOpStr}<br/>${txFooter}</div>` +
           currentHTML;
       } else if (opname == "comment") {
         console.log("Post", op);
 
-        const link = `<a href="https://hive.blog/@${op.author}/${op.permlink}" target="_blank" rel="noopener noreferrer">link</a>`;
+        const link = /*HTML*/ `<a href="https://hive.blog/@${op.author}/${op.permlink}" target="_blank" rel="noopener noreferrer">link</a>`;
 
         document.querySelector("div#content").innerHTML =
-          `<div class="op green">Post: ${op.title} by ${op.author} (${link})</div>` + currentHTML;
+          /*HTML*/ `<div class="op green">Post: ${op.title} by ${op.author} (${link})<br/>${sanitizedOpStr}<br/>${txFooter}</div>` +
+          currentHTML;
       } else if (opname == "vote") {
-        const link = `<a href="https://hive.blog/@${op.author}/${op.permlink}" target="_blank" rel="noopener noreferrer">link</a><br/>${sanitizedOpStr}`;
+        const link = /*HTML*/ `<a href="https://hive.blog/@${op.author}/${op.permlink}" target="_blank" rel="noopener noreferrer">link</a>`;
 
         document.querySelector("div#content").innerHTML =
-          `<div class="op green">Vote: ${op.voter} => @${op.author}/${op.permlink} (${link}) <br/>${sanitizedOpStr}</div>` +
+          /*HTML*/ `<div class="op green">Vote: ${op.voter} => @${op.author}/${op.permlink} (${link}) <br/>${sanitizedOpStr}<br/>${txFooter}</div>` +
           currentHTML;
       } else {
-        const formattedOpname = opname.substr(0,1).toUpperCase() + opname.substr(1,opname.length-1);
+        const formattedOpname =
+          opname.substr(0, 1).toUpperCase() +
+          opname.substr(1, opname.length - 1);
         document.querySelector("div#content").innerHTML =
-          `<div class="op green">${formattedOpname}: ${sanitizedOpStr}</div>` +
+          /*HTML*/ `<div class="op green">${formattedOpname}: ${sanitizedOpStr}<br/>${txFooter}</div>` +
           currentHTML;
       }
 
-      applyFilter(document.querySelector('textarea#filter').value);
-    });
+      applyFilter(document.querySelector("textarea#filter").value);
+    }
 
     // if we succeeded so far, advance to next block
     if (document.querySelector("#blockNum").data == `${parseInt(blockNum)}`) {
@@ -255,7 +258,6 @@ function runtimeAdjustSpeed() {
 
 runtimeAdjustSpeed();
 
-
 function applyFilter(filter) {
   if (!filter) {
     return;
@@ -263,7 +265,7 @@ function applyFilter(filter) {
 
   filter = filter.trim().toLowerCase();
 
-  Array.from(document.querySelectorAll('div.op')).map((ele) => {
+  Array.from(document.querySelectorAll("div.op")).map((ele) => {
     if (!ele.innerHTML.toLowerCase().includes(filter)) {
       ele.hidden = true;
     } else {
@@ -272,7 +274,7 @@ function applyFilter(filter) {
   });
 }
 
-document.querySelector('textarea#filter').addEventListener('input', (e) => {
+document.querySelector("textarea#filter").addEventListener("input", (e) => {
   const filter = e.target.value;
   applyFilter(filter);
 });
