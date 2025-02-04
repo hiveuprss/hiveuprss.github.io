@@ -1,6 +1,6 @@
 // Created by peakd.com/@hivetrending
 
-hive.api.setOptions({ url: "https://api.deathwing.me/" });
+hive.api.setOptions({ url: "https://api.syncad.com/" });
 
 var speed = 3000;
 var width = 800,
@@ -172,7 +172,11 @@ function runLoop() {
       "heartbeatonhive",
       "hive-lu",
       "dookbot",
-      "fun.farms"
+      "fun.farms",
+      "ai-summaries",
+      "helios-voter",
+      "helios-daily",
+      "commentrewarder"
     ];
 
     block.transactions.forEach((tx) => {
