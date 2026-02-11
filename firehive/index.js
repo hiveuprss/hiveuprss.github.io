@@ -26,6 +26,49 @@ function escapeHtml(str) {
 
 const MAX_OP_ENTRIES = 200;
 
+// Theme toggle
+function updateThemeIcon() {
+  const theme = document.documentElement.getAttribute("data-theme") || "dark";
+  const icon = document.querySelector("#theme-toggle i");
+  icon.className = theme === "light" ? "fas fa-moon" : "fas fa-sun";
+}
+
+document.querySelector("#theme-toggle").onclick = () => {
+  const current = document.documentElement.getAttribute("data-theme") || (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+  const next = current === "dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", next);
+  localStorage.setItem("firehive-theme", next);
+  updateThemeIcon();
+};
+
+updateThemeIcon();
+
+// Advanced menu (op-type filters)
+const menuToggle = document.querySelector("#menu-toggle");
+const advancedMenu = document.querySelector("#advanced-menu");
+const filterCheckboxes = advancedMenu.querySelectorAll("input[type='checkbox']");
+
+function updateMenuBadge() {
+  const anyChecked = Array.from(filterCheckboxes).some((cb) => cb.checked);
+  menuToggle.classList.toggle("has-filters", anyChecked);
+}
+
+menuToggle.onclick = (e) => {
+  e.stopPropagation();
+  const opening = advancedMenu.hidden;
+  advancedMenu.hidden = !opening;
+  menuToggle.classList.toggle("active", opening);
+};
+
+document.addEventListener("click", (e) => {
+  if (!advancedMenu.hidden && !advancedMenu.contains(e.target) && e.target !== menuToggle) {
+    advancedMenu.hidden = true;
+    menuToggle.classList.remove("active");
+  }
+});
+
+filterCheckboxes.forEach((cb) => cb.addEventListener("change", updateMenuBadge));
+
 // Start button controls
 
 document.querySelector("button#gotoblock").onclick = (e) => {
@@ -59,16 +102,16 @@ document.querySelector("button#backward").onclick = (e) => {
 };
 
 document.querySelector("button#fastforward").onclick = (e) => {
-  var minSpeed = 1.0;
-  var maxSpeed = 3.0;
-  var speedIncrement = 1.0;
+  const minSpeed = 1.0;
+  const maxSpeed = 3.0;
+  const speedIncrement = 1.0;
 
-  var currentSpeed = getSpeedSetting();
+  const currentSpeed = getSpeedSetting();
+  let newSpeed;
   if (currentSpeed == maxSpeed) {
-    var newSpeed = minSpeed;
+    newSpeed = minSpeed;
   } else {
-    var newSpeed = currentSpeed + speedIncrement;
-    newSpeed = clamp(newSpeed, minSpeed, maxSpeed);
+    newSpeed = clamp(currentSpeed + speedIncrement, minSpeed, maxSpeed);
   }
 
   // update UI
@@ -108,7 +151,6 @@ function getLatestBlocknum() {
 }
 
 function runLoop() {
-  //startSimulation()
   if (document.querySelector("button#pause").hidden == true) {
     return;
   }
@@ -132,7 +174,7 @@ function runLoop() {
     }
 
     document.querySelectorAll("div.op").forEach((node) => {
-      node.className = "op gray";
+      node.classList.add("stale");
     });
 
     const blockSize = block.transactions.length;
@@ -140,98 +182,99 @@ function runLoop() {
       "#blockSize"
     ).innerText = `${blockSize.toLocaleString()} transactions`;
 
+    const hideOpnames = [];
+    if (document.querySelector("#flexCheckCustomJSONs").checked) hideOpnames.push("custom_json");
+    if (document.querySelector("#flexCheckVotes").checked)       hideOpnames.push("vote");
+    if (document.querySelector("#flexCheckMarket").checked)      hideOpnames.push("limit_order_create");
+    if (document.querySelector("#flexCheckRewards").checked)     hideOpnames.push("claim_reward_balance");
+
     block.transactions = block.transactions.filter((tx) => {
-      var opname = tx.operations[0][0];
-      // var op = tx.operations[0][1];
-
-      const hideCustomJson = document.querySelector(
-        "#flexCheckCustomJSONs"
-      ).checked;
-
-      const hideOpnames = [];
-      if (hideCustomJson) {
-        hideOpnames.push("custom_json");
-      }
-
-      const hideVotes = document.querySelector("#flexCheckVotes").checked;
-      if (hideVotes) {
-        hideOpnames.push("vote");
-      }
-
-      const hideMarket = document.querySelector("#flexCheckMarket").checked;
-      if (hideMarket) {
-        hideOpnames.push("limit_order_create");
-      }
-
-      const hideRewards = document.querySelector("#flexCheckRewards").checked;
-      if (hideRewards) {
-        hideOpnames.push("claim_reward_balance");
-      }
-
-      // transfer
-
-      if (hideOpnames.includes(opname)) {
-        return false;
-      }
-      return true;
+      return !hideOpnames.includes(tx.operations[0][0]);
     });
+
+    const content = document.querySelector("#content");
 
     for (const tx of block.transactions) {
       const op = tx.operations[0][1];
       const opname = tx.operations[0][0];
 
-      const txFooter = /*HTML*/ `<span>block: ${escapeHtml(tx.block_num)} | tx id: ${escapeHtml(tx.transaction_id)}</span>`;
+      const rawJson = escapeHtml(JSON.stringify(op));
+      const txMeta = `block:${escapeHtml(tx.block_num)} · tx:${escapeHtml(tx.transaction_id)}`;
 
-      const sanitizedOpStr = escapeHtml(JSON.stringify(op));
+      let typeClass = "op-default";
+      let typeLabel = opname.replace(/_/g, " ");
+      let mainHtml = rawJson;
+      let bodyHtml = "";
 
-      const content = document.querySelector("div#content");
-
-      if (opname == "comment" && op["parent_author"] != "") {
-        var commentBody = op["body"].trim();
-        commentBody = commentBody.replaceAll("\n", "");
-        commentBody = escapeHtml(commentBody.replaceAll(/<[^>]*>/g, ""));
-
-        var appLogoImage = "";
+      if (opname === "comment" && op["parent_author"] !== "") {
+        typeClass = "op-reply";
+        typeLabel = "reply";
+        const link = `<a href="https://hive.blog/@${escapeHtml(op.author)}/${escapeHtml(op.permlink)}" target="_blank" rel="noopener noreferrer">↗</a>`;
+        let appBadge = "";
         try {
-          const metadata = JSON.parse(op["json_metadata"]);
-          if (
-            typeof metadata !== "undefined" &&
-            typeof metadata.app !== "undefined"
-          ) {
-            if (metadata.app.includes("leothreads")) {
-              appLogoImage = /*HTML*/ `<img width="15px" src="./assets/leo.png">`;
-            }
+          const meta = JSON.parse(op["json_metadata"]);
+          if (meta && meta.app && meta.app.includes("leothreads")) {
+            appBadge = `<img width="12" height="12" src="./assets/leo.png" style="vertical-align:middle;margin-right:4px">`;
           }
-        } catch (err) {
-          // bad json
-        }
-        const link = /*HTML*/ `<a href="https://hive.blog/@${escapeHtml(op.author)}/${escapeHtml(op.permlink)}" target="_blank" rel="noopener noreferrer">link</a>`;
-        content.insertAdjacentHTML("afterbegin",
-          /*HTML*/ `<div class="op green">Comment: ${appLogoImage}  <b>${escapeHtml(op["author"])} =&gt; ${escapeHtml(op["parent_author"])}</b>  ${appLogoImage} | &ldquo;${commentBody}&rdquo; (${link})<br/>${sanitizedOpStr}<br/>${txFooter}</div>`);
-      } else if (opname == "comment") {
-        const link = /*HTML*/ `<a href="https://hive.blog/@${escapeHtml(op.author)}/${escapeHtml(op.permlink)}" target="_blank" rel="noopener noreferrer">link</a>`;
+        } catch (_) {}
+        const commentBody = escapeHtml(op["body"].trim().replaceAll("\n", " ").replaceAll(/<[^>]*>/g, ""));
+        mainHtml = `${appBadge}<b>@${escapeHtml(op["author"])}</b> → <b>@${escapeHtml(op["parent_author"])}</b> ${link}`;
+        bodyHtml = `<span class="op-body">"${commentBody}"</span>`;
 
-        content.insertAdjacentHTML("afterbegin",
-          /*HTML*/ `<div class="op green">Post: ${escapeHtml(op.title)} by ${escapeHtml(op.author)} (${link})<br/>${sanitizedOpStr}<br/>${txFooter}</div>`);
-      } else if (opname == "vote") {
-        const link = /*HTML*/ `<a href="https://hive.blog/@${escapeHtml(op.author)}/${escapeHtml(op.permlink)}" target="_blank" rel="noopener noreferrer">link</a>`;
+      } else if (opname === "comment") {
+        typeClass = "op-post";
+        typeLabel = "post";
+        const link = `<a href="https://hive.blog/@${escapeHtml(op.author)}/${escapeHtml(op.permlink)}" target="_blank" rel="noopener noreferrer">↗</a>`;
+        mainHtml = `<b>@${escapeHtml(op.author)}</b> — ${escapeHtml(op.title) || "(untitled)"} ${link}`;
 
-        content.insertAdjacentHTML("afterbegin",
-          /*HTML*/ `<div class="op green">Vote: ${escapeHtml(op.voter)} =&gt; @${escapeHtml(op.author)}/${escapeHtml(op.permlink)} (${link})<br/>${sanitizedOpStr}<br/>${txFooter}</div>`);
-      } else {
-        const formattedOpname =
-          opname.substr(0, 1).toUpperCase() +
-          opname.substr(1, opname.length - 1);
-        content.insertAdjacentHTML("afterbegin",
-          /*HTML*/ `<div class="op green">${escapeHtml(formattedOpname)}: ${sanitizedOpStr}<br/>${txFooter}</div>`);
+      } else if (opname === "vote") {
+        typeClass = "op-vote";
+        typeLabel = "vote";
+        const link = `<a href="https://hive.blog/@${escapeHtml(op.author)}/${escapeHtml(op.permlink)}" target="_blank" rel="noopener noreferrer">↗</a>`;
+        const weight = op.weight ? ` ${(op.weight / 100).toFixed(0)}%` : "";
+        mainHtml = `<b>@${escapeHtml(op.voter)}</b> → <b>@${escapeHtml(op.author)}</b>/${escapeHtml(op.permlink)}${weight} ${link}`;
+
+      } else if (opname === "transfer") {
+        typeClass = "op-transfer";
+        typeLabel = "transfer";
+        mainHtml = `<b>@${escapeHtml(op.from)}</b> → <b>@${escapeHtml(op.to)}</b> <b>${escapeHtml(op.amount)}</b>`;
+        if (op.memo) bodyHtml = `<span class="op-body">${escapeHtml(op.memo.slice(0, 120))}</span>`;
+
+      } else if (opname === "custom_json") {
+        typeClass = "op-json";
+        typeLabel = "json";
+        mainHtml = escapeHtml(op.id || "custom_json");
+
+      } else if (opname === "limit_order_create" || opname === "limit_order_cancel") {
+        typeClass = "op-market";
+        typeLabel = opname === "limit_order_cancel" ? "cancel order" : "order";
+
+      } else if (opname === "claim_reward_balance") {
+        typeClass = "op-rewards";
+        typeLabel = "rewards";
+        mainHtml = `<b>@${escapeHtml(op.account)}</b> claimed ${escapeHtml(op.reward_hive || "")} ${escapeHtml(op.reward_hbd || "")} ${escapeHtml(op.reward_vests || "")}`.trim();
       }
+
+      content.insertAdjacentHTML("afterbegin", /*HTML*/
+        `<div class="op ${typeClass}">` +
+          `<div class="op-bar"></div>` +
+          `<div class="op-inner">` +
+            `<span class="op-type">${escapeHtml(typeLabel)}</span>` +
+            `<span class="op-main">${mainHtml}</span>` +
+            bodyHtml +
+            `<span class="op-raw">${rawJson}</span>` +
+            `<span class="op-footer">${txMeta}</span>` +
+          `</div>` +
+        `</div>`
+      );
 
       while (content.children.length > MAX_OP_ENTRIES) {
         content.removeChild(content.lastChild);
       }
 
-      applyFilter(document.querySelector("textarea#filter").value);
     }
+
+    applyFilter(document.querySelector("input#filter").value);
 
     // if we succeeded so far, advance to next block
     if (document.querySelector("#blockNum").data == `${parseInt(blockNum)}`) {
@@ -250,8 +293,7 @@ function runLoop() {
 // initialize, read params
 var urlParams = new URLSearchParams(window.location.search);
 if (urlParams.has("block")) {
-  var blockNum = urlParams.get("block");
-  var blockNum = parseInt(blockNum);
+  var blockNum = parseInt(urlParams.get("block"));
 
   if (isNaN(blockNum) || blockNum < 0) {
     getLatestBlocknum();
@@ -278,22 +320,14 @@ function runtimeAdjustSpeed() {
 runtimeAdjustSpeed();
 
 function applyFilter(filter) {
-  if (!filter) {
-    return;
-  }
-
   filter = filter.trim().toLowerCase();
 
-  Array.from(document.querySelectorAll("div.op")).map((ele) => {
-    if (!ele.innerHTML.toLowerCase().includes(filter)) {
-      ele.hidden = true;
-    } else {
-      ele.hidden = false;
-    }
+  document.querySelectorAll("div.op").forEach((ele) => {
+    ele.hidden = filter !== "" && !ele.innerHTML.toLowerCase().includes(filter);
   });
 }
 
-document.querySelector("textarea#filter").addEventListener("input", (e) => {
+document.querySelector("input#filter").addEventListener("input", (e) => {
   const filter = e.target.value;
   applyFilter(filter);
 });

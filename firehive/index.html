@@ -1,99 +1,79 @@
 <!DOCTYPE html>
 <!-- Created by peakd.com/@hivetrending -->
-
+<html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Firehive - Firehose of Hive Activities</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="style.css" />
-
-  	<script src="https://cdn.jsdelivr.net/npm/@hiveio/hive-js/dist/hive.min.js"></script>
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/js/all.min.js" integrity="sha512-b+nQTCdtTBIRIbraqNEwsjB6UvL3UEMkXnhzd8awtCYh0Kcsjl9uEgwVFVbhoj3uu1DO1ZMacNvLoyJJiNfcvg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
-    <script type="module" src="index.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Firehive — Live Hive Blockchain Feed</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <script src="https://cdn.jsdelivr.net/npm/@hiveio/hive-js/dist/hive.min.js"></script>
+  <link rel="icon" type="image/png" href="assets/hive-32.png">
+  <link rel="stylesheet" href="style.css">
+  <!-- Apply saved theme before paint to prevent flash -->
+  <script>document.documentElement.setAttribute("data-theme", localStorage.getItem("firehive-theme") || (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark"));</script>
+  <script type="module" src="index.js"></script>
 </head>
-
 <body>
-  <div class="container-fluid">
-    <div class="row">
-      <div class="col-md-6">
-        <div id="controls" class="row mt-2 ml-0">
-          <button class="btn btn-secondary btn-lg mr-1" id="pause"><i class="fas fa-pause"></i></button>
-          <button class="btn btn-secondary btn-lg mr-1" id="play" hidden><i class="fas fa-play"></i></button>
-          <button class="btn btn-secondary btn-lg mr-1" id="gotoblock"><i class="fas fa-search"></i></button>
-          <button class="btn btn-secondary btn-lg mr-1" id="backward"><i class="fas fa-fast-backward"></i></button>
-          <button class="btn btn-secondary btn-lg mr-1" id="fastforward"><i class="fas fa-fast-forward"></i></button>
-          <button class="btn btn-light btn-lg" id="speedgauge" disabled>1x</button>
+  <div id="app">
+
+    <header id="header">
+      <div id="brand">
+        <img src="assets/hive.svg" alt="Hive" id="hive-logo">
+        <span id="brand-name">Fire<span class="brand-accent">hive</span></span>
+      </div>
+      <div id="block-display">
+        <span id="block-label">BLOCK</span>
+        <span id="blockNum" class="block-number">—</span>
+        <span id="currentWitness" class="block-witness">—</span>
+      </div>
+      <div id="block-stats">
+        <div class="stat">
+          <span class="stat-label">TIME</span>
+          <span class="stat-value" id="timestamp">—</span>
         </div>
-        <div class="row">
-          <div class="col form-check">
-            <input class="form-check-input" type="checkbox" value="" id="flexCheckCustomJSONs">
-            <label class="form-check-label" for="flexCheckCustomJSONs">
-              Hide Custom JSONs
-            </label>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col form-check">
-            <input class="form-check-input" type="checkbox" value="" id="flexCheckVotes">
-            <label class="form-check-label" for="flexCheckVotes">
-              Hide Votes
-            </label>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col form-check">
-            <input class="form-check-input" type="checkbox" value="" id="flexCheckMarket">
-            <label class="form-check-label" for="flexCheckMarket">
-              Hide Market
-            </label>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col form-check">
-            <input class="form-check-input" type="checkbox" value="" id="flexCheckRewards">
-            <label class="form-check-label" for="flexCheckRewards">
-              Hide Rewards
-            </label>
-          </div>
+        <div class="stat">
+          <span class="stat-label">TXS</span>
+          <span class="stat-value" id="blockSize">—</span>
         </div>
       </div>
-      <div class="col-md-6">
-        <div class="row"><div class="col text-right"><h2><span class="badge"><i class="fab fa-hive"></i></span><span class="badge">Hive Block #<span id="blockNum">NaN</span></span></h2></div></div>
-        <div class="row text-right"><div class="col text-right"><h6>Timestamp: </span><span class="label label-primary" id="timestamp">NaN</span></h6></div></div>
-        <div class="row text-right"><div class="col text-right"><h6>Block Size: </span><span class="label label-primary" id="blockSize">NaN</span></h6></div></div>
-        <div class="row text-right"><div class="col text-right"><h6>Witness: </span><span class="label label-primary" id="currentWitness">NaN</span></h6></div></div>
-        <div class="row text-right"><div class="col text-right"></div><h6><textarea id="filter" rows="1" style="resize:none;" placeholder="Filter..."></textarea><i class="fas fa-search"></i></h6></div></div>
-        <div id="inspector" class="row text-right" hidden><div class="col text-right"><h4>Inspector</h4></div></div>
+      <button id="theme-toggle" class="ctrl theme-btn" title="Toggle light/dark mode"><i class="fas fa-sun"></i></button>
+    </header>
+
+    <nav id="toolbar">
+      <div id="playback">
+        <button id="pause" class="ctrl" title="Pause"><i class="fas fa-pause"></i></button>
+        <button id="play" class="ctrl" hidden title="Resume"><i class="fas fa-play"></i></button>
+        <button id="backward" class="ctrl" title="Back 10 blocks"><i class="fas fa-backward-step"></i></button>
+        <button id="gotoblock" class="ctrl" title="Go to block"><i class="fas fa-location-crosshairs"></i></button>
+        <button id="fastforward" class="ctrl" title="Cycle speed"><i class="fas fa-forward-step"></i></button>
+        <button id="speedgauge" class="ctrl speed-badge" disabled>1×</button>
       </div>
-      
-    </div>
-
-    </div>
-    <div class="row">
-
-    </div>
-    <div class="row">
-
-    </div><div class="row">
-      
-    </div>
-    <div class="row">
-      
-    </div>
-    <div class="row">
-  	  <div id="content" class="col-sm-12 col-md-12 col-lg-12">
+      <div id="filter-wrap">
+        <i class="fas fa-magnifying-glass filter-icon"></i>
+        <input type="text" id="filter" placeholder="filter stream…" autocomplete="off" spellcheck="false">
       </div>
-    </div>
-    <hr>
-    <div class="row">
-      
-     <div class="col-md-5 ml-3 mr-auto"><p>Every 3 seconds an immutable Hive block is forged. This page shows the contents of those blocks in real-time. <br><br>
-     Each immutable block is verified and linked to a chain of millions of older blocks. A blockchain.</p></div>
-     <div class="col-md-6 mr-3 text-right">
-      <div class="text-right">Brought to you by <a href="https://peakd.com/@hivetrending">@HiveTrending</a> of the <a href="https://vote.hive.uno/@pizza.witness">@pizza.witness</a> team.</a></div>
-    </div>
+      <div id="advanced-menu-wrap">
+        <button id="menu-toggle" class="ctrl" title="Filter op types"><i class="fas fa-bars"></i></button>
+        <div id="advanced-menu" hidden>
+          <div class="menu-heading">Hide op types</div>
+          <label class="menu-item"><input type="checkbox" id="flexCheckCustomJSONs"><span>custom_json</span></label>
+          <label class="menu-item"><input type="checkbox" id="flexCheckVotes"><span>votes</span></label>
+          <label class="menu-item"><input type="checkbox" id="flexCheckMarket"><span>market</span></label>
+          <label class="menu-item"><input type="checkbox" id="flexCheckRewards"><span>rewards</span></label>
+        </div>
+      </div>
+    </nav>
+
+    <main id="content"></main>
+
+    <footer id="footer">
+      <p>Every 3 seconds an immutable Hive block is forged and linked to millions of older blocks — a blockchain.</p>
+      <p>By <a href="https://peakd.com/@hivetrending" target="_blank" rel="noopener">@HiveTrending</a> · <a href="https://vote.hive.uno/@pizza.witness" target="_blank" rel="noopener">@pizza.witness</a></p>
+    </footer>
+
   </div>
+</body>
 </html>
