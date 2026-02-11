@@ -11,11 +11,20 @@ hive.api.setOptions({
   ],
 });
 
-var speed = 3000;
-
 function clamp(num, min, max) {
   return num <= min ? min : num >= max ? max : num;
 }
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+const MAX_OP_ENTRIES = 200;
 
 // Start button controls
 
@@ -42,6 +51,13 @@ document.querySelector("button#play").onclick = (e) => {
   document.querySelector("button#pause").hidden = false;
 };
 
+document.querySelector("button#backward").onclick = (e) => {
+  var blockNum = parseInt(document.querySelector("#blockNum").data);
+  var newBlock = Math.max(1, blockNum - 10);
+  document.querySelector("#blockNum").data = `${newBlock}`;
+  document.querySelector("#blockNum").innerText = `${newBlock}`;
+};
+
 document.querySelector("button#fastforward").onclick = (e) => {
   var minSpeed = 1.0;
   var maxSpeed = 3.0;
@@ -62,7 +78,7 @@ document.querySelector("button#fastforward").onclick = (e) => {
 
 function getSpeedSetting() {
   if (!document.querySelector("button#speedgauge").data) {
-    document.querySelector("button#speedgauge").data = "2.0";
+    document.querySelector("button#speedgauge").data = "1.0";
   }
 
   var currentSpeed = parseFloat(
@@ -164,18 +180,16 @@ function runLoop() {
       const op = tx.operations[0][1];
       const opname = tx.operations[0][0];
 
-      const txFooter = /*HTML*/ `<span>block: ${tx.block_num} | tx id: ${tx.transaction_id}</span>`;
+      const txFooter = /*HTML*/ `<span>block: ${escapeHtml(tx.block_num)} | tx id: ${escapeHtml(tx.transaction_id)}</span>`;
 
-      const sanitizedOpStr = JSON.stringify(op).replaceAll(/<[^>]*>/g, "");
+      const sanitizedOpStr = escapeHtml(JSON.stringify(op));
 
-      const currentHTML = document.querySelector("div#content").innerHTML;
+      const content = document.querySelector("div#content");
 
-      // todo: refactor
-      // todo: add blockNum / tx id / timestamp info
       if (opname == "comment" && op["parent_author"] != "") {
         var commentBody = op["body"].trim();
         commentBody = commentBody.replaceAll("\n", "");
-        commentBody = commentBody.replaceAll(/<[^>]*>/g, "");
+        commentBody = escapeHtml(commentBody.replaceAll(/<[^>]*>/g, ""));
 
         var appLogoImage = "";
         try {
@@ -184,7 +198,6 @@ function runLoop() {
             typeof metadata !== "undefined" &&
             typeof metadata.app !== "undefined"
           ) {
-            console.log(metadata.app);
             if (metadata.app.includes("leothreads")) {
               appLogoImage = /*HTML*/ `<img width="15px" src="./assets/leo.png">`;
             }
@@ -192,31 +205,29 @@ function runLoop() {
         } catch (err) {
           // bad json
         }
-        const link = /*HTML*/ `<a href="https://hive.blog/@${op.author}/${op.permlink}" target="_blank" rel="noopener noreferrer">link</a>`;
-        document.querySelector("div#content").innerHTML =
-          /*HTML*/ `<div class="op green">Comment: ${appLogoImage}  <b>${op["author"]} => ${op["parent_author"]}</b>  ${appLogoImage} | "${commentBody}" (${link})<br/>${sanitizedOpStr}<br/>${txFooter}</div>` +
-          currentHTML;
+        const link = /*HTML*/ `<a href="https://hive.blog/@${escapeHtml(op.author)}/${escapeHtml(op.permlink)}" target="_blank" rel="noopener noreferrer">link</a>`;
+        content.insertAdjacentHTML("afterbegin",
+          /*HTML*/ `<div class="op green">Comment: ${appLogoImage}  <b>${escapeHtml(op["author"])} =&gt; ${escapeHtml(op["parent_author"])}</b>  ${appLogoImage} | &ldquo;${commentBody}&rdquo; (${link})<br/>${sanitizedOpStr}<br/>${txFooter}</div>`);
       } else if (opname == "comment") {
-        console.log("Post", op);
+        const link = /*HTML*/ `<a href="https://hive.blog/@${escapeHtml(op.author)}/${escapeHtml(op.permlink)}" target="_blank" rel="noopener noreferrer">link</a>`;
 
-        const link = /*HTML*/ `<a href="https://hive.blog/@${op.author}/${op.permlink}" target="_blank" rel="noopener noreferrer">link</a>`;
-
-        document.querySelector("div#content").innerHTML =
-          /*HTML*/ `<div class="op green">Post: ${op.title} by ${op.author} (${link})<br/>${sanitizedOpStr}<br/>${txFooter}</div>` +
-          currentHTML;
+        content.insertAdjacentHTML("afterbegin",
+          /*HTML*/ `<div class="op green">Post: ${escapeHtml(op.title)} by ${escapeHtml(op.author)} (${link})<br/>${sanitizedOpStr}<br/>${txFooter}</div>`);
       } else if (opname == "vote") {
-        const link = /*HTML*/ `<a href="https://hive.blog/@${op.author}/${op.permlink}" target="_blank" rel="noopener noreferrer">link</a>`;
+        const link = /*HTML*/ `<a href="https://hive.blog/@${escapeHtml(op.author)}/${escapeHtml(op.permlink)}" target="_blank" rel="noopener noreferrer">link</a>`;
 
-        document.querySelector("div#content").innerHTML =
-          /*HTML*/ `<div class="op green">Vote: ${op.voter} => @${op.author}/${op.permlink} (${link}) <br/>${sanitizedOpStr}<br/>${txFooter}</div>` +
-          currentHTML;
+        content.insertAdjacentHTML("afterbegin",
+          /*HTML*/ `<div class="op green">Vote: ${escapeHtml(op.voter)} =&gt; @${escapeHtml(op.author)}/${escapeHtml(op.permlink)} (${link})<br/>${sanitizedOpStr}<br/>${txFooter}</div>`);
       } else {
         const formattedOpname =
           opname.substr(0, 1).toUpperCase() +
           opname.substr(1, opname.length - 1);
-        document.querySelector("div#content").innerHTML =
-          /*HTML*/ `<div class="op green">${formattedOpname}: ${sanitizedOpStr}<br/>${txFooter}</div>` +
-          currentHTML;
+        content.insertAdjacentHTML("afterbegin",
+          /*HTML*/ `<div class="op green">${escapeHtml(formattedOpname)}: ${sanitizedOpStr}<br/>${txFooter}</div>`);
+      }
+
+      while (content.children.length > MAX_OP_ENTRIES) {
+        content.removeChild(content.lastChild);
       }
 
       applyFilter(document.querySelector("textarea#filter").value);
