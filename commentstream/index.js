@@ -31,11 +31,80 @@ const state = {
   currentBlockNum: NaN,
   currentSpeed: CONFIG.defaultSpeed,
   isPaused: false,
-  loopIntervalId: null
+  loopIntervalId: null,
+  appFilters: {
+    leo: true,
+    ecency: true,
+    peakd: true,
+    hivesnaps: true,
+    waivio: true
+  },
+  frontendDomain: 'hive.blog'
 };
 
 // Initialize Hive API
 hive.api.setOptions({ url: "https://api.syncad.com/" });
+
+// Filter management
+function initFilters() {
+  const savedFilters = localStorage.getItem('hive-app-filters');
+  if (savedFilters) {
+    try {
+      state.appFilters = JSON.parse(savedFilters);
+    } catch {
+      // Use defaults if saved filters are invalid
+    }
+  }
+
+  // Set checkbox states
+  document.querySelectorAll('.app-filter').forEach(checkbox => {
+    const app = checkbox.dataset.app;
+    checkbox.checked = state.appFilters[app] ?? true;
+  });
+
+  // Listen for filter changes
+  document.querySelectorAll('.app-filter').forEach(checkbox => {
+    checkbox.addEventListener('change', (e) => {
+      const app = e.target.dataset.app;
+      state.appFilters[app] = e.target.checked;
+      localStorage.setItem('hive-app-filters', JSON.stringify(state.appFilters));
+      applyFilters();
+    });
+  });
+}
+
+function applyFilters() {
+  document.querySelectorAll('.comment').forEach(comment => {
+    const classes = Array.from(comment.classList);
+    let appClass = classes.find(c =>
+      ['leo', 'ecency', 'peakd', 'snapie', 'waivio'].includes(c)
+    );
+
+    // Default to visible if no specific app class found
+    const isVisible = appClass ? state.appFilters[appClass] : true;
+    comment.style.display = isVisible ? 'flex' : 'none';
+  });
+}
+
+function initFilterMenu() {
+  const filterBtn = document.getElementById('filterMenuBtn');
+  const filterModal = document.getElementById('filterModal');
+  const closeBtn = document.getElementById('closeFilterBtn');
+
+  filterBtn.addEventListener('click', () => {
+    filterModal.hidden = false;
+  });
+
+  closeBtn.addEventListener('click', () => {
+    filterModal.hidden = true;
+  });
+
+  filterModal.addEventListener('click', (e) => {
+    if (e.target === filterModal) {
+      filterModal.hidden = true;
+    }
+  });
+}
 
 // Theme management
 function initTheme() {
@@ -66,28 +135,39 @@ function setBlockNum(num) {
 
 function setSpeed(speed) {
   state.currentSpeed = speed;
-  document.querySelector("button#speedgauge").innerText = `${speed}x`;
+  const speedBtn = document.querySelector("button#speedBtn");
+  speedBtn.querySelector("span").innerText = `${speed}x`;
+
+  // Update active state in dropdown
+  document.querySelectorAll('.speed-option').forEach(option => {
+    if (parseFloat(option.dataset.speed) === speed) {
+      option.classList.add('active');
+    } else {
+      option.classList.remove('active');
+    }
+  });
 }
 
 function togglePausePlay() {
-  const pauseBtn = document.querySelector("button#pause");
-  const playBtn = document.querySelector("button#play");
+  const btn = document.querySelector("button#pausePlayBtn");
+  const icon = btn.querySelector("i");
+  const text = btn.querySelector("span");
+
   state.isPaused = !state.isPaused;
 
   if (state.isPaused) {
-    pauseBtn.hidden = true;
-    playBtn.hidden = false;
+    icon.className = "fas fa-play";
+    text.textContent = "Resume";
     clearTimeout(state.loopIntervalId);
   } else {
-    playBtn.hidden = true;
-    pauseBtn.hidden = false;
+    icon.className = "fas fa-pause";
+    text.textContent = "Pause";
     scheduleNextRun();
   }
 }
 
 // Button event listeners
-document.querySelector("button#pause").addEventListener('click', togglePausePlay);
-document.querySelector("button#play").addEventListener('click', togglePausePlay);
+document.querySelector("button#pausePlayBtn").addEventListener('click', togglePausePlay);
 
 document.querySelector("button#gotoblock").addEventListener('click', () => {
   const input = prompt("Enter block number:");
@@ -102,13 +182,52 @@ document.querySelector("button#gotoblock").addEventListener('click', () => {
   }
 });
 
-document.querySelector("button#fastforward").addEventListener('click', () => {
-  let newSpeed = state.currentSpeed + CONFIG.speedIncrement;
-  if (newSpeed > CONFIG.maxSpeed) {
-    newSpeed = CONFIG.minSpeed;
+// Speed dropdown
+function initSpeedDropdown() {
+  const speedBtn = document.querySelector("button#speedBtn");
+  const speedDropdown = document.getElementById('speedDropdown');
+
+  speedBtn.addEventListener('click', () => {
+    speedDropdown.hidden = !speedDropdown.hidden;
+  });
+
+  document.querySelectorAll('.speed-option').forEach(option => {
+    option.addEventListener('click', () => {
+      const speed = parseFloat(option.dataset.speed);
+      setSpeed(speed);
+      speedDropdown.hidden = true;
+    });
+  });
+
+  // Close dropdown when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!speedBtn.contains(e.target) && !speedDropdown.contains(e.target)) {
+      speedDropdown.hidden = true;
+    }
+  });
+}
+
+// Frontend preference
+function initFrontendSelection() {
+  const frontendSelect = document.getElementById('frontendSelect');
+  const savedFrontend = localStorage.getItem('hive-frontend-domain');
+
+  if (savedFrontend) {
+    state.frontendDomain = savedFrontend;
+    frontendSelect.value = savedFrontend;
+  } else {
+    frontendSelect.value = state.frontendDomain;
   }
-  setSpeed(newSpeed);
-});
+
+  frontendSelect.addEventListener('change', (e) => {
+    state.frontendDomain = e.target.value;
+    localStorage.setItem('hive-frontend-domain', state.frontendDomain);
+  });
+}
+
+function getCommentLink(author, permlink) {
+  return `https://${state.frontendDomain}/@${escapeHtml(author)}/${permlink}`;
+}
 
 // Fetch latest block number and start streaming
 function getLatestBlocknum() {
@@ -202,50 +321,62 @@ function runLoop() {
       })
       .filter(tx => !BOT_NAMES.has(tx.operations[0][1].author));
 
-    // Add comments to feed
+    // Add comments to feed with staggered timing
     const contentDiv = document.querySelector("div#content");
     const blockNum = state.currentBlockNum;
     let hasNewComments = false;
 
-    comments.forEach(tx => {
-      const op = tx.operations[0][1];
-      const commentBody = sanitizeComment(op.body);
-      const author = escapeHtml(op.author);
-      const parentAuthor = escapeHtml(op.parent_author);
+    comments.forEach((tx, index) => {
+      // Stagger comment additions with 200ms delay between each
+      setTimeout(() => {
+        const op = tx.operations[0][1];
+        const commentBody = sanitizeComment(op.body);
+        const author = escapeHtml(op.author);
+        const parentAuthor = escapeHtml(op.parent_author);
 
-      // Validate permlink and construct safe URL
-      let linkUrl = "https://hive.blog";
-      if (isValidPermlink(op.permlink)) {
-        linkUrl = `https://hive.blog/@${escapeHtml(op.author)}/${op.permlink}`;
-      }
-
-      let appLogo = "";
-      try {
-        const metadata = JSON.parse(op.json_metadata);
-        if (metadata?.app) {
-          if (metadata.app.includes("leothreads")) {
-            appLogo = '<img width="15px" src="./assets/leo.png" alt="Leo" title="Posted on Leo Threads">';
-          } else if (metadata.app.startsWith("peakd/")) {
-            appLogo = '<img width="15px" src="./assets/peakd-16.png" alt="PeakD" title="Posted on PeakD">';
-          } else if (metadata.app.startsWith("hivesnaps")) {
-            appLogo = '<img width="15px" src="./assets/hivesnaps-16.png" alt="Snapie" title="Posted on Snapie">';
-          } else if (metadata.app.startsWith("ecency")) {
-            appLogo = '<img width="15px" src="https://ecency.com/favicon.ico" alt="Ecency" title="Posted on Ecency">';
-          }
+        // Validate permlink and construct safe URL
+        let linkUrl = `https://${state.frontendDomain}`;
+        if (isValidPermlink(op.permlink)) {
+          linkUrl = getCommentLink(op.author, op.permlink);
         }
-      } catch {
-        // Invalid JSON metadata, skip app logo
-      }
 
-      const commentHtml = `
-        <div class="comment green">
-          <div class="comment-header">${appLogo}<b>${author} → ${parentAuthor}</b><span style="font-size: 0.8em; color: var(--hive-text-muted);">#${blockNum}</span></div>
-          <div class="comment-body">"${commentBody}" <a href="${escapeHtml(linkUrl)}" target="_blank" rel="noopener noreferrer">→ view</a></div>
-        </div>
-      `;
+        let appLogo = "";
+        let appClass = "green";  // Default color
 
-      contentDiv.innerHTML = commentHtml + contentDiv.innerHTML;
-      hasNewComments = true;
+        try {
+          const metadata = JSON.parse(op.json_metadata);
+          if (metadata?.app) {
+            if (metadata.app.includes("leothreads")) {
+              appLogo = '<img width="15px" src="./assets/leo.png" alt="Leo" title="Posted on Leo Threads">';
+              appClass = "leo";
+            } else if (metadata.app.startsWith("peakd/")) {
+              appLogo = '<img width="15px" src="./assets/peakd-16.png" alt="PeakD" title="Posted on PeakD">';
+              appClass = "peakd";
+            } else if (metadata.app.startsWith("hivesnaps")) {
+              appLogo = '<img width="15px" src="./assets/hivesnaps-16.png" alt="Snapie" title="Posted on Snapie">';
+              appClass = "snapie";
+            } else if (metadata.app.startsWith("ecency")) {
+              appLogo = '<img width="15px" src="https://ecency.com/favicon.ico" alt="Ecency" title="Posted on Ecency">';
+              appClass = "ecency";
+            } else if (metadata.app.startsWith("waivio")) {
+              appLogo = '<img width="15px" src="https://www.waivio.com/favicon.ico" alt="Waivio" title="Posted on Waivio">';
+              appClass = "waivio";
+            }
+          }
+        } catch {
+          // Invalid JSON metadata, skip app logo
+        }
+
+        const commentHtml = `
+          <div class="comment ${appClass}">
+            <div class="comment-header">${appLogo}<b>${author} → ${parentAuthor}</b><span style="font-size: 0.8em; color: var(--hive-text-muted);">#${blockNum}</span></div>
+            <div class="comment-body">"${commentBody}" <a href="${escapeHtml(linkUrl)}" target="_blank" rel="noopener noreferrer">→ view</a></div>
+          </div>
+        `;
+
+        contentDiv.innerHTML = commentHtml + contentDiv.innerHTML;
+        hasNewComments = true;
+      }, index * 200);  // 200ms delay between each comment
     });
 
     // Prune old comments if we exceed the limit
@@ -280,6 +411,10 @@ function scheduleNextRun() {
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
+  initFilters();
+  initFilterMenu();
+  initSpeedDropdown();
+  initFrontendSelection();
   setSpeed(CONFIG.defaultSpeed);
 
   // Read URL parameters

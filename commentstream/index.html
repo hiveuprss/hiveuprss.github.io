@@ -1,10 +1,11 @@
 <!DOCTYPE html>
+<html lang="en">
 <!-- Created by peakd.com/@hivetrending -->
 
-<meta charset="utf-8">
 <head>
-  <title>Hive Comment Stream</title>
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hive Comment Stream</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,9 +16,7 @@
   <link rel="stylesheet" href="thirdparty/fontawesome/css/all.min.css">
   <script src="thirdparty/fontawesome/js/all.min.js"></script>
 
-</head>
-
-<style>
+  <style>
   :root {
     --hive-gold: #ffd23f;
     --hive-dark: #0f1419;
@@ -302,9 +301,14 @@
     font-size: 0.95rem;
   }
 
-  /* Color variations for different comment states */
+  /* Color variations for different apps */
+  .comment.green { border-left-color: var(--hive-gold); }          /* Default */
+  .comment.leo { border-left-color: #f4d03f; }                    /* Leo Threads - Yellow */
+  .comment.ecency { border-left-color: var(--accent-blue); }      /* Ecency - Blue */
+  .comment.peakd { border-left-color: #000000; }                  /* PeakD - Black */
+  .comment.waivio { border-left-color: #ff9500; }                 /* Waivio - Orange */
+  .comment.snapie { border-left-color: var(--accent-cyan); }      /* Snapie - Cyan */
   .comment.blue { border-left-color: var(--accent-blue); }
-  .comment.green { border-left-color: var(--accent-green); }
   .comment.red { border-left-color: var(--accent-red); }
   .comment.cyan { border-left-color: var(--accent-cyan); }
   .comment.gray { border-left-color: var(--hive-text-muted); }
@@ -513,7 +517,249 @@
     border-color: rgba(255, 210, 63, 0.2);
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   }
+
+  /* Filter Modal */
+  .filter-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    z-index: 1000;
+    animation: fadeIn 0.2s ease-out;
+  }
+
+  .filter-modal[hidden] {
+    display: none;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .filter-menu {
+    background: var(--hive-card);
+    border-left: 1px solid rgba(255, 210, 63, 0.2);
+    width: 300px;
+    height: 100%;
+    overflow-y: auto;
+    animation: slideInRight 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: -5px 0 20px rgba(0, 0, 0, 0.3);
+  }
+
+  @keyframes slideInRight {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+
+  .filter-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid rgba(255, 210, 63, 0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    background: var(--hive-card);
+  }
+
+  .filter-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--hive-text);
+  }
+
+  .close-btn {
+    background: transparent;
+    border: none;
+    color: var(--hive-gold);
+    cursor: pointer;
+    padding: 0.5rem;
+    font-size: 1.2rem;
+    transition: all 0.2s;
+  }
+
+  .close-btn:hover {
+    transform: rotate(90deg);
+  }
+
+  .filter-options {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .filter-option {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    padding: 0.75rem;
+    border-radius: 8px;
+    transition: all 0.2s;
+    user-select: none;
+  }
+
+  .filter-option:hover {
+    background: rgba(255, 210, 63, 0.1);
+  }
+
+  .filter-option input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: var(--hive-gold);
+  }
+
+  .leo-dot, .ecency-dot, .peakd-dot, .snapie-dot, .waivio-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  .leo-dot { background-color: #f4d03f; }
+  .ecency-dot { background-color: var(--accent-blue); }
+  .peakd-dot { background-color: #000000; }
+  .snapie-dot { background-color: var(--accent-cyan); }
+  .waivio-dot { background-color: #ff9500; }
+
+  .filter-option span:not(.leo-dot):not(.ecency-dot):not(.peakd-dot):not(.snapie-dot):not(.waivio-dot) {
+    color: var(--hive-text);
+    font-size: 0.95rem;
+  }
+
+  body.light-mode .filter-menu {
+    background: rgba(255, 255, 255, 0.95);
+    border-left-color: rgba(255, 210, 63, 0.3);
+  }
+
+  body.light-mode .filter-header {
+    border-bottom-color: rgba(255, 210, 63, 0.3);
+    background: rgba(255, 255, 255, 0.95);
+  }
+
+  body.light-mode .filter-option:hover {
+    background: rgba(255, 210, 63, 0.15);
+  }
+
+  /* Speed Dropdown */
+  #speedBtn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    position: relative;
+  }
+
+  .speed-dropdown {
+    position: absolute;
+    bottom: -130px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--hive-card);
+    border: 1px solid rgba(255, 210, 63, 0.2);
+    border-radius: 8px;
+    overflow: hidden;
+    min-width: 100px;
+    z-index: 100;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.2s ease-out;
+  }
+
+  .speed-dropdown[hidden] {
+    display: none;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateX(-50%) translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  }
+
+  .speed-option {
+    display: block;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: transparent;
+    border: none;
+    color: var(--hive-text-muted);
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    text-align: center;
+    transition: all 0.2s;
+    border-bottom: 1px solid rgba(255, 210, 63, 0.1);
+  }
+
+  .speed-option:last-child {
+    border-bottom: none;
+  }
+
+  .speed-option:hover {
+    background: rgba(255, 210, 63, 0.1);
+    color: var(--hive-gold);
+  }
+
+  .speed-option.active {
+    background: rgba(255, 210, 63, 0.2);
+    color: var(--hive-gold);
+    font-weight: 600;
+  }
+
+  /* Frontend Select */
+  .frontend-select {
+    width: 100%;
+    padding: 0.75rem;
+    background: rgba(255, 210, 63, 0.1);
+    border: 1.5px solid var(--hive-gold);
+    border-radius: 6px;
+    color: var(--hive-text);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .frontend-select:hover {
+    background: rgba(255, 210, 63, 0.15);
+    border-color: #fff;
+  }
+
+  .frontend-select:focus {
+    outline: none;
+    background: rgba(255, 210, 63, 0.15);
+    box-shadow: 0 0 10px rgba(255, 210, 63, 0.3);
+  }
+
+  body.light-mode .frontend-select {
+    background: rgba(255, 210, 63, 0.1);
+    color: var(--hive-text);
+  }
+
+  body.light-mode .frontend-select:focus {
+    box-shadow: 0 0 10px rgba(255, 210, 63, 0.2);
+  }
 </style>
+</head>
 
 <body>
   <div class="container-fluid">
@@ -524,10 +770,66 @@
           <i class="fab fa-hive" style="font-size: 2rem; color: var(--hive-gold);"></i>
           <h1 style="margin: 0; font-size: 2rem; font-weight: 700; letter-spacing: -0.5px;">Hive Stream</h1>
         </div>
-        <label class="theme-toggle" title="Toggle theme">
-          <input type="checkbox" id="themeToggle">
-          <span class="toggle-slider"></span>
-        </label>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <button id="filterMenuBtn" title="Filter apps" style="padding: 0.75rem;">
+            <i class="fas fa-bars"></i>
+          </button>
+          <label class="theme-toggle" title="Toggle theme">
+            <input type="checkbox" id="themeToggle">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Filter Menu Modal -->
+      <div id="filterModal" class="filter-modal" hidden>
+        <div class="filter-menu">
+          <div class="filter-header">
+            <h3>Filter Apps</h3>
+            <button id="closeFilterBtn" class="close-btn" title="Close menu">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          <div class="filter-options">
+            <div style="border-bottom: 1px solid rgba(255, 210, 63, 0.2); padding-bottom: 1rem; margin-bottom: 1rem;">
+              <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--hive-text-muted); text-transform: uppercase; font-weight: 600;">Front-end</label>
+              <select id="frontendSelect" class="frontend-select">
+                <option value="hive.blog">hive.blog</option>
+                <option value="peakd.com">peakd.com</option>
+                <option value="inleo.io">inleo.io</option>
+                <option value="ecency.com">ecency.com</option>
+              </select>
+            </div>
+
+            <div style="font-size: 0.9rem; color: var(--hive-text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 0.5rem;">Filter Apps</div>
+
+            <label class="filter-option">
+              <input type="checkbox" class="app-filter" data-app="leo" checked>
+              <span class="leo-dot"></span>
+              <span>Leo Threads</span>
+            </label>
+            <label class="filter-option">
+              <input type="checkbox" class="app-filter" data-app="ecency" checked>
+              <span class="ecency-dot"></span>
+              <span>Ecency</span>
+            </label>
+            <label class="filter-option">
+              <input type="checkbox" class="app-filter" data-app="peakd" checked>
+              <span class="peakd-dot"></span>
+              <span>PeakD</span>
+            </label>
+            <label class="filter-option">
+              <input type="checkbox" class="app-filter" data-app="hivesnaps" checked>
+              <span class="snapie-dot"></span>
+              <span>Snapie</span>
+            </label>
+            <label class="filter-option">
+              <input type="checkbox" class="app-filter" data-app="waivio" checked>
+              <span class="waivio-dot"></span>
+              <span>Waivio</span>
+            </label>
+          </div>
+        </div>
       </div>
 
       <div class="block-info">
@@ -548,24 +850,25 @@
 
     <!-- Control Panel -->
     <div class="controls-section">
-      <button id="pause" title="Pause stream">
+      <button id="pausePlayBtn" title="Toggle stream">
         <i class="fas fa-pause"></i>
         <span>Pause</span>
-      </button>
-      <button id="play" hidden title="Resume stream">
-        <i class="fas fa-play"></i>
-        <span>Resume</span>
       </button>
       <button id="gotoblock" title="Jump to block">
         <i class="fas fa-search"></i>
         <span>Block</span>
       </button>
-      <button id="fastforward" title="Increase speed">
-        <i class="fas fa-forward"></i>
-      </button>
-      <button id="speedgauge" disabled title="Current playback speed">
+      <button id="speedBtn" title="Select playback speed">
         <span>2x</span>
+        <i class="fas fa-chevron-down"></i>
       </button>
+
+      <!-- Speed Dropdown -->
+      <div id="speedDropdown" class="speed-dropdown" hidden>
+        <button class="speed-option" data-speed="1.0">1.0x</button>
+        <button class="speed-option" data-speed="2.0">2.0x</button>
+        <button class="speed-option" data-speed="3.0">3.0x</button>
+      </div>
     </div>
 
     <!-- Comment Feed -->
