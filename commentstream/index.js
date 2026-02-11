@@ -1,264 +1,300 @@
 // Created by peakd.com/@hivetrending
 
+// Configuration
+const CONFIG = {
+  minSpeed: 1.0,
+  maxSpeed: 3.0,
+  defaultSpeed: 2.0,
+  speedIncrement: 1.0,
+  baseInterval: 3000,
+  commentMaxLength: 100,
+  blockOffset: 20,
+  maxComments: 100,  // Maximum number of comments to keep in memory
+};
+
+// Bots to filter out
+const BOT_NAMES = new Set([
+  "poshtoken", "pgm-curator", "pizzabot", "beerlover", "pixresteemer",
+  "hivebuzz", "ecency", "youarealive", "lolzbot", "thepimpdistrict",
+  "luvshares", "bbhbot", "hivebits", "meme.bot", "hiq.smartbot",
+  "tipu", "pinmapple", "indiaunited", "cryptobrewmaster", "visualblock",
+  "outdoor.life", "india-leo", "wine.bot", "discovery-it", "diyhub",
+  "gmfrens", "curation-cartel", "innerblocks", "hiveupme", "qurator",
+  "hug.bot", "poshthreads", "redditposh", "hbd.funder", "splinterboost",
+  "ladytoken", "hk-gifts", "actifit", "hivegifbot", "heartbeatonhive",
+  "hive-lu", "dookbot", "fun.farms", "ai-summaries", "helios-voter",
+  "helios-daily", "commentrewarder"
+]);
+
+// State management
+const state = {
+  currentBlockNum: NaN,
+  currentSpeed: CONFIG.defaultSpeed,
+  isPaused: false,
+  loopIntervalId: null
+};
+
+// Initialize Hive API
 hive.api.setOptions({ url: "https://api.syncad.com/" });
 
-var speed = 3000;
-var width = 800,
-  height = 700;
+// Theme management
+function initTheme() {
+  const themeToggle = document.getElementById('themeToggle');
+  const savedTheme = localStorage.getItem('hive-theme') || 'dark';
 
-var color = "gray";
+  if (savedTheme === 'light') {
+    document.body.classList.add('light-mode');
+    themeToggle.checked = true;
+  }
 
-function clamp(num, min, max) {
-  return num <= min ? min : num >= max ? max : num;
+  themeToggle.addEventListener('change', (e) => {
+    if (e.target.checked) {
+      document.body.classList.add('light-mode');
+      localStorage.setItem('hive-theme', 'light');
+    } else {
+      document.body.classList.remove('light-mode');
+      localStorage.setItem('hive-theme', 'dark');
+    }
+  });
 }
 
-// Start button controls
-
-document.querySelector("button#gotoblock").onclick = (e) => {
-  var blockNum = prompt("Enter block number:", "NaN");
-
-  // sanitize
-  blockNum = parseInt(blockNum);
-
-  if (!blockNum || blockNum < 0) {
-    getLatestBlocknum();
-  } else {
-    document.querySelector("#blockNum").data = `${blockNum + 1}`;
-    document.querySelector("#blockNum").innerText = `${blockNum}`;
-  }
-};
-
-document.querySelector("button#pause").onclick = (e) => {
-  document.querySelector("button#pause").hidden = true;
-  document.querySelector("button#play").hidden = false;
-};
-document.querySelector("button#play").onclick = (e) => {
-  document.querySelector("button#play").hidden = true;
-  document.querySelector("button#pause").hidden = false;
-};
-
-document.querySelector("button#fastforward").onclick = (e) => {
-  var minSpeed = 1.0;
-  var maxSpeed = 3.0;
-  var speedIncrement = 1.0;
-
-  var currentSpeed = getSpeedSetting();
-  if (currentSpeed == maxSpeed) {
-    var newSpeed = minSpeed;
-  } else {
-    var newSpeed = currentSpeed + speedIncrement;
-    newSpeed = clamp(newSpeed, minSpeed, maxSpeed);
-  }
-
-  // update UI
-  document.querySelector("button#speedgauge").data = `${newSpeed}`;
-  document.querySelector("button#speedgauge").innerText = `${newSpeed}x`;
-};
-
-function getSpeedSetting() {
-  if (!document.querySelector("button#speedgauge").data) {
-    document.querySelector("button#speedgauge").data = "2.0";
-  }
-
-  var currentSpeed = parseFloat(
-    document.querySelector("button#speedgauge").data
-  );
-  return currentSpeed;
+// UI Updates
+function setBlockNum(num) {
+  state.currentBlockNum = num;
+  document.querySelector("#blockNum").innerText = String(num);
 }
 
-// End button controls
+function setSpeed(speed) {
+  state.currentSpeed = speed;
+  document.querySelector("button#speedgauge").innerText = `${speed}x`;
+}
 
+function togglePausePlay() {
+  const pauseBtn = document.querySelector("button#pause");
+  const playBtn = document.querySelector("button#play");
+  state.isPaused = !state.isPaused;
+
+  if (state.isPaused) {
+    pauseBtn.hidden = true;
+    playBtn.hidden = false;
+    clearTimeout(state.loopIntervalId);
+  } else {
+    playBtn.hidden = true;
+    pauseBtn.hidden = false;
+    scheduleNextRun();
+  }
+}
+
+// Button event listeners
+document.querySelector("button#pause").addEventListener('click', togglePausePlay);
+document.querySelector("button#play").addEventListener('click', togglePausePlay);
+
+document.querySelector("button#gotoblock").addEventListener('click', () => {
+  const input = prompt("Enter block number:");
+  if (input !== null) {
+    const blockNum = parseInt(input);
+    if (blockNum && blockNum > 0) {
+      setBlockNum(blockNum);
+      runLoop();
+    } else {
+      getLatestBlocknum();
+    }
+  }
+});
+
+document.querySelector("button#fastforward").addEventListener('click', () => {
+  let newSpeed = state.currentSpeed + CONFIG.speedIncrement;
+  if (newSpeed > CONFIG.maxSpeed) {
+    newSpeed = CONFIG.minSpeed;
+  }
+  setSpeed(newSpeed);
+});
+
+// Fetch latest block number and start streaming
 function getLatestBlocknum() {
-  // Get the current blocknum
-  hive.api.getDynamicGlobalProperties(function (err, result) {
+  hive.api.getDynamicGlobalProperties((err, result) => {
     if (err) {
-      console.log(err);
+      console.error("Failed to get global properties:", err);
       return;
     }
 
-    var currentWitness = result.current_witness;
-    document.querySelector("#currentWitness").innerText = `${currentWitness}`;
-
-    var blockNum = parseInt(result.head_block_number) - 20;
-    document.querySelector("#blockNum").innerText = `${blockNum}`;
-    document.querySelector("#blockNum").data = `${blockNum}`;
+    document.querySelector("#currentWitness").innerText = result.current_witness;
+    const blockNum = parseInt(result.head_block_number) - CONFIG.blockOffset;
+    setBlockNum(blockNum);
     runLoop();
   });
 }
 
+// Escape HTML special characters to prevent XSS
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// Validate permlink format (alphanumeric and hyphens only)
+function isValidPermlink(permlink) {
+  return /^[a-z0-9-]+$/.test(permlink);
+}
+
+// Prune old comments to prevent memory buildup
+function pruneOldComments() {
+  const contentDiv = document.querySelector("div#content");
+  const comments = contentDiv.querySelectorAll(".comment");
+
+  // Remove oldest comments if we exceed the limit
+  if (comments.length > CONFIG.maxComments) {
+    const excessCount = comments.length - CONFIG.maxComments;
+    for (let i = 0; i < excessCount; i++) {
+      comments[comments.length - 1 - i].remove();
+    }
+  }
+}
+
+// Sanitize comment text
+function sanitizeComment(text) {
+  let sanitized = text.trim()
+    .replaceAll(/\n/g, " ")                          // Replace newlines with spaces
+    .replaceAll(/<[^>]*>/g, "")                      // Remove HTML tags
+    .replaceAll(/&nbsp;/g, " ")                      // Convert HTML entities
+    .replaceAll(/&lt;/g, "<")
+    .replaceAll(/&gt;/g, ">")
+    .replaceAll(/&amp;/g, "&")
+    .replaceAll(/&quot;/g, '"')
+    .replaceAll(/&#39;/g, "'")
+    .replaceAll(/\[([^\]]+)\]\([^\)]*\)/g, "$1")   // Remove markdown links
+    .replaceAll(/\*\*([^\*]+)\*\*/g, "$1")          // Remove markdown bold
+    .replaceAll(/\*([^\*]+)\*/g, "$1")              // Remove markdown italic
+    .replaceAll(/`([^`]+)`/g, "$1")                 // Remove markdown code
+    .replaceAll(/_{2,}/g, "_")                      // Remove markdown underline
+    .replaceAll(/\s+/g, " ")                        // Collapse multiple spaces
+    .trim();
+
+  if (sanitized.length > CONFIG.commentMaxLength) {
+    sanitized = sanitized.substring(0, CONFIG.commentMaxLength - 3) + "...";
+  }
+  return sanitized;
+}
+
+// Fetch and display comments for a block
 function runLoop() {
-  //startSimulation()
-  if (document.querySelector("button#pause").hidden == true) {
+  if (state.isPaused) {
     return;
   }
 
-  var blockNum = document.querySelector("#blockNum").data;
-  if (!blockNum) {
-    console.log("Failed to find block");
-    return;
-  }
-
-  //console.log(blockNum)
-
-  hive.api.getBlock(blockNum, function (err, result) {
-    //console.log(err, result);
-    //console.log(blockNum)
+  hive.api.getBlock(state.currentBlockNum, (err, block) => {
     if (err) {
-      console.log(err);
+      console.error(`Failed to fetch block ${state.currentBlockNum}:`, err);
+      scheduleNextRun();
       return;
     }
 
-    var block = result;
-    // check if the block looks okay
     if (!block || !block.transactions) {
+      scheduleNextRun();
       return;
     }
 
-    document.querySelectorAll("div.comment").forEach((node) => {
-      node.className = "comment gray";
-    });
+    // Filter and process comments
+    const comments = block.transactions
+      .filter(tx => {
+        const [opName, op] = tx.operations[0];
+        return opName === "comment" && op.parent_author !== "";
+      })
+      .filter(tx => !BOT_NAMES.has(tx.operations[0][1].author));
 
-    block.transactions = block.transactions.filter((tx) => {
-      var opname = tx.operations[0][0];
-      var op = tx.operations[0][1];
+    // Add comments to feed
+    const contentDiv = document.querySelector("div#content");
+    const blockNum = state.currentBlockNum;
+    let hasNewComments = false;
 
-      // filter for comments only (no posts)
-      if (opname == "comment" && op["parent_author"] != "") {
-        return true;
-      }
-      return false;
-    });
+    comments.forEach(tx => {
+      const op = tx.operations[0][1];
+      const commentBody = sanitizeComment(op.body);
+      const author = escapeHtml(op.author);
+      const parentAuthor = escapeHtml(op.parent_author);
 
-    const botNames = [
-      "poshtoken",
-      "pgm-curator",
-      "pizzabot",
-      "beerlover",
-      "pixresteemer",
-      "hivebuzz",
-      "ecency",
-      "youarealive",
-      "lolzbot",
-      "thepimpdistrict",
-      "luvshares",
-      "bbhbot",
-      "hivebits",
-      "meme.bot",
-      "hiq.smartbot",
-      "tipu",
-      "pinmapple",
-      "indiaunited",
-      "cryptobrewmaster",
-      "visualblock",
-      "outdoor.life",
-      "india-leo",
-      "wine.bot",
-      "discovery-it",
-      "diyhub",
-      "gmfrens",
-      "curation-cartel",
-      "innerblocks",
-      "hiveupme",
-      "qurator",
-      "hug.bot",
-      "poshthreads",
-      "redditposh",
-      "hbd.funder",
-      "splinterboost",
-      "ladytoken",
-      "hk-gifts",
-      "actifit",
-      "hivegifbot",
-      "heartbeatonhive",
-      "hive-lu",
-      "dookbot",
-      "fun.farms",
-      "ai-summaries",
-      "helios-voter",
-      "helios-daily",
-      "commentrewarder"
-    ];
-
-    block.transactions.forEach((tx) => {
-      var op = tx.operations[0][1];
-
-      if (botNames.includes(op.author)) {
-        return;
-      }
-      //console.log(op)
-      //console.log(op['author'] + ' => ' + op['parent_author'])
-
-      var currentHTML = document.querySelector("div#content").innerHTML;
-      var commentBody = op["body"].trim();
-      commentBody = commentBody.replaceAll("\n", "");
-      commentBody = commentBody.replaceAll(/<[^>]*>/g, "");
-
-      if (commentBody.length > 100) {
-        commentBody = commentBody.substr(0, 97) + "...";
+      // Validate permlink and construct safe URL
+      let linkUrl = "https://hive.blog";
+      if (isValidPermlink(op.permlink)) {
+        linkUrl = `https://hive.blog/@${escapeHtml(op.author)}/${op.permlink}`;
       }
 
-      var appLogoImage = "";
+      let appLogo = "";
       try {
-        const metadata = JSON.parse(op["json_metadata"]);
-        if (
-          typeof metadata !== "undefined" &&
-          typeof metadata.app !== "undefined"
-        ) {
-          console.log(metadata.app);
+        const metadata = JSON.parse(op.json_metadata);
+        if (metadata?.app) {
           if (metadata.app.includes("leothreads")) {
-            appLogoImage = `<img width="15px" src="./assets/leo.png"></img>`;
+            appLogo = '<img width="15px" src="./assets/leo.png" alt="Leo" title="Posted on Leo Threads">';
+          } else if (metadata.app.startsWith("peakd/")) {
+            appLogo = '<img width="15px" src="./assets/peakd-16.png" alt="PeakD" title="Posted on PeakD">';
+          } else if (metadata.app.startsWith("hivesnaps")) {
+            appLogo = '<img width="15px" src="./assets/hivesnaps-16.png" alt="Snapie" title="Posted on Snapie">';
+          } else if (metadata.app.startsWith("ecency")) {
+            appLogo = '<img width="15px" src="https://ecency.com/favicon.ico" alt="Ecency" title="Posted on Ecency">';
           }
         }
-      } catch (err) {
-        // bad json
+      } catch {
+        // Invalid JSON metadata, skip app logo
       }
 
-      document.querySelector("div#content").innerHTML =
-        `<div class="comment green">${appLogoImage}  <b>${op["author"]} => ${op["parent_author"]}</b>  ${appLogoImage}</div>` +
-        `<div class="comment green">"${commentBody}" (<a href="https://hive.blog/@${op["author"]}/${op["permlink"]}" target="_blank" rel="noopener noreferrer">link</a>)</div>` +
-        currentHTML;
+      const commentHtml = `
+        <div class="comment green">
+          <div class="comment-header">${appLogo}<b>${author} → ${parentAuthor}</b><span style="font-size: 0.8em; color: var(--hive-text-muted);">#${blockNum}</span></div>
+          <div class="comment-body">"${commentBody}" <a href="${escapeHtml(linkUrl)}" target="_blank" rel="noopener noreferrer">→ view</a></div>
+        </div>
+      `;
+
+      contentDiv.innerHTML = commentHtml + contentDiv.innerHTML;
+      hasNewComments = true;
     });
 
-    // if we succeeded so far, advance to next block
-    if (document.querySelector("#blockNum").data == `${parseInt(blockNum)}`) {
-      document.querySelector("#blockNum").data = `${parseInt(blockNum) + 1}`;
-      document.querySelector("#blockNum").innerText = `${blockNum}`;
-      document.querySelector("#currentWitness").innerText = `${block.witness}`;
-      document.querySelector("#timestamp").innerText = `${block.timestamp}`;
+    // Prune old comments if we exceed the limit
+    if (hasNewComments) {
+      pruneOldComments();
+
+      // Smooth scroll to top when new comments are added
+      requestAnimationFrame(() => {
+        contentDiv.scrollTo({ top: 0, behavior: 'smooth' });
+      });
     }
 
-    if (document.querySelector("button#pause").hidden == true) {
-      return;
-    }
+    // Update header info
+    setBlockNum(state.currentBlockNum + 1);
+    document.querySelector("#currentWitness").innerText = block.witness;
+    document.querySelector("#timestamp").innerText = block.timestamp;
+
+    scheduleNextRun();
   });
 }
 
-// initialize, read params
-var urlParams = new URLSearchParams(window.location.search);
-if (urlParams.has("block")) {
-  var blockNum = urlParams.get("block");
-  var blockNum = parseInt(blockNum);
-
-  if (isNaN(blockNum) || blockNum < 0) {
-    getLatestBlocknum();
-  } else {
-    document.querySelector("#blockNum").innerText = `${blockNum}`;
-    document.querySelector("#blockNum").data = `${blockNum}`;
-    runLoop();
+// Schedule the next block fetch
+function scheduleNextRun() {
+  if (state.isPaused) {
+    return;
   }
-} else {
-  getLatestBlocknum();
+
+  const interval = CONFIG.baseInterval / state.currentSpeed;
+  state.loopIntervalId = setTimeout(runLoop, interval);
 }
 
-// repeat every N ms
-function runtimeAdjustSpeed() {
-  var currentSpeed = 3000 / getSpeedSetting();
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', () => {
+  initTheme();
+  setSpeed(CONFIG.defaultSpeed);
 
-  runLoop();
+  // Read URL parameters
+  const urlParams = new URLSearchParams(window.location.search);
+  const blockParam = urlParams.get("block");
 
-  setTimeout(() => {
-    runtimeAdjustSpeed();
-  }, currentSpeed);
-}
-
-runtimeAdjustSpeed();
+  if (blockParam) {
+    const blockNum = parseInt(blockParam);
+    if (blockNum && blockNum > 0) {
+      setBlockNum(blockNum);
+      runLoop();
+    } else {
+      getLatestBlocknum();
+    }
+  } else {
+    getLatestBlocknum();
+  }
+});
