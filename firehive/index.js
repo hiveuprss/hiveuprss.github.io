@@ -46,10 +46,10 @@ updateThemeIcon();
 // Op type filter menu
 const OP_GROUPS = [
   { label: "Content",    ops: ["comment", "vote", "vote2", "delete_comment", "comment_options"] },
+  { label: "Custom JSON",ops: ["custom_json", "custom", "custom_binary"] },
   { label: "Transfers",  ops: ["transfer", "recurrent_transfer", "transfer_to_vesting", "withdraw_vesting", "set_withdraw_vesting_route", "transfer_to_savings", "transfer_from_savings", "cancel_transfer_from_savings"] },
   { label: "Market",     ops: ["limit_order_create", "limit_order_create2", "limit_order_cancel", "convert", "collateralized_convert"] },
   { label: "Rewards",    ops: ["claim_reward_balance", "claim_reward_balance2"] },
-  { label: "Custom JSON",ops: ["custom_json", "custom", "custom_binary"] },
   { label: "Accounts",   ops: ["account_create", "account_create_with_delegation", "create_claimed_account", "claim_account", "account_update", "account_update2", "delegate_vesting_shares"] },
   { label: "Witness",    ops: ["witness_update", "witness_set_properties", "witness_block_approve", "feed_publish", "pow", "pow2"] },
   { label: "Governance", ops: ["account_witness_vote", "account_witness_proxy", "decline_voting_rights", "create_proposal", "update_proposal", "update_proposal_votes", "remove_proposal"] },
@@ -82,17 +82,15 @@ function buildMenu() {
   advancedMenu.querySelector("#menu-select-all").onclick = (e) => {
     e.stopPropagation();
     advancedMenu.querySelectorAll(".op-filter-cb").forEach((cb) => (cb.checked = true));
-    updateMenuBadge();
-    saveFilterState();
+    updateMenuBadge(); saveFilterState(); applyFilters();
   };
   advancedMenu.querySelector("#menu-select-none").onclick = (e) => {
     e.stopPropagation();
     advancedMenu.querySelectorAll(".op-filter-cb").forEach((cb) => (cb.checked = false));
-    updateMenuBadge();
-    saveFilterState();
+    updateMenuBadge(); saveFilterState(); applyFilters();
   };
   advancedMenu.querySelectorAll(".op-filter-cb").forEach((cb) =>
-    cb.addEventListener("change", () => { updateMenuBadge(); saveFilterState(); })
+    cb.addEventListener("change", () => { updateMenuBadge(); saveFilterState(); applyFilters(); })
   );
 }
 
@@ -324,7 +322,7 @@ function runLoop() {
       }
 
       content.insertAdjacentHTML("afterbegin", /*HTML*/
-        `<div class="op ${typeClass}">` +
+        `<div class="op ${typeClass}" data-op="${escapeHtml(opname)}">` +
           `<div class="op-bar"></div>` +
           `<div class="op-inner">` +
             `<span class="op-type">${escapeHtml(typeLabel)}</span>` +
@@ -342,7 +340,7 @@ function runLoop() {
 
     }
 
-    applyFilter(document.querySelector("input#filter").value);
+    applyFilters();
 
     // if we succeeded so far, advance to next block
     if (document.querySelector("#blockNum").data == `${parseInt(blockNum)}`) {
@@ -387,15 +385,19 @@ function runtimeAdjustSpeed() {
 
 runtimeAdjustSpeed();
 
-function applyFilter(filter) {
-  filter = filter.trim().toLowerCase();
+function applyFilters() {
+  const text = document.querySelector("input#filter").value.trim().toLowerCase();
+  const hiddenOps = new Set(
+    Array.from(advancedMenu.querySelectorAll(".op-filter-cb"))
+      .filter((cb) => !cb.checked)
+      .map((cb) => cb.dataset.op)
+  );
 
-  document.querySelectorAll("div.op").forEach((ele) => {
-    ele.hidden = filter !== "" && !ele.innerHTML.toLowerCase().includes(filter);
+  document.querySelectorAll("div.op").forEach((el) => {
+    const hiddenByType = hiddenOps.has(el.dataset.op);
+    const hiddenByText = text !== "" && !el.innerHTML.toLowerCase().includes(text);
+    el.hidden = hiddenByType || hiddenByText;
   });
 }
 
-document.querySelector("input#filter").addEventListener("input", (e) => {
-  const filter = e.target.value;
-  applyFilter(filter);
-});
+document.querySelector("input#filter").addEventListener("input", applyFilters);
