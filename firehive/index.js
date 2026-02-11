@@ -83,15 +83,35 @@ function buildMenu() {
     e.stopPropagation();
     advancedMenu.querySelectorAll(".op-filter-cb").forEach((cb) => (cb.checked = true));
     updateMenuBadge();
+    saveFilterState();
   };
   advancedMenu.querySelector("#menu-select-none").onclick = (e) => {
     e.stopPropagation();
     advancedMenu.querySelectorAll(".op-filter-cb").forEach((cb) => (cb.checked = false));
     updateMenuBadge();
+    saveFilterState();
   };
   advancedMenu.querySelectorAll(".op-filter-cb").forEach((cb) =>
-    cb.addEventListener("change", updateMenuBadge)
+    cb.addEventListener("change", () => { updateMenuBadge(); saveFilterState(); })
   );
+}
+
+function saveFilterState() {
+  const hidden = Array.from(advancedMenu.querySelectorAll(".op-filter-cb"))
+    .filter((cb) => !cb.checked)
+    .map((cb) => cb.dataset.op);
+  localStorage.setItem("firehive-ops-hidden", JSON.stringify(hidden));
+}
+
+function loadFilterState() {
+  const saved = localStorage.getItem("firehive-ops-hidden");
+  if (!saved) return;
+  try {
+    const hidden = new Set(JSON.parse(saved));
+    advancedMenu.querySelectorAll(".op-filter-cb").forEach((cb) => {
+      cb.checked = !hidden.has(cb.dataset.op);
+    });
+  } catch (_) {}
 }
 
 function updateMenuBadge() {
@@ -100,6 +120,8 @@ function updateMenuBadge() {
 }
 
 buildMenu();
+loadFilterState();
+updateMenuBadge();
 
 menuToggle.onclick = (e) => {
   e.stopPropagation();
