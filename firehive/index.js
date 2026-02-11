@@ -137,12 +137,37 @@ document.addEventListener("click", (e) => {
 
 // Start button controls
 
-document.querySelector("button#gotoblock").onclick = (e) => {
-  var blockNum = prompt("Enter block number:", `${document.querySelector("#blockNum").data}`);
+function showGotoModal(currentBlock) {
+  return new Promise((resolve) => {
+    const overlay = document.querySelector("#gotoblock-modal");
+    const input = document.querySelector("#modal-block-input");
+    input.value = currentBlock || "";
+    overlay.hidden = false;
+    input.focus();
+    input.select();
 
-  // sanitize
-  blockNum = parseInt(blockNum) - 1;
+    const confirm = () => { overlay.hidden = true; resolve(input.value); cleanup(); };
+    const cancel  = () => { overlay.hidden = true; resolve(null);         cleanup(); };
 
+    const onKey = (e) => {
+      if (e.key === "Enter")  { e.preventDefault(); confirm(); }
+      if (e.key === "Escape") { e.preventDefault(); cancel();  }
+    };
+
+    document.querySelector("#modal-confirm").onclick = confirm;
+    document.querySelector("#modal-cancel").onclick  = cancel;
+    overlay.onclick = (e) => { if (e.target === overlay) cancel(); };
+    document.addEventListener("keydown", onKey);
+
+    function cleanup() { document.removeEventListener("keydown", onKey); }
+  });
+}
+
+document.querySelector("button#gotoblock").onclick = async () => {
+  const value = await showGotoModal(document.querySelector("#blockNum").data);
+  if (value === null) return;
+
+  const blockNum = parseInt(value) - 1;
   if (!blockNum || blockNum < 0) {
     getLatestBlocknum();
   } else {
@@ -167,34 +192,46 @@ document.querySelector("button#backward").onclick = (e) => {
   document.querySelector("#blockNum").innerText = `${newBlock}`;
 };
 
-document.querySelector("button#fastforward").onclick = (e) => {
-  const minSpeed = 1.0;
-  const maxSpeed = 3.0;
-  const speedIncrement = 1.0;
+const speedGauge = document.querySelector("button#speedgauge");
+const speedMenu  = document.querySelector("#speed-menu");
 
-  const currentSpeed = getSpeedSetting();
-  let newSpeed;
-  if (currentSpeed == maxSpeed) {
-    newSpeed = minSpeed;
-  } else {
-    newSpeed = clamp(currentSpeed + speedIncrement, minSpeed, maxSpeed);
-  }
-
-  // update UI
-  document.querySelector("button#speedgauge").data = `${newSpeed}`;
-  document.querySelector("button#speedgauge").innerText = `${newSpeed}x`;
-};
+function setSpeed(n) {
+  speedGauge.data = `${n}`;
+  speedGauge.innerText = `${n}×`;
+  speedMenu.querySelectorAll(".speed-option").forEach((btn) => {
+    btn.classList.toggle("active", parseFloat(btn.dataset.speed) === n);
+  });
+}
 
 function getSpeedSetting() {
-  if (!document.querySelector("button#speedgauge").data) {
-    document.querySelector("button#speedgauge").data = "1.0";
-  }
-
-  var currentSpeed = parseFloat(
-    document.querySelector("button#speedgauge").data
-  );
-  return currentSpeed;
+  return parseFloat(speedGauge.data) || 1.0;
 }
+
+speedGauge.onclick = (e) => {
+  e.stopPropagation();
+  speedMenu.hidden = !speedMenu.hidden;
+};
+
+speedMenu.querySelectorAll(".speed-option").forEach((btn) => {
+  btn.onclick = (e) => {
+    e.stopPropagation();
+    setSpeed(parseFloat(btn.dataset.speed));
+    speedMenu.hidden = true;
+  };
+});
+
+document.addEventListener("click", (e) => {
+  if (!speedMenu.hidden && !speedMenu.contains(e.target) && e.target !== speedGauge) {
+    speedMenu.hidden = true;
+  }
+});
+
+setSpeed(1);
+
+document.querySelector("button#fastforward").onclick = () => {
+  const current = getSpeedSetting();
+  setSpeed(current >= 3 ? 1 : current + 1);
+};
 
 // End button controls
 
