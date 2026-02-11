@@ -37,7 +37,7 @@ const state = {
     ecency: true,
     peakd: true,
     hivesnaps: true,
-    waivio: true
+    waivio: false
   },
   frontendDomain: 'hive.blog'
 };
@@ -382,6 +382,7 @@ function runLoop() {
     // Prune old comments if we exceed the limit
     if (hasNewComments) {
       pruneOldComments();
+      applyFilters();
 
       // Smooth scroll to top when new comments are added
       requestAnimationFrame(() => {
@@ -417,19 +418,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initFrontendSelection();
   setSpeed(CONFIG.defaultSpeed);
 
-  // Read URL parameters
-  const urlParams = new URLSearchParams(window.location.search);
-  const blockParam = urlParams.get("block");
-
-  if (blockParam) {
-    const blockNum = parseInt(blockParam);
-    if (blockNum && blockNum > 0) {
-      setBlockNum(blockNum);
-      runLoop();
-    } else {
-      getLatestBlocknum();
-    }
-  } else {
-    getLatestBlocknum();
-  }
+  // Always get the latest head block number on page load
+  getLatestBlocknum();
 });
