@@ -43,15 +43,63 @@ document.querySelector("#theme-toggle").onclick = () => {
 
 updateThemeIcon();
 
-// Advanced menu (op-type filters)
+// Op type filter menu
+const OP_GROUPS = [
+  { label: "Content",    ops: ["comment", "vote", "vote2", "delete_comment", "comment_options"] },
+  { label: "Transfers",  ops: ["transfer", "recurrent_transfer", "transfer_to_vesting", "withdraw_vesting", "set_withdraw_vesting_route", "transfer_to_savings", "transfer_from_savings", "cancel_transfer_from_savings"] },
+  { label: "Market",     ops: ["limit_order_create", "limit_order_create2", "limit_order_cancel", "convert", "collateralized_convert"] },
+  { label: "Rewards",    ops: ["claim_reward_balance", "claim_reward_balance2"] },
+  { label: "Custom JSON",ops: ["custom_json", "custom", "custom_binary"] },
+  { label: "Accounts",   ops: ["account_create", "account_create_with_delegation", "create_claimed_account", "claim_account", "account_update", "account_update2", "delegate_vesting_shares"] },
+  { label: "Witness",    ops: ["witness_update", "witness_set_properties", "witness_block_approve", "feed_publish", "pow", "pow2"] },
+  { label: "Governance", ops: ["account_witness_vote", "account_witness_proxy", "decline_voting_rights", "create_proposal", "update_proposal", "update_proposal_votes", "remove_proposal"] },
+  { label: "Recovery",   ops: ["request_account_recovery", "recover_account", "change_recovery_account", "escrow_transfer", "escrow_approve", "escrow_dispute", "escrow_release"] },
+  { label: "Other",      ops: ["price", "prove_authority"] },
+];
+
 const menuToggle = document.querySelector("#menu-toggle");
 const advancedMenu = document.querySelector("#advanced-menu");
-const filterCheckboxes = advancedMenu.querySelectorAll("input[type='checkbox']");
+
+function buildMenu() {
+  let html = `<div class="menu-heading">Show op types</div>`;
+  html += `<div class="menu-actions">`;
+  html += `<button class="menu-action-btn" id="menu-select-all">all</button>`;
+  html += `<button class="menu-action-btn" id="menu-select-none">none</button>`;
+  html += `</div>`;
+
+  for (const group of OP_GROUPS) {
+    html += `<div class="menu-group-label">${group.label}</div>`;
+    for (const op of group.ops) {
+      html += `<label class="menu-item">`;
+      html += `<input type="checkbox" class="op-filter-cb" data-op="${op}" checked>`;
+      html += `<span>${op}</span>`;
+      html += `</label>`;
+    }
+  }
+
+  advancedMenu.innerHTML = html;
+
+  advancedMenu.querySelector("#menu-select-all").onclick = (e) => {
+    e.stopPropagation();
+    advancedMenu.querySelectorAll(".op-filter-cb").forEach((cb) => (cb.checked = true));
+    updateMenuBadge();
+  };
+  advancedMenu.querySelector("#menu-select-none").onclick = (e) => {
+    e.stopPropagation();
+    advancedMenu.querySelectorAll(".op-filter-cb").forEach((cb) => (cb.checked = false));
+    updateMenuBadge();
+  };
+  advancedMenu.querySelectorAll(".op-filter-cb").forEach((cb) =>
+    cb.addEventListener("change", updateMenuBadge)
+  );
+}
 
 function updateMenuBadge() {
-  const anyChecked = Array.from(filterCheckboxes).some((cb) => cb.checked);
-  menuToggle.classList.toggle("has-filters", anyChecked);
+  const anyUnchecked = Array.from(advancedMenu.querySelectorAll(".op-filter-cb")).some((cb) => !cb.checked);
+  menuToggle.classList.toggle("has-filters", anyUnchecked);
 }
+
+buildMenu();
 
 menuToggle.onclick = (e) => {
   e.stopPropagation();
@@ -66,8 +114,6 @@ document.addEventListener("click", (e) => {
     menuToggle.classList.remove("active");
   }
 });
-
-filterCheckboxes.forEach((cb) => cb.addEventListener("change", updateMenuBadge));
 
 // Start button controls
 
@@ -182,14 +228,14 @@ function runLoop() {
       "#blockSize"
     ).innerText = `${blockSize.toLocaleString()} transactions`;
 
-    const hideOpnames = [];
-    if (document.querySelector("#flexCheckCustomJSONs").checked) hideOpnames.push("custom_json");
-    if (document.querySelector("#flexCheckVotes").checked)       hideOpnames.push("vote");
-    if (document.querySelector("#flexCheckMarket").checked)      hideOpnames.push("limit_order_create");
-    if (document.querySelector("#flexCheckRewards").checked)     hideOpnames.push("claim_reward_balance");
+    const hiddenOps = new Set(
+      Array.from(advancedMenu.querySelectorAll(".op-filter-cb"))
+        .filter((cb) => !cb.checked)
+        .map((cb) => cb.dataset.op)
+    );
 
     block.transactions = block.transactions.filter((tx) => {
-      return !hideOpnames.includes(tx.operations[0][0]);
+      return !hiddenOps.has(tx.operations[0][0]);
     });
 
     const content = document.querySelector("#content");

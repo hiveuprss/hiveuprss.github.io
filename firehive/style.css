@@ -321,7 +321,9 @@ body::after {
   border: 1px solid var(--border-2);
   border-radius: 3px;
   padding: 12px;
-  min-width: 180px;
+  min-width: 220px;
+  max-height: 70vh;
+  overflow-y: auto;
   z-index: 500;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
@@ -332,7 +334,43 @@ body::after {
   color: var(--text-dim);
   font-weight: 600;
   text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.menu-actions {
+  display: flex;
+  gap: 6px;
   margin-bottom: 10px;
+}
+
+.menu-action-btn {
+  background: transparent;
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius);
+  color: var(--text-dim);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  padding: 2px 8px;
+  transition: color 0.12s, border-color 0.12s;
+}
+
+.menu-action-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.menu-group-label {
+  font-size: 8.5px;
+  letter-spacing: 0.14em;
+  color: var(--text-dim);
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-top: 10px;
+  margin-bottom: 4px;
+  padding-bottom: 3px;
+  border-bottom: 1px solid var(--border);
 }
 
 .menu-item {
