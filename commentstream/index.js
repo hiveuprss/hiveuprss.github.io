@@ -135,8 +135,18 @@ function setBlockNum(num) {
 
 function setSpeed(speed) {
   state.currentSpeed = speed;
-  const speedBtn = document.querySelector("button#speedBtn");
-  speedBtn.querySelector("span").innerText = `${speed}x`;
+  const speedBtn = document.querySelector("#speedBtn");
+  if (!speedBtn) return;
+
+  // Find span in button - try querySelector first, then direct children
+  let speedSpan = speedBtn.querySelector("span");
+  if (!speedSpan && speedBtn.children.length > 0) {
+    speedSpan = speedBtn.children[0];
+  }
+
+  if (speedSpan) {
+    speedSpan.innerText = `${speed}x`;
+  }
 
   // Update active state in dropdown
   document.querySelectorAll('.speed-option').forEach(option => {
@@ -149,45 +159,103 @@ function setSpeed(speed) {
 }
 
 function togglePausePlay() {
-  const btn = document.querySelector("button#pausePlayBtn");
-  const icon = btn.querySelector("i");
-  const text = btn.querySelector("span");
+  const btn = document.querySelector("#pausePlayBtn");
+  if (!btn) return;
+
+  // Try querySelector first, then fall back to direct children access
+  let iconEl = btn.querySelector("i");
+  let textEl = btn.querySelector("span");
+
+  if (!iconEl && btn.children.length > 0) {
+    iconEl = btn.children[0];
+  }
+  if (!textEl && btn.children.length > 1) {
+    textEl = btn.children[1];
+  }
+
+  if (!iconEl || !textEl) return;
 
   state.isPaused = !state.isPaused;
 
   if (state.isPaused) {
-    icon.className = "fas fa-play";
-    text.textContent = "Resume";
+    iconEl.className = "fas fa-play";
+    textEl.textContent = "Resume";
     clearTimeout(state.loopIntervalId);
   } else {
-    icon.className = "fas fa-pause";
-    text.textContent = "Pause";
+    iconEl.className = "fas fa-pause";
+    textEl.textContent = "Pause";
     scheduleNextRun();
   }
 }
 
-// Button event listeners
-document.querySelector("button#pausePlayBtn").addEventListener('click', togglePausePlay);
+// Pause/Play button
+function initPausePlayBtn() {
+  const btn = document.querySelector("#pausePlayBtn");
+  if (btn) {
+    btn.addEventListener('click', togglePausePlay);
+  }
+}
 
-document.querySelector("button#gotoblock").addEventListener('click', () => {
-  const input = prompt("Enter block number:");
-  if (input !== null) {
-    const blockNum = parseInt(input);
-    if (blockNum && blockNum > 0) {
+// Block modal
+function initBlockModal() {
+  const blockBtn = document.querySelector("button#gotoblock");
+  const blockModal = document.getElementById('blockModal');
+  const blockInput = document.getElementById('blockInput');
+  const closeBtn = document.getElementById('closeBlockBtn');
+  const cancelBtn = document.getElementById('blockCancelBtn');
+  const goBtn = document.getElementById('blockGoBtn');
+
+  function closeModal() {
+    blockModal.hidden = true;
+    blockInput.value = '';
+  }
+
+  function handleGo() {
+    const blockNum = parseInt(blockInput.value);
+    if (blockInput.value && blockNum > 0) {
       setBlockNum(blockNum);
       runLoop();
-    } else {
+    } else if (!blockInput.value) {
       getLatestBlocknum();
     }
+    closeModal();
   }
-});
+
+  blockBtn.addEventListener('click', () => {
+    blockModal.hidden = false;
+    blockInput.focus();
+  });
+
+  closeBtn.addEventListener('click', closeModal);
+  cancelBtn.addEventListener('click', closeModal);
+
+  goBtn.addEventListener('click', handleGo);
+
+  // Allow Enter key to submit
+  blockInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      handleGo();
+    }
+  });
+
+  // Close modal when clicking outside
+  blockModal.addEventListener('click', (e) => {
+    if (e.target === blockModal) {
+      closeModal();
+    }
+  });
+}
+
 
 // Speed dropdown
 function initSpeedDropdown() {
-  const speedBtn = document.querySelector("button#speedBtn");
-  const speedDropdown = document.getElementById('speedDropdown');
+  const speedBtn = document.querySelector("#speedBtn");
+  const speedDropdown = document.querySelector('#speedDropdown');
 
-  speedBtn.addEventListener('click', () => {
+  if (!speedBtn || !speedDropdown) return;
+
+  speedBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
     speedDropdown.hidden = !speedDropdown.hidden;
   });
 
@@ -326,67 +394,71 @@ function runLoop() {
     const blockNum = state.currentBlockNum;
     let hasNewComments = false;
 
-    comments.forEach((tx, index) => {
-      // Stagger comment additions with 200ms delay between each
-      setTimeout(() => {
-        const op = tx.operations[0][1];
-        const commentBody = sanitizeComment(op.body);
-        const author = escapeHtml(op.author);
-        const parentAuthor = escapeHtml(op.parent_author);
+    if (comments.length > 0) {
+      hasNewComments = true;
+      const lastCommentIndex = comments.length - 1;
 
-        // Validate permlink and construct safe URL
-        let linkUrl = `https://${state.frontendDomain}`;
-        if (isValidPermlink(op.permlink)) {
-          linkUrl = getCommentLink(op.author, op.permlink);
-        }
+      comments.forEach((tx, index) => {
+        // Stagger comment additions with 200ms delay between each
+        setTimeout(() => {
+          const op = tx.operations[0][1];
+          const commentBody = sanitizeComment(op.body);
+          const author = escapeHtml(op.author);
+          const parentAuthor = escapeHtml(op.parent_author);
 
-        let appLogo = "";
-        let appClass = "green";  // Default color
-
-        try {
-          const metadata = JSON.parse(op.json_metadata);
-          if (metadata?.app) {
-            if (metadata.app.includes("leothreads")) {
-              appLogo = '<img width="15px" src="./assets/leo.png" alt="Leo" title="Posted on Leo Threads">';
-              appClass = "leo";
-            } else if (metadata.app.startsWith("peakd/")) {
-              appLogo = '<img width="15px" src="./assets/peakd-16.png" alt="PeakD" title="Posted on PeakD">';
-              appClass = "peakd";
-            } else if (metadata.app.startsWith("hivesnaps")) {
-              appLogo = '<img width="15px" src="./assets/hivesnaps-16.png" alt="Snapie" title="Posted on Snapie">';
-              appClass = "snapie";
-            } else if (metadata.app.startsWith("ecency")) {
-              appLogo = '<img width="15px" src="https://ecency.com/favicon.ico" alt="Ecency" title="Posted on Ecency">';
-              appClass = "ecency";
-            } else if (metadata.app.startsWith("waivio")) {
-              appLogo = '<img width="15px" src="https://www.waivio.com/favicon.ico" alt="Waivio" title="Posted on Waivio">';
-              appClass = "waivio";
-            }
+          // Validate permlink and construct safe URL
+          let linkUrl = `https://${state.frontendDomain}`;
+          if (isValidPermlink(op.permlink)) {
+            linkUrl = getCommentLink(op.author, op.permlink);
           }
-        } catch {
-          // Invalid JSON metadata, skip app logo
-        }
 
-        const commentHtml = `
-          <div class="comment ${appClass}">
-            <div class="comment-header">${appLogo}<b>${author} → ${parentAuthor}</b><span style="font-size: 0.8em; color: var(--hive-text-muted);">#${blockNum}</span></div>
-            <div class="comment-body">"${commentBody}" <a href="${escapeHtml(linkUrl)}" target="_blank" rel="noopener noreferrer">→ view</a></div>
-          </div>
-        `;
+          let appLogo = "";
+          let appClass = "green";  // Default color
 
-        contentDiv.innerHTML = commentHtml + contentDiv.innerHTML;
-        hasNewComments = true;
-      }, index * 200);  // 200ms delay between each comment
-    });
+          try {
+            const metadata = JSON.parse(op.json_metadata);
+            if (metadata?.app) {
+              if (metadata.app.includes("leothreads")) {
+                appLogo = '<img width="15px" src="./assets/leo.png" alt="Leo" title="Posted on Leo Threads">';
+                appClass = "leo";
+              } else if (metadata.app.startsWith("peakd/")) {
+                appLogo = '<img width="15px" src="./assets/peakd-16.png" alt="PeakD" title="Posted on PeakD">';
+                appClass = "peakd";
+              } else if (metadata.app.startsWith("hivesnaps")) {
+                appLogo = '<img width="15px" src="./assets/hivesnaps-16.png" alt="Snapie" title="Posted on Snapie">';
+                appClass = "snapie";
+              } else if (metadata.app.startsWith("ecency")) {
+                appLogo = '<img width="15px" src="https://ecency.com/favicon.ico" alt="Ecency" title="Posted on Ecency">';
+                appClass = "ecency";
+              } else if (metadata.app.startsWith("waivio")) {
+                appLogo = '<img width="15px" src="https://www.waivio.com/favicon.ico" alt="Waivio" title="Posted on Waivio">';
+                appClass = "waivio";
+              }
+            }
+          } catch {
+            // Invalid JSON metadata, skip app logo
+          }
 
-    // Prune old comments if we exceed the limit
-    if (hasNewComments) {
-      pruneOldComments();
-      applyFilters();
+          const commentHtml = `
+            <div class="comment ${appClass}">
+              <div class="comment-header">${appLogo}<b>${author} → ${parentAuthor}</b><span style="font-size: 0.8em; color: var(--hive-text-muted);">#${blockNum}</span></div>
+              <div class="comment-body">"${commentBody}" <a href="${escapeHtml(linkUrl)}" target="_blank" rel="noopener noreferrer">→ view</a></div>
+            </div>
+          `;
 
-      // Smooth scroll to top when new comments are added
-      requestAnimationFrame(() => {
-        contentDiv.scrollTo({ top: 0, behavior: 'smooth' });
+          contentDiv.innerHTML = commentHtml + contentDiv.innerHTML;
+
+          // After the last comment is added, prune and apply filters
+          if (index === lastCommentIndex) {
+            pruneOldComments();
+            applyFilters();
+
+            // Smooth scroll to top when new comments are added
+            requestAnimationFrame(() => {
+              contentDiv.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+          }
+        }, index * 200);  // 200ms delay between each comment
       });
     }
 
@@ -412,8 +484,10 @@ function scheduleNextRun() {
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
+  initPausePlayBtn();
   initFilters();
   initFilterMenu();
+  initBlockModal();
   initSpeedDropdown();
   initFrontendSelection();
   setSpeed(CONFIG.defaultSpeed);
