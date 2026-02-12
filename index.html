@@ -71,25 +71,49 @@
             color: #333;
             font-weight: 600;
         }
+
+        h2 {
+            color: #667eea;
+            font-size: 20px;
+            margin-top: 30px;
+            margin-bottom: 16px;
+            font-weight: 600;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 8px;
+        }
+
+        h2:first-of-type {
+            margin-top: 0;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Hive Tools by <a href="https://hive.blog/@hivetrending">@hivetrending</a></h1>
+
+        <h2>Utilities</h2>
         <ul>
-            <li><a href="https://hiverss.com"><strong>hiveRSS</strong></a> - create RSS feeds for any Hive blog</li>
             <li><a href="./hiveisbeautiful"><strong>hiveisbeautiful</strong></a> - real-time visualization of Hive blocks contents</li>
-            <li><a href="./firehive"><strong>firehive</strong></a> - firehose stream of all hive activities</li>
+            <li><a href="https://hiverss.com"><strong>hiveRSS</strong></a> - create RSS feeds for any Hive blog</li>
+            <li><a href="./randomhive"><strong>randomhive</strong></a> - show a random recently-published Hive blog post</li>
+            <li><a href="./supply"><strong>supply</strong></a> - show current Hive and HBD token supply info</li>
+        </ul>
+
+        <h2>Streams</h2>
+        <ul>
             <li><a href="./accountstream"><strong>accountstream</strong></a> - scrolling stream view of Hive account creation</li>
             <li><a href="./commentstream"><strong>commentstream</strong></a> - scrolling stream view of Hive comments</li>
             <li><a href="./convertstream"><strong>convertstream</strong></a> - scrolling stream view of Hive collateralized conversions</li>
-            <li><a href="./transferstream"><strong>transferstream</strong></a> - scrolling stream view of Hive and HiveEngine transfers</li>
+            <li><a href="./firehive"><strong>firehive</strong></a> - firehose stream of all hive activities</li>
             <li><a href="./hbdstream"><strong>hbdstream</strong></a> - scrolling stream view of HBD transfers</li>
-            <li><a href="./randomhive"><strong>randomhive</strong></a> - show a random recently-published Hive blog post</li>
-            <li><a href="./supply"><strong>supply</strong></a> - show current Hive and HBD token supply info</li>
+            <li><a href="./transferstream"><strong>transferstream</strong></a> - scrolling stream view of Hive and HiveEngine transfers</li>
+        </ul>
+
+        <h2>Monitors</h2>
+        <ul>
             <li><a href="./dluxmonitor"><strong>DLUX Monitor</strong></a> - show current DLUX side-chain node list and other info</li>
-            <li><a href="./spkccmonitor"><strong>SPKCC Monitor</strong></a> - show current SPKCC (Spk Network Claim Chain) node list and other info</li>
             <li><a href="./duatmonitor"><strong>DUAT Monitor</strong></a> - show current DUAT (Ragnarok claim chain) node list and other info</li>
+            <li><a href="./spkccmonitor"><strong>SPKCC Monitor</strong></a> - show current SPKCC (Spk Network Claim Chain) node list and other info</li>
             <li><a href="./spktestmonitor"><strong>SPK Testnet Monitor</strong></a> - show current Spk Testnet (Spk Network Test Net) node list and other info</li>
         </ul>
     </div>
