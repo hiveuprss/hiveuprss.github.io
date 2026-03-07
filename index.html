@@ -5,6 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hive Tools by @hivetrending</title>
     <style>
+        :root {
+            --hive-red: #E31337;
+            --hive-black: #212529;
+            --hive-lightgrey: #f0f0f8;
+            --hive-grey: #e7e7f1;
+
+            --bg: var(--hive-lightgrey);
+            --container-bg: #ffffff;
+            --text: var(--hive-black);
+            --text-muted: #555;
+            --accent: var(--hive-red);
+            --border: var(--hive-grey);
+            --shadow: rgba(0, 0, 0, 0.15);
+        }
+
+        html.dark {
+            --bg: var(--hive-black);
+            --container-bg: #2c3034;
+            --text: var(--hive-lightgrey);
+            --text-muted: #aaa;
+            --border: #3a3f44;
+            --shadow: rgba(0, 0, 0, 0.5);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -13,35 +37,58 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--bg);
+            color: var(--text);
             min-height: 100vh;
             padding: 40px 20px;
+            transition: background 0.2s, color 0.2s;
         }
 
         .container {
             max-width: 800px;
             margin: 0 auto;
-            background: white;
+            background: var(--container-bg);
             border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 20px 60px var(--shadow);
             padding: 50px;
+            position: relative;
+            transition: background 0.2s, box-shadow 0.2s;
+        }
+
+        .dark-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: 2px solid var(--border);
+            border-radius: 20px;
+            padding: 4px 12px;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--text-muted);
+            transition: border-color 0.2s, color 0.2s;
+        }
+
+        .dark-toggle:hover {
+            border-color: var(--accent);
+            color: var(--accent);
         }
 
         h1 {
-            color: #333;
+            color: var(--text);
             margin-bottom: 30px;
             font-size: 28px;
             font-weight: 600;
         }
 
         h1 a {
-            color: #667eea;
+            color: var(--accent);
             text-decoration: none;
-            transition: color 0.3s ease;
+            transition: opacity 0.2s;
         }
 
         h1 a:hover {
-            color: #764ba2;
+            opacity: 0.8;
         }
 
         ul {
@@ -50,35 +97,36 @@
 
         li {
             margin-bottom: 16px;
+            color: var(--text-muted);
         }
 
         li a {
-            color: #667eea;
+            color: var(--accent);
             text-decoration: none;
             font-weight: 500;
-            transition: all 0.3s ease;
+            transition: opacity 0.2s;
             display: inline-block;
             padding: 8px 0;
             border-bottom: 2px solid transparent;
         }
 
         li a:hover {
-            color: #764ba2;
-            border-bottom-color: #764ba2;
+            opacity: 0.8;
+            border-bottom-color: var(--accent);
         }
 
         li strong {
-            color: #333;
+            color: var(--text);
             font-weight: 600;
         }
 
         h2 {
-            color: #667eea;
+            color: var(--accent);
             font-size: 20px;
             margin-top: 30px;
             margin-bottom: 16px;
             font-weight: 600;
-            border-bottom: 2px solid #667eea;
+            border-bottom: 2px solid var(--accent);
             padding-bottom: 8px;
         }
 
@@ -89,33 +137,46 @@
 </head>
 <body>
     <div class="container">
+        <button class="dark-toggle" onclick="toggleDark()" title="Toggle dark mode">☀︎ / ☽</button>
         <h1>Hive Tools by <a href="https://hive.blog/@hivetrending">@hivetrending</a></h1>
 
         <h2>Utilities</h2>
         <ul>
-            <li><a href="./hiveisbeautiful"><strong>hiveisbeautiful</strong></a> - real-time visualization of Hive blocks contents</li>
+            <li><a href="./hiveisbeautiful/"><strong>hiveisbeautiful</strong></a> - real-time visualization of Hive blocks contents</li>
             <li><a href="https://hiverss.com"><strong>hiveRSS</strong></a> - create RSS feeds for any Hive blog</li>
-            <li><a href="./randomhive"><strong>randomhive</strong></a> - show a random recently-published Hive blog post</li>
-            <li><a href="./supply"><strong>supply</strong></a> - show current Hive and HBD token supply info</li>
+            <li><a href="./randomhive/"><strong>randomhive</strong></a> - show a random recently-published Hive blog post</li>
+            <li><a href="./supply/"><strong>supply</strong></a> - show current Hive and HBD token supply info</li>
         </ul>
 
         <h2>Streams</h2>
         <ul>
-            <li><a href="./accountstream"><strong>accountstream</strong></a> - scrolling stream view of Hive account creation</li>
-            <li><a href="./commentstream"><strong>commentstream</strong></a> - scrolling stream view of Hive comments</li>
-            <li><a href="./convertstream"><strong>convertstream</strong></a> - scrolling stream view of Hive collateralized conversions</li>
-            <li><a href="./firehive"><strong>firehive</strong></a> - firehose stream of all hive activities</li>
-            <li><a href="./hbdstream"><strong>hbdstream</strong></a> - scrolling stream view of HBD transfers</li>
-            <li><a href="./transferstream"><strong>transferstream</strong></a> - scrolling stream view of Hive and HiveEngine transfers</li>
+            <li><a href="./accountstream/"><strong>accountstream</strong></a> - scrolling stream view of Hive account creation</li>
+            <li><a href="./commentstream/"><strong>commentstream</strong></a> - scrolling stream view of Hive comments</li>
+            <li><a href="./convertstream/"><strong>convertstream</strong></a> - scrolling stream view of Hive collateralized conversions</li>
+            <li><a href="./firehive/"><strong>firehive</strong></a> - firehose stream of all hive activities</li>
+            <li><a href="./hbdstream/"><strong>hbdstream</strong></a> - scrolling stream view of HBD transfers</li>
+            <li><a href="./transferstream/"><strong>transferstream</strong></a> - scrolling stream view of Hive and HiveEngine transfers</li>
         </ul>
 
         <h2>Monitors</h2>
         <ul>
-            <li><a href="./dluxmonitor"><strong>DLUX Monitor</strong></a> - show current DLUX side-chain node list and other info</li>
-            <li><a href="./duatmonitor"><strong>DUAT Monitor</strong></a> - show current DUAT (Ragnarok claim chain) node list and other info</li>
-            <li><a href="./spkccmonitor"><strong>SPKCC Monitor</strong></a> - show current SPKCC (Spk Network Claim Chain) node list and other info</li>
-            <li><a href="./spktestmonitor"><strong>SPK Testnet Monitor</strong></a> - show current Spk Testnet (Spk Network Test Net) node list and other info</li>
+            <li><a href="./dluxmonitor/"><strong>DLUX Monitor</strong></a> - show current DLUX side-chain node list and other info</li>
+            <li><a href="./duatmonitor/"><strong>DUAT Monitor</strong></a> - show current DUAT (Ragnarok claim chain) node list and other info</li>
+            <li><a href="./spkccmonitor/"><strong>SPKCC Monitor</strong></a> - show current SPKCC (Spk Network Claim Chain) node list and other info</li>
+            <li><a href="./spktestmonitor/"><strong>SPK Testnet Monitor</strong></a> - show current Spk Testnet (Spk Network Test Net) node list and other info</li>
         </ul>
     </div>
+    <script>
+        const html = document.documentElement;
+        const saved = localStorage.getItem('theme');
+        if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            html.classList.add('dark');
+        }
+
+        function toggleDark() {
+            html.classList.toggle('dark');
+            localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+        }
+    </script>
 </body>
 </html>
