@@ -95,8 +95,6 @@ async function getPost(startAuthor, startPermlink, depth = 0) {
 
   // update button actions
   document.querySelector('button.next').onclick = () => { getPost() }
-  document.querySelector('a#peakd').href = `https://peakd.com/@${post.author}/${post.permlink}`
-  document.querySelector('a#hiveblog').href = `https://hive.blog/@${post.author}/${post.permlink}`
 
   // Upvote button handler
   document.querySelector('button#upvote').onclick = () => {
@@ -130,6 +128,14 @@ async function getPost(startAuthor, startPermlink, depth = 0) {
     hive_keychain.requestCustomJson(accountName, 'reblog', 'Posting', json,
       `Reblogging @${post.author}/${post.permlink}`, function(response) { console.log(response) })
   }
+
+  renderPost(post)
+}
+
+function renderPost(post) {
+  // update button actions
+  document.querySelector('a#peakd').href = `https://peakd.com/@${post.author}/${post.permlink}`
+  document.querySelector('a#hiveblog').href = `https://hive.blog/@${post.author}/${post.permlink}`
 
   // prepare blog post content for display
   const dateStr = post.created
@@ -187,9 +193,61 @@ async function getPost(startAuthor, startPermlink, depth = 0) {
   })
 }
 
+async function loadPostBySlug(author, permlink) {
+  let res
+  try {
+    res = await hiveTx.call('condenser_api.get_content', [author, permlink])
+  } catch (err) {
+    console.warn('Failed to load post by slug:', err)
+    tryNextNode()
+    return loadPostBySlug(author, permlink)
+  }
+  const post = res.result
+  if (!post || !post.author) {
+    console.warn('Post not found:', author, permlink)
+    return
+  }
 
-// handle loading events
-document.onload = getPost()
+  // update button actions for slug-loaded post
+  document.querySelector('button.next').onclick = () => { getPost() }
+  document.querySelector('button#upvote').onclick = () => {
+    var accountName = window.localStorage.getItem('hiveaccount')
+    if (!accountName) { console.log('Sign in first.'); return }
+    const sliderEl = document.querySelector('#vote-weight-slider')
+    const weight = sliderEl ? Math.round(parseInt(sliderEl.value) * 100) : 10000
+    hive_keychain.requestVote(accountName, post.permlink, post.author, weight, function(response) {
+      console.log(response)
+    })
+  }
+  document.querySelector('button#follow').onclick = () => {
+    var accountName = window.localStorage.getItem('hiveaccount')
+    if (!accountName) { console.log('Sign in first.'); return }
+    const json = JSON.stringify(['follow', {
+      follower: accountName, following: post.author, what: ['blog'],
+    }])
+    hive_keychain.requestCustomJson(accountName, 'follow', 'Posting', json,
+      `Following ${post.author}`, function(response) { console.log(response) })
+  }
+  document.querySelector('button#reblog').onclick = () => {
+    var accountName = window.localStorage.getItem('hiveaccount')
+    if (!accountName) { console.log('Sign in first.'); return }
+    const json = JSON.stringify(['reblog', {
+      account: accountName, author: post.author, permlink: post.permlink,
+    }])
+    hive_keychain.requestCustomJson(accountName, 'reblog', 'Posting', json,
+      `Reblogging @${post.author}/${post.permlink}`, function(response) { console.log(response) })
+  }
+
+  renderPost(post)
+}
+
+// handle loading events — check for slug in hash first (e.g. #@author/permlink)
+const hashMatch = location.hash.match(/^#@([^/]+)\/(.+)$/)
+if (hashMatch) {
+  loadPostBySlug(hashMatch[1], hashMatch[2])
+} else {
+  getPost()
+}
 document.querySelector('#next').onclick = getPost
 
 
