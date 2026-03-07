@@ -1,15 +1,6 @@
 // index.js
 import { renderPostBody } from 'https://esm.sh/@ecency/render-helper'
-
-function sanitizeHtml(html) {
-  // Remove script tags and their content
-  html = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-  // Remove event handler attributes (on*)
-  html = html.replace(/\s+on\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]*)/gi, '')
-  // Remove javascript: protocol in href/src/action
-  html = html.replace(/(href|src|action)\s*=\s*(?:"javascript:[^"]*"|'javascript:[^']*')/gi, '')
-  return html
-}
+import DOMPurify from 'https://esm.sh/dompurify'
 
 const API_NODES = [
   'https://api.syncad.com',
@@ -193,15 +184,53 @@ function getPost(startAuthor, startPermlink) {
       }
 
       // prepare blog post content for display
-      const titleHtml = `<h1>${sanitizeHtml(post.title)}</h1><h2 class="post-author">@${sanitizeHtml(post.author)}</h2>`
-      const bodyHtml = renderPostBody(post, false)
+      const dateStr = post.created
+        ? new Date(post.created + 'Z').toLocaleString(undefined, {year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})
+        : ''
 
-      document.querySelector('div#hr-content').innerHTML = titleHtml + sanitizeHtml(bodyHtml)
+      let tags = []
+      try {
+        const meta = JSON.parse(post.json_metadata || '{}')
+        if (Array.isArray(meta.tags)) tags = meta.tags.slice(0, 8)
+      } catch (e) {}
 
-      Array.from(document.querySelectorAll('div#hr-content img')).forEach(img => {
-        // scale images to fit
+      const container = document.querySelector('div#hr-content')
+      container.innerHTML = ''
+
+      const h1 = document.createElement('h1')
+      h1.textContent = post.title
+
+      const h2 = document.createElement('h2')
+      h2.className = 'post-author'
+      h2.appendChild(document.createTextNode(`@${post.author}`))
+      if (dateStr) {
+        const dateSpan = document.createElement('span')
+        dateSpan.className = 'post-date'
+        dateSpan.textContent = dateStr
+        h2.appendChild(dateSpan)
+      }
+
+      container.appendChild(h1)
+      container.appendChild(h2)
+
+      if (tags.length) {
+        const tagsDiv = document.createElement('div')
+        tagsDiv.className = 'post-tags'
+        tags.forEach(t => {
+          const span = document.createElement('span')
+          span.className = 'post-tag'
+          span.textContent = t
+          tagsDiv.appendChild(span)
+        })
+        container.appendChild(tagsDiv)
+      }
+
+      const bodyDiv = document.createElement('div')
+      bodyDiv.innerHTML = DOMPurify.sanitize(renderPostBody(post, false))
+      container.appendChild(bodyDiv)
+
+      Array.from(container.querySelectorAll('img')).forEach(img => {
         img.className = 'w-100'
-        // lazy load images to improve performance
         img.loading = 'lazy'
       })
   })  
@@ -266,7 +295,7 @@ if (window.localStorage.getItem('hiveaccount')) {
 }
 
 document.querySelector('form#signin').onsubmit = (event) => {
-  accountName = event.srcElement[0].value
+  const accountName = event.target[0].value
 
   hive_keychain.requestHandshake(function() {
     console.log("Handshake received!");
@@ -281,8 +310,7 @@ document.querySelector('form#signin').onsubmit = (event) => {
 
       if (response.success) {
         toggleSigninUIState(true)
-        localStorage = window.localStorage
-        localStorage.setItem('hiveaccount', accountName)
+        window.localStorage.setItem('hiveaccount', accountName)
       } else {
         console.log('Sign in error. Please check hive keychain.')
       }
@@ -294,10 +322,8 @@ document.querySelector('form#signin').onsubmit = (event) => {
 
 // handle sign out events
 document.querySelector('#signout').onclick = (event) => {
-  
-  localStorage = window.localStorage
-  if (localStorage.getItem('hiveaccount')) {
-    localStorage.removeItem('hiveaccount')
+  if (window.localStorage.getItem('hiveaccount')) {
+    window.localStorage.removeItem('hiveaccount')
   }
 
   toggleSigninUIState(false)
