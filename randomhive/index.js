@@ -1,5 +1,15 @@
 // index.js
 
+function sanitizeHtml(html) {
+  // Remove script tags and their content
+  html = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+  // Remove event handler attributes (on*)
+  html = html.replace(/\s+on\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]*)/gi, '')
+  // Remove javascript: protocol in href/src/action
+  html = html.replace(/(href|src|action)\s*=\s*(?:"javascript:[^"]*"|'javascript:[^']*')/gi, '')
+  return html
+}
+
 const API_NODES = [
   'https://api.syncad.com',
   'https://api.deathwing.me',
@@ -161,8 +171,8 @@ function getPost() {
       converter.setOption('openLinksInNewWindow', true)
       converter.setOption('simplifiedAutoLink', true)
 
-      document.querySelector('div#hr-content').innerHTML = converter.makeHtml(text1)
-      document.querySelector('div#hr-content').innerHTML += converter.makeHtml(text2)
+      document.querySelector('div#hr-content').innerHTML = sanitizeHtml(converter.makeHtml(text1))
+      document.querySelector('div#hr-content').innerHTML += sanitizeHtml(converter.makeHtml(text2))
 
       Array.from(document.querySelectorAll('div#hr-content img')).forEach(img => {
         // scale images to fit
