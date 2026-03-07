@@ -1,4 +1,5 @@
 // index.js
+import { renderPostBody } from 'https://esm.sh/@ecency/render-helper'
 
 function sanitizeHtml(html) {
   // Remove script tags and their content
@@ -191,27 +192,11 @@ function getPost(startAuthor, startPermlink) {
         )
       }
 
-      // remove leading divs, which cause an issue for Showdown rendered
-      post.body = post.body.replaceAll(/<div class="(.*)">/g, "")
-      post.body = post.body.replaceAll('</div>', "")
-
       // prepare blog post content for display
-      var text1 = `# ${post.title}\n## @${post.author}\n`
-      var text2 = `${post.body}`
+      const titleHtml = `<h1>${sanitizeHtml(post.title)}</h1><h2 class="post-author">@${sanitizeHtml(post.author)}</h2>`
+      const bodyHtml = renderPostBody(post, false)
 
-      // Remove text formatting for image embeds
-      text2 = text2.replace('# ![','![')
-
-      // fix images missing markup
-      text2 = text2.replace(/[^(]*(http.*\.(png|jpg|jpeg|gif|svg))[^)]+/g, '![$1]($1)')
-
-      // convert markdown to HTML
-      var converter = new showdown.Converter()
-      converter.setOption('openLinksInNewWindow', true)
-      converter.setOption('simplifiedAutoLink', true)
-
-      document.querySelector('div#hr-content').innerHTML = sanitizeHtml(converter.makeHtml(text1))
-      document.querySelector('div#hr-content').innerHTML += sanitizeHtml(converter.makeHtml(text2))
+      document.querySelector('div#hr-content').innerHTML = titleHtml + sanitizeHtml(bodyHtml)
 
       Array.from(document.querySelectorAll('div#hr-content img')).forEach(img => {
         // scale images to fit
