@@ -1,6 +1,6 @@
 // Created by peakd.com/@hivetrending
 
-hive.api.setOptions({url: "https://api.deathwing.me/"})
+hive.api.setOptions({url: "https://api.syncad.com/"})
 
 
 var speed = 3000

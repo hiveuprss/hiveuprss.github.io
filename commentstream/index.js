@@ -223,6 +223,10 @@ function initBlockModal() {
 
   blockBtn.addEventListener('click', () => {
     blockModal.hidden = false;
+    if (!isNaN(state.currentBlockNum)) {
+      blockInput.value = state.currentBlockNum;
+      blockInput.select();
+    }
     blockInput.focus();
   });
 
@@ -446,7 +450,7 @@ function runLoop() {
             </div>
           `;
 
-          contentDiv.innerHTML = commentHtml + contentDiv.innerHTML;
+          contentDiv.insertAdjacentHTML('afterbegin', commentHtml);
 
           // After the last comment is added, prune and apply filters
           if (index === lastCommentIndex) {
