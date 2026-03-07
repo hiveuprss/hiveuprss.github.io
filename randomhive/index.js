@@ -176,7 +176,8 @@ async function getPost(startAuthor, startPermlink, depth = 0) {
   const bodyDiv = document.createElement('div')
   bodyDiv.innerHTML = DOMPurify.sanitize(renderPostBody(post, false), {
     FORCE_BODY: true,
-    FORBID_TAGS: ['meta', 'base'],
+    FORBID_TAGS: ['meta', 'base', 'dialog'],
+    FORBID_ATTR: ['style'],
   })
   container.appendChild(bodyDiv)
 
