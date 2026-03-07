@@ -63,7 +63,8 @@ function getPost() {
 
         const permlink = post.permlink
         const author = post.author
-        const weight = 10000
+        const sliderEl = document.querySelector('#vote-weight-slider')
+        const weight = sliderEl ? Math.round(parseInt(sliderEl.value) * 100) : 10000
 
         hive_keychain.requestVote(
           accountName,
@@ -178,6 +179,18 @@ document.onload = getPost()
 document.querySelector('#next').onclick = getPost
 
 
+async function fetchAccountHP(accountName) {
+  const [accountsRes, propsRes] = await Promise.all([
+    hiveTx.call('condenser_api.get_accounts', [[accountName]]),
+    hiveTx.call('condenser_api.get_dynamic_global_properties', [])
+  ])
+  const account = accountsRes.result[0]
+  const vestingShares = parseFloat(account.vesting_shares)
+  const totalVestingFundHive = parseFloat(propsRes.result.total_vesting_fund_hive)
+  const totalVestingShares = parseFloat(propsRes.result.total_vesting_shares)
+  return vestingShares * (totalVestingFundHive / totalVestingShares)
+}
+
 // handle sign in events
 function toggleSigninUIState(signedIn) {
   if (signedIn) {
@@ -186,14 +199,30 @@ function toggleSigninUIState(signedIn) {
     document.querySelector('#upvote').disabled = false
     document.querySelector('#follow').disabled = false
     document.querySelector('#reblog').disabled = false
+
+    const accountName = window.localStorage.getItem('hiveaccount')
+    if (accountName) {
+      fetchAccountHP(accountName).then(hp => {
+        if (hp >= 500) {
+          document.querySelector('#vote-weight-container').style.display = 'flex'
+        }
+      }).catch(err => console.warn('Could not fetch HP:', err))
+    }
   } else {
     document.querySelector('div#signin-container').style.display = 'block'
     document.querySelector('div#signout-container').style.display = 'none'
     document.querySelector('#upvote').disabled = true
     document.querySelector('#follow').disabled = true
     document.querySelector('#reblog').disabled = true
+    document.querySelector('#vote-weight-container').style.display = 'none'
+    document.querySelector('#vote-weight-slider').value = 100
+    document.querySelector('#vote-weight-label').textContent = '100%'
   }
 }
+
+document.querySelector('#vote-weight-slider').addEventListener('input', function() {
+  document.querySelector('#vote-weight-label').textContent = this.value + '%'
+})
 
 if (window.localStorage.getItem('hiveaccount')) {
   // already signed in 

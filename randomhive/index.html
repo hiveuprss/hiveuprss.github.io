@@ -301,9 +301,27 @@
       }
       .action-bar .branding a:hover { color: var(--accent-hover); }
 
+      #vote-weight-container {
+        display: none;
+        align-items: center;
+        gap: 4px;
+      }
+      #vote-weight-slider {
+        width: 72px;
+        accent-color: var(--accent);
+        cursor: pointer;
+      }
+      #vote-weight-label {
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        min-width: 30px;
+        text-align: right;
+      }
+
       @media (max-width: 480px) {
         .action-bar .branding { display: none; }
         #signin-container .input-group { width: 160px; }
+        #vote-weight-slider { width: 54px; }
       }
     </style>
   </head>
@@ -357,6 +375,16 @@
       </a>
       <div class="sep"></div>
       <button class="btn-icon" id="upvote" title="Upvote"><i class="fa fa-heart"></i></button>
+      <div id="vote-weight-container">
+        <input type="range" id="vote-weight-slider" min="1" max="100" step="1" value="100" list="vote-weight-ticks">
+        <datalist id="vote-weight-ticks">
+          <option value="25"></option>
+          <option value="50"></option>
+          <option value="75"></option>
+          <option value="100"></option>
+        </datalist>
+        <span id="vote-weight-label">100%</span>
+      </div>
       <button class="btn-icon" id="follow" title="Follow"><i class="fa fa-users"></i></button>
       <button class="btn-icon" id="reblog" title="Reblog"><i class="fa fa-share"></i></button>
       <div class="sep"></div>
