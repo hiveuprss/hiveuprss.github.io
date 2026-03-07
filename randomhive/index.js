@@ -1,17 +1,42 @@
 // index.js
 
-hiveTx.config.node = 'https://api.syncad.com'
+const API_NODES = [
+  'https://api.syncad.com',
+  'https://api.deathwing.me',
+  'https://api.hive.blog',
+]
+
+let currentNodeIndex = 0
+
+function setNode(index) {
+  hiveTx.config.node = API_NODES[index]
+}
+
+function tryNextNode() {
+  currentNodeIndex = (currentNodeIndex + 1) % API_NODES.length
+  console.log(`Switching to node: ${API_NODES[currentNodeIndex]}`)
+  setNode(currentNodeIndex)
+}
+
+setNode(0)
 
 const MIN_BODY_LENGTH   = 250
 
 function getPost() {
   hiveTx
     .call('condenser_api.get_discussions_by_created', [{tag:"", limit: 20}])
+    .catch(err => {
+      console.warn(`Node ${API_NODES[currentNodeIndex]} failed:`, err)
+      tryNextNode()
+      return getPost()
+    })
     .then(res => {
       // skip posts < MIN_BODY_LENGTH chars in length
       var posts = res.result
       if (!posts) {
-        console.log('API error')
+        console.warn(`No results from ${API_NODES[currentNodeIndex]}, trying next node`)
+        tryNextNode()
+        getPost()
         return
       }
 
