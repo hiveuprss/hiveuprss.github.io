@@ -31,30 +31,69 @@ function tryNextNode() {
 setNode(0)
 
 const MIN_BODY_LENGTH   = 250
+const SEEN_AUTHORS_KEY  = 'rh-seen-authors'
+const NSFW_CATEGORIES   = ['porn','dporn','xxx','nsfw']
 
-function getPost() {
+function getSeenAuthors() {
+  try {
+    return new Set(JSON.parse(localStorage.getItem(SEEN_AUTHORS_KEY) || '[]'))
+  } catch (e) {
+    return new Set()
+  }
+}
+
+function addSeenAuthor(author) {
+  const seen = getSeenAuthors()
+  seen.add(author)
+  localStorage.setItem(SEEN_AUTHORS_KEY, JSON.stringify([...seen]))
+}
+
+function getPost(startAuthor, startPermlink) {
+  const query = {tag: '', limit: 20}
+  if (startAuthor)  query.start_author  = startAuthor
+  if (startPermlink) query.start_permlink = startPermlink
+
   hiveTx
-    .call('condenser_api.get_discussions_by_created', [{tag:"", limit: 20}])
+    .call('condenser_api.get_discussions_by_created', [query])
     .catch(err => {
       console.warn(`Node ${API_NODES[currentNodeIndex]} failed:`, err)
       tryNextNode()
-      return getPost()
+      return getPost(startAuthor, startPermlink)
     })
     .then(res => {
-      // skip posts < MIN_BODY_LENGTH chars in length
       var posts = res.result
       if (!posts) {
         console.warn(`No results from ${API_NODES[currentNodeIndex]}, trying next node`)
         tryNextNode()
-        getPost()
+        getPost(startAuthor, startPermlink)
         return
       }
 
+      // When paginating the API returns the start post as first result — skip it
+      if (startAuthor && posts.length > 0 && posts[0].author === startAuthor) {
+        posts = posts.slice(1)
+      }
+
       posts = posts.filter(item => item.body_length >= MIN_BODY_LENGTH)
-      // nsfw category filters
-      posts = posts.filter(item => !['porn','dporn','xxx','nsfw'].includes(item.category) )
-      
-      const post = posts[Math.floor(Math.random() * posts.length)];
+      posts = posts.filter(item => !NSFW_CATEGORIES.includes(item.category))
+      posts = posts.filter(item => !getSeenAuthors().has(item.author))
+
+      // If all authors already seen, paginate to next batch
+      if (posts.length === 0) {
+        // Use last post of the original result as the pagination cursor
+        const all = res.result
+        if (all && all.length > 0) {
+          const last = all[all.length - 1]
+          console.log(`All authors seen in this batch, paginating from @${last.author}/${last.permlink}`)
+          getPost(last.author, last.permlink)
+        } else {
+          console.warn('No more posts to paginate.')
+        }
+        return
+      }
+
+      const post = posts[Math.floor(Math.random() * posts.length)]
+      addSeenAuthor(post.author)
       
       // update button actions
       document.querySelector('button.next').onclick = () => {
