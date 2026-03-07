@@ -1,6 +1,6 @@
 // index.js
-import { renderPostBody } from 'https://esm.sh/@ecency/render-helper'
-import DOMPurify from 'https://esm.sh/dompurify'
+import { renderPostBody } from 'https://esm.sh/@ecency/render-helper@2.4.21'
+import DOMPurify from 'https://esm.sh/dompurify@3.2.3'
 
 const API_NODES = [
   'https://api.syncad.com',
@@ -40,200 +40,150 @@ function addSeenAuthor(author) {
   localStorage.setItem(SEEN_AUTHORS_KEY, JSON.stringify([...seen]))
 }
 
-function getPost(startAuthor, startPermlink) {
+const MAX_PAGINATION_DEPTH = 50
+
+async function getPost(startAuthor, startPermlink, depth = 0) {
+  if (depth >= MAX_PAGINATION_DEPTH) {
+    console.warn('Reached pagination depth limit — clearing seen authors and restarting.')
+    localStorage.removeItem(SEEN_AUTHORS_KEY)
+    return getPost()
+  }
+
   const query = {tag: '', limit: 20}
-  if (startAuthor)  query.start_author  = startAuthor
+  if (startAuthor)   query.start_author   = startAuthor
   if (startPermlink) query.start_permlink = startPermlink
 
-  hiveTx
-    .call('condenser_api.get_discussions_by_created', [query])
-    .catch(err => {
-      console.warn(`Node ${API_NODES[currentNodeIndex]} failed:`, err)
-      tryNextNode()
-      return getPost(startAuthor, startPermlink)
+  let res
+  try {
+    res = await hiveTx.call('condenser_api.get_discussions_by_created', [query])
+  } catch (err) {
+    console.warn(`Node ${API_NODES[currentNodeIndex]} failed:`, err)
+    tryNextNode()
+    return getPost(startAuthor, startPermlink, depth + 1)
+  }
+
+  let posts = res.result
+  if (!posts) {
+    console.warn(`No results from ${API_NODES[currentNodeIndex]}, trying next node`)
+    tryNextNode()
+    return getPost(startAuthor, startPermlink, depth + 1)
+  }
+
+  // When paginating the API returns the start post as first result — skip it
+  if (startAuthor && posts.length > 0 && posts[0].author === startAuthor) {
+    posts = posts.slice(1)
+  }
+
+  posts = posts.filter(item => item.body_length >= MIN_BODY_LENGTH)
+  posts = posts.filter(item => !NSFW_CATEGORIES.includes(item.category))
+  posts = posts.filter(item => !getSeenAuthors().has(item.author))
+
+  // If all authors already seen, paginate to next batch
+  if (posts.length === 0) {
+    const all = res.result
+    if (all && all.length > 0) {
+      const last = all[all.length - 1]
+      return getPost(last.author, last.permlink, depth + 1)
+    } else {
+      console.warn('No more posts to paginate.')
+    }
+    return
+  }
+
+  const post = posts[Math.floor(Math.random() * posts.length)]
+  addSeenAuthor(post.author)
+
+  // update button actions
+  document.querySelector('button.next').onclick = () => { getPost() }
+  document.querySelector('a#peakd').href = `https://peakd.com/@${post.author}/${post.permlink}`
+  document.querySelector('a#hiveblog').href = `https://hive.blog/@${post.author}/${post.permlink}`
+
+  // Upvote button handler
+  document.querySelector('button#upvote').onclick = () => {
+    var accountName = window.localStorage.getItem('hiveaccount')
+    if (!accountName) { console.log('Sign in first.'); return }
+    const sliderEl = document.querySelector('#vote-weight-slider')
+    const weight = sliderEl ? Math.round(parseInt(sliderEl.value) * 100) : 10000
+    hive_keychain.requestVote(accountName, post.permlink, post.author, weight, function(response) {
+      console.log(response)
     })
-    .then(res => {
-      var posts = res.result
-      if (!posts) {
-        console.warn(`No results from ${API_NODES[currentNodeIndex]}, trying next node`)
-        tryNextNode()
-        getPost(startAuthor, startPermlink)
-        return
-      }
+  }
 
-      // When paginating the API returns the start post as first result — skip it
-      if (startAuthor && posts.length > 0 && posts[0].author === startAuthor) {
-        posts = posts.slice(1)
-      }
+  // Follow button handler
+  document.querySelector('button#follow').onclick = () => {
+    var accountName = window.localStorage.getItem('hiveaccount')
+    if (!accountName) { console.log('Sign in first.'); return }
+    const json = JSON.stringify(['follow', {
+      follower: accountName, following: post.author, what: ['blog'],
+    }])
+    hive_keychain.requestCustomJson(accountName, 'follow', 'Posting', json,
+      `Following ${post.author}`, function(response) { console.log(response) })
+  }
 
-      posts = posts.filter(item => item.body_length >= MIN_BODY_LENGTH)
-      posts = posts.filter(item => !NSFW_CATEGORIES.includes(item.category))
-      posts = posts.filter(item => !getSeenAuthors().has(item.author))
+  // Reblog button handler
+  document.querySelector('button#reblog').onclick = () => {
+    var accountName = window.localStorage.getItem('hiveaccount')
+    if (!accountName) { console.log('Sign in first.'); return }
+    const json = JSON.stringify(['reblog', {
+      account: accountName, author: post.author, permlink: post.permlink,
+    }])
+    hive_keychain.requestCustomJson(accountName, 'reblog', 'Posting', json,
+      `Reblogging @${post.author}/${post.permlink}`, function(response) { console.log(response) })
+  }
 
-      // If all authors already seen, paginate to next batch
-      if (posts.length === 0) {
-        // Use last post of the original result as the pagination cursor
-        const all = res.result
-        if (all && all.length > 0) {
-          const last = all[all.length - 1]
-          console.log(`All authors seen in this batch, paginating from @${last.author}/${last.permlink}`)
-          getPost(last.author, last.permlink)
-        } else {
-          console.warn('No more posts to paginate.')
-        }
-        return
-      }
+  // prepare blog post content for display
+  const dateStr = post.created
+    ? new Date(post.created + 'Z').toLocaleString(undefined, {year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})
+    : ''
 
-      const post = posts[Math.floor(Math.random() * posts.length)]
-      addSeenAuthor(post.author)
-      
-      // update button actions
-      document.querySelector('button.next').onclick = () => {
-        getPost()
-      }
-      document.querySelector('a#peakd').href = `https://peakd.com/@${post.author}/${post.permlink}`
-      document.querySelector('a#hiveblog').href = `https://hive.blog/@${post.author}/${post.permlink}`
+  let tags = []
+  try {
+    const meta = JSON.parse(post.json_metadata || '{}')
+    if (Array.isArray(meta.tags)) tags = meta.tags.slice(0, 8)
+  } catch (e) {}
 
-      // Upvote button handler
-      document.querySelector('button#upvote').onclick = () => {
-        var accountName = window.localStorage.getItem('hiveaccount')
-        if (!accountName) {
-          console.log('Sign in first.')
-          return
-        }
+  const container = document.querySelector('div#hr-content')
+  container.innerHTML = ''
 
-        const permlink = post.permlink
-        const author = post.author
-        const sliderEl = document.querySelector('#vote-weight-slider')
-        const weight = sliderEl ? Math.round(parseInt(sliderEl.value) * 100) : 10000
+  const h1 = document.createElement('h1')
+  h1.textContent = post.title
 
-        hive_keychain.requestVote(
-          accountName,
-          permlink,
-          author,
-          weight,
-          function(response) {
-            console.log(response);
-          }
-        )
-      }
+  const h2 = document.createElement('h2')
+  h2.className = 'post-author'
+  h2.appendChild(document.createTextNode(`@${post.author}`))
+  if (dateStr) {
+    const dateSpan = document.createElement('span')
+    dateSpan.className = 'post-date'
+    dateSpan.textContent = dateStr
+    h2.appendChild(dateSpan)
+  }
 
-      // Follow button handler
-      document.querySelector('button#follow').onclick = () => {
-        var accountName = window.localStorage.getItem('hiveaccount')
-        if (!accountName) {
-          console.log('Sign in first.')
-          return
-        }
+  container.appendChild(h1)
+  container.appendChild(h2)
 
-        const permlink = post.permlink
-        const author = post.author
-        const type = 'blog'
+  if (tags.length) {
+    const tagsDiv = document.createElement('div')
+    tagsDiv.className = 'post-tags'
+    tags.forEach(t => {
+      const span = document.createElement('span')
+      span.className = 'post-tag'
+      span.textContent = t
+      tagsDiv.appendChild(span)
+    })
+    container.appendChild(tagsDiv)
+  }
 
-        let json = JSON.stringify([
-          'follow',
-          {
-              follower: accountName,
-              following: author,
-              what: [type], //null value for unfollow, 'blog' for follow
-          }])
-        console.log(json)
+  const bodyDiv = document.createElement('div')
+  bodyDiv.innerHTML = DOMPurify.sanitize(renderPostBody(post, false), {
+    FORCE_BODY: true,
+    FORBID_TAGS: ['meta', 'base'],
+  })
+  container.appendChild(bodyDiv)
 
-        hive_keychain.requestCustomJson(
-          accountName,
-          'follow',
-          'Posting',
-          json,
-          `Following ${author}`,
-          function(response) {
-            console.log(response);
-          }
-        )
-      }
-
-      // Reblog button handler
-      document.querySelector('button#reblog').onclick = () => {
-        var accountName = window.localStorage.getItem('hiveaccount')
-        if (!accountName) {
-          console.log('Sign in first.')
-          return
-        }
-
-        const permlink = post.permlink
-        const author = post.author
-
-        let json = JSON.stringify([
-          'reblog',
-          {
-              account: accountName,
-              author: author,
-              permlink: permlink,
-          }])
-        console.log(json)
-
-        hive_keychain.requestCustomJson(
-          accountName,
-          'reblog',
-          'Posting',
-          json,
-          `Reblogging @${author}/${permlink}`,
-          function(response) {
-            console.log(response);
-          }
-        )
-      }
-
-      // prepare blog post content for display
-      const dateStr = post.created
-        ? new Date(post.created + 'Z').toLocaleString(undefined, {year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})
-        : ''
-
-      let tags = []
-      try {
-        const meta = JSON.parse(post.json_metadata || '{}')
-        if (Array.isArray(meta.tags)) tags = meta.tags.slice(0, 8)
-      } catch (e) {}
-
-      const container = document.querySelector('div#hr-content')
-      container.innerHTML = ''
-
-      const h1 = document.createElement('h1')
-      h1.textContent = post.title
-
-      const h2 = document.createElement('h2')
-      h2.className = 'post-author'
-      h2.appendChild(document.createTextNode(`@${post.author}`))
-      if (dateStr) {
-        const dateSpan = document.createElement('span')
-        dateSpan.className = 'post-date'
-        dateSpan.textContent = dateStr
-        h2.appendChild(dateSpan)
-      }
-
-      container.appendChild(h1)
-      container.appendChild(h2)
-
-      if (tags.length) {
-        const tagsDiv = document.createElement('div')
-        tagsDiv.className = 'post-tags'
-        tags.forEach(t => {
-          const span = document.createElement('span')
-          span.className = 'post-tag'
-          span.textContent = t
-          tagsDiv.appendChild(span)
-        })
-        container.appendChild(tagsDiv)
-      }
-
-      const bodyDiv = document.createElement('div')
-      bodyDiv.innerHTML = DOMPurify.sanitize(renderPostBody(post, false))
-      container.appendChild(bodyDiv)
-
-      Array.from(container.querySelectorAll('img')).forEach(img => {
-        img.className = 'w-100'
-        img.loading = 'lazy'
-      })
-  })  
+  Array.from(container.querySelectorAll('img')).forEach(img => {
+    img.className = 'w-100'
+    img.loading = 'lazy'
+  })
 }
 
 

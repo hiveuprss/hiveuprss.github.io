@@ -6,7 +6,7 @@
     <meta http-equiv="Content-Security-Policy" content="
       default-src 'none';
       script-src 'self' https://esm.sh https://cdn.jsdelivr.net https://code.jquery.com;
-      style-src 'self' https://cdn.jsdelivr.net;
+      style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net;
       img-src * data: blob:;
       connect-src https://api.syncad.com https://api.deathwing.me https://api.hive.blog https://esm.sh;
       font-src 'self';
@@ -17,7 +17,7 @@
     <link rel="stylesheet" href="style.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
-    <script defer src="thirdparty/fontawesome/js/all.js"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/hive-tx@5.6.0-beta.1/dist/hive-tx.min.js" integrity="sha384-sK7c3vlAGPdEXkxJPtXku2++tadZEGH1bFPve59a01+BkbT+qETDVDR4t+qpjjV0" crossorigin="anonymous"></script>
     <title>Random Hive</title>
   </head>
