@@ -132,12 +132,19 @@
         display: flex;
         align-items: baseline;
         gap: 8px;
+        flex-wrap: wrap;
       }
       .app-title .fa-hive { color: var(--hive-red); }
       .app-tagline {
         font-size: 0.75rem;
         font-weight: 400;
         color: var(--text-muted);
+      }
+      @media (max-width: 500px) {
+        #topbar { flex-direction: column; align-items: flex-start; }
+        .block-info { text-align: left; width: 100%; }
+        .block-heading { justify-content: flex-start; }
+        .app-tagline { display: none; }
       }
 
       .btn-ctrl {
@@ -215,7 +222,13 @@
 
       /* Viz */
       #content { width: 100%; overflow: hidden; }
-      #viz { z-index: -1; position: relative; }
+      #viz {
+        z-index: -1;
+        position: relative;
+        width: 100%;
+        max-width: 800px;
+        height: auto;
+      }
 
       /* Footer */
       .footer-bar {
@@ -339,7 +352,7 @@
 
     <!-- ── Visualization ───────────────────────────────── -->
     <div id="content">
-      <svg id="viz" width="800" height="700" class="center"></svg>
+      <svg id="viz" width="800" height="700" viewBox="0 0 800 700" class="center"></svg>
     </div>
 
     <!-- ── Footer ─────────────────────────────────────── -->
