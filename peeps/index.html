@@ -7,7 +7,7 @@
     <title>Hive Peeps</title>
     <meta
       name="description"
-      content="Hive Peeps — explore and visualize Hive blockchain accounts and their social connections."
+      content="Hive Peeps — watch real people transacting on the Hive blockchain, live."
     />
     <link rel="canonical" href="https://hiveuprss.github.io/peeps/" />
     <meta property="og:type" content="website" />
@@ -15,116 +15,397 @@
     <meta property="og:title" content="Hive Peeps" />
     <meta
       property="og:description"
-      content="Hive Peeps — explore and visualize Hive blockchain accounts and their social connections."
+      content="Hive Peeps — watch real people transacting on the Hive blockchain, live."
     />
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="Hive Peeps" />
     <meta
       name="twitter:description"
-      content="Hive Peeps — explore and visualize Hive blockchain accounts and their social connections."
+      content="Hive Peeps — watch real people transacting on the Hive blockchain, live."
     />
-    <link rel="stylesheet" href="thirdparty/bootstrap.min.css" />
-    <link rel="stylesheet" href="thirdparty/fontawesome/css/all.min.css" />
-    <script src="thirdparty/jquery-3.4.0.min.js"></script>
-    <script src="thirdparty/bootstrap.min.js"></script>
-    <script defer src="thirdparty/fontawesome/js/all.min.js"></script>
+
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"
+      integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/js/all.min.js"
+      integrity="sha512-6PM0qYu5KExuNcKt5bURAoT6KCThUmHRewN3zUFNaoI6Di7XJPTMoT6K0nsagZKk2OB4L7E3q1uQKHNHd4stIQ=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
     <script src="https://cdn.jsdelivr.net/npm/@hiveio/hive-js/dist/hive.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.2.2/d3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+
+    <script>
+      // Apply saved theme before paint to avoid flash
+      (function () {
+        const saved = localStorage.getItem("peeps-theme");
+        if (saved === "dark")
+          document.documentElement.setAttribute("data-theme", "dark");
+      })();
+    </script>
+
     <style>
-      .blue {
-        fill: #277da1ff;
+      :root {
+        --hive-red: #e31337;
+        --hive-red-dark: #7d0a1e;
+        --hive-red-hover: #ff4060;
+        --bg: #f4f4f8;
+        --bg-surface: #ffffff;
+        --border: #dde0e8;
+        --text: #1a1a2e;
+        --text-muted: #6b7280;
+        --btn-bg: #ffffff;
+        --btn-border: #d1d5db;
+        --btn-text: #374151;
+        --pill-bg: linear-gradient(135deg, #e31337, #b00f2c);
+        --stroke-color: rgba(0, 0, 0, 0.12);
       }
-      .gray {
-        fill: #577590ff;
+      [data-theme="dark"] {
+        --bg: #0d1117;
+        --bg-surface: #161b22;
+        --border: #30363d;
+        --text: #c9d1d9;
+        --text-muted: #8b949e;
+        --btn-bg: #21262d;
+        --btn-border: #30363d;
+        --btn-text: #c9d1d9;
+        --pill-bg: linear-gradient(135deg, #e31337, #7d0a1e);
+        --stroke-color: rgba(255, 255, 255, 0.18);
       }
-      .bluegreen {
-        fill: #4d908eff;
+
+      *, *::before, *::after { box-sizing: border-box; }
+
+      body {
+        background-color: var(--bg);
+        color: var(--text);
+        margin: 0;
+        font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+        transition: background-color 0.2s, color 0.2s;
       }
-      .yellow-orange {
-        fill: #f8961eff;
+
+      .fa-hive { color: var(--hive-red); }
+      .center { display: block; margin: auto; }
+
+      /* Node colors */
+      .stroke { stroke-width: 2px; stroke: var(--stroke-color); }
+      .blue       { fill: #277da1; }
+      .bluegreen  { fill: #4d908e; }
+      .gold       { fill: gold; }
+      .gray       { fill: #6c757d; }
+      .green      { fill: #43aa8b; }
+      .lightgreen { fill: #90be6d; }
+      .navyblue   { fill: #14345b; }
+      .orange     { fill: #f3722c; }
+      .purple     { fill: #9128e7; }
+      .red        { fill: #e31337; }
+      .yellow     { fill: #f9c74f; }
+      .yellow-orange { fill: #f8961e; }
+      svg text { font-weight: 600; }
+
+      /* Topbar */
+      #topbar {
+        background: var(--bg-surface);
+        border-bottom: 1px solid var(--border);
+        padding: 10px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
+        transition: background-color 0.2s, border-color 0.2s;
       }
-      .orange {
-        fill: #f3722cff;
+      .controls-wrap { display: flex; flex-direction: column; gap: 8px; }
+      #controls { display: flex; align-items: center; gap: 6px; }
+
+      .btn-ctrl {
+        background: var(--btn-bg);
+        border: 1px solid var(--btn-border);
+        color: var(--btn-text);
+        border-radius: 6px;
+        width: 38px;
+        height: 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        cursor: pointer;
+        transition: background 0.15s, border-color 0.15s, color 0.15s;
+        padding: 0;
+        line-height: 1;
       }
-      .red {
-        fill: #f94144ff;
+      .btn-ctrl:hover:not(:disabled) {
+        background: #e313371f;
+        border-color: #e3133773;
+        color: var(--hive-red);
       }
-      .yellow {
-        fill: #f9c74fff;
+      .btn-ctrl:disabled { opacity: 0.5; cursor: default; }
+
+      #speedgauge {
+        width: auto;
+        padding: 0 12px;
+        font-weight: 700;
+        font-size: 13px;
+        letter-spacing: 0.5px;
       }
-      .lightgreen {
-        fill: #90be6dff;
+
+      #themeToggle {
+        background: var(--btn-bg);
+        border: 1px solid var(--btn-border);
+        color: var(--btn-text);
+        border-radius: 6px;
+        width: 38px;
+        height: 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background 0.15s, border-color 0.15s, color 0.15s;
+        padding: 0;
       }
-      .green {
-        fill: #43aa8bff;
+      #themeToggle:hover {
+        background: #e313371f;
+        border-color: #e3133773;
+        color: var(--hive-red);
       }
-      .center {
-        display: block;
-        margin: auto;
+
+      /* Block info */
+      .block-info { text-align: right; }
+      .block-heading {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-bottom: 5px;
+      }
+      .block-num-pill {
+        background: var(--pill-bg);
+        color: #fff;
+        padding: 4px 14px;
+        border-radius: 20px;
+        font-size: 1rem;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+      }
+      .meta-line { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 2px; }
+      .meta-line .val { color: var(--text); font-weight: 500; }
+
+      /* Viz */
+      #content { width: 100%; overflow: hidden; }
+      #viz { z-index: -1; position: relative; }
+
+      /* Footer */
+      .footer-bar {
+        background: var(--bg-surface);
+        border-top: 3px solid var(--hive-red);
+        font-size: 0.83rem;
+        color: var(--text-muted);
+        transition: background-color 0.2s, border-color 0.2s;
+      }
+      .footer-inner {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 28px 24px 0;
+      }
+      .footer-cols {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 32px;
+        padding-bottom: 24px;
+      }
+      @media (max-width: 680px) { .footer-cols { grid-template-columns: 1fr; } }
+      .footer-col-title {
+        font-weight: 700;
+        color: var(--text);
+        font-size: 0.82rem;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin-bottom: 12px;
+      }
+      .footer-col-title .fa-hive { color: var(--hive-red); margin-right: 4px; }
+      .footer-col p { margin: 0 0 6px; line-height: 1.6; font-size: 0.82rem; }
+      .footer-bar a { color: var(--hive-red); text-decoration: none; }
+      .footer-bar a:hover { color: var(--hive-red-hover); text-decoration: underline; }
+
+      .legend-grid {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 5px 8px;
+        align-items: center;
+      }
+      .legend-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 36px;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: #fff;
+        letter-spacing: 0.3px;
+      }
+      .lb-green      { background: #43aa8b; }
+      .lb-gray       { background: #6c757d; }
+      .lb-yellow-orange { background: #f8961e; }
+      .lb-lightgreen { background: #90be6d; }
+      .lb-bluegreen  { background: #4d908e; }
+      .lb-blue       { background: #277da1; }
+      .lb-purple     { background: #9128e7; }
+      .legend-label  { font-size: 0.79rem; color: var(--text-muted); }
+
+      .footer-bottom {
+        border-top: 1px solid var(--border);
+        padding: 12px 0;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        opacity: 0.7;
+        text-align: center;
       }
     </style>
   </head>
+
   <body>
-    <div class="container-fluid">
-      <div class="row">
-        <div class="center">
-          <h2>
-            <span class="badge"><i class="fab fa-hive"></i></span
-            ><span class="badge"
-              >Hive Block #<span id="blockNum">NaN</span></span
-            >
-          </h2>
+    <!-- ── Top bar ──────────────────────────────────────── -->
+    <div id="topbar">
+      <!-- Left: playback controls -->
+      <div class="controls-wrap">
+        <div id="controls">
+          <button class="btn-ctrl" id="pause" title="Pause">
+            <i class="fas fa-pause"></i>
+          </button>
+          <button class="btn-ctrl" id="play" hidden title="Play">
+            <i class="fas fa-play"></i>
+          </button>
+          <button class="btn-ctrl" id="gotoblock" title="Go to block">
+            <i class="fas fa-search"></i>
+          </button>
+          <button class="btn-ctrl" id="fastforward" title="Fast forward">
+            <i class="fas fa-fast-forward"></i>
+          </button>
+          <button class="btn-ctrl" id="speedgauge" disabled title="Speed">
+            1x
+          </button>
+          <button id="themeToggle" title="Toggle light/dark mode">
+            <i class="fas fa-moon"></i>
+          </button>
         </div>
       </div>
-      <div class="row">
-        <div class="center">
-          <h6>
-            Timestamp:
-            <span class="label label-primary" id="timestamp">NaN</span>
-          </h6>
+
+      <!-- Right: block info -->
+      <div class="block-info">
+        <div class="block-heading">
+          <i class="fab fa-hive fa-lg"></i>
+          <span class="block-num-pill">Block #<span id="blockNum">—</span></span>
         </div>
-      </div>
-      <div class="row">
-        <div class="center">
-          <h6>
-            Witness:
-            <span class="label label-primary" id="currentWitness">NaN</span>
-          </h6>
+        <div class="meta-line">
+          Timestamp: <span class="val" id="timestamp">—</span>
         </div>
-      </div>
-      <div class="row">
-        <div class="center">
-          <button id="pause"><i class="fas fa-pause"></i></button>
-          <button id="play" hidden><i class="fas fa-play"></i></button>
-          <button id="gotoblock"><i class="fas fa-search"></i></button>
-          <button id="fastforward"><i class="fas fa-fast-forward"></i></button>
-          <button id="speedgauge" disabled>1x</button>
+        <div class="meta-line">
+          Witness: <span class="val" id="currentWitness">—</span>
         </div>
-      </div>
-      <hr />
-      <div class="row">
-        <div id="content" class="center">
-          <svg id="viz" width="800" height="700" class="center"></svg>
+        <div class="meta-line">
+          Next block: <span class="val" id="countdown">—</span>
         </div>
-      </div>
-      <hr />
-      <div class="row">
-        <div class="col-md-6 center" style="text-align: center">
-          Every 3 seconds an immutable Hive block is forged. This page shows the
-          people in those blocks in real-time. <br /><br />
-          Each immutable block is verified and linked to a chain of millions of
-          older blocks. <br />A blockchain.
-        </div>
-        <br /><br />
-      </div>
-      <div class="row">
-        <br /><br />
-        <span class="badge badge-light center"
-          >Brought to you by
-          <a href="https://peakd.com/@hivetrending">@HiveTrending</a></span
-        >
       </div>
     </div>
+
+    <!-- ── Visualization ───────────────────────────────── -->
+    <div id="content">
+      <svg id="viz" width="800" height="700" class="center"></svg>
+    </div>
+
+    <!-- ── Footer ─────────────────────────────────────── -->
+    <footer class="footer-bar">
+      <div class="footer-inner">
+        <div class="footer-cols">
+          <!-- About -->
+          <div class="footer-col footer-about">
+            <div class="footer-col-title">
+              <i class="fab fa-hive"></i> Hive Peeps
+            </div>
+            <p>
+              Every 3 seconds an immutable Hive block is forged. This page
+              shows the real people making those transactions, live.
+            </p>
+            <p>
+              Each bubble is a Hive account. Colors show what they're doing.
+            </p>
+          </div>
+
+          <!-- Legend -->
+          <div class="footer-col">
+            <div class="footer-col-title">Legend</div>
+            <div class="legend-grid">
+              <span class="legend-badge" style="background:#43aa8b">Post</span
+              ><span class="legend-label">Comment / Post</span>
+              <span class="legend-badge" style="background:#6c757d">Vote</span
+              ><span class="legend-label">Upvote</span>
+              <span class="legend-badge" style="background:#f8961e">Xfer</span
+              ><span class="legend-label">Token Transfer</span>
+              <span class="legend-badge" style="background:#277da1">JSON</span
+              ><span class="legend-label">Custom JSON (dApps)</span>
+              <span class="legend-badge" style="background:#90be6d">Rwrd</span
+              ><span class="legend-label">Claim Reward</span>
+              <span class="legend-badge" style="background:#4d908e">Dlgt</span
+              ><span class="legend-label">Delegation</span>
+              <span class="legend-badge" style="background:#9128e7">Misc</span
+              ><span class="legend-label">Other operations</span>
+            </div>
+          </div>
+
+          <!-- Credits -->
+          <div class="footer-col footer-credits">
+            <div class="footer-col-title">Credits</div>
+            <p>
+              Built by
+              <a href="https://peakd.com/@hivetrending">@HiveTrending</a>
+            </p>
+            <p>
+              Part of the
+              <a href="https://vote.hive.uno/@pizza.witness">@pizza.witness</a>
+              team
+            </p>
+          </div>
+        </div>
+
+        <div class="footer-bottom">
+          <span>Hive Peeps &mdash; real-time Hive people visualizer</span>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      const toggle = document.getElementById("themeToggle");
+      const icon = toggle.querySelector("i");
+
+      function applyTheme(dark) {
+        if (dark) {
+          document.documentElement.setAttribute("data-theme", "dark");
+          icon.className = "fas fa-sun";
+          localStorage.setItem("peeps-theme", "dark");
+        } else {
+          document.documentElement.removeAttribute("data-theme");
+          icon.className = "fas fa-moon";
+          localStorage.setItem("peeps-theme", "light");
+        }
+      }
+
+      applyTheme(document.documentElement.getAttribute("data-theme") === "dark");
+
+      toggle.addEventListener("click", () => {
+        applyTheme(document.documentElement.getAttribute("data-theme") !== "dark");
+      });
+    </script>
     <script src="index.js"></script>
   </body>
 </html>
