@@ -123,8 +123,22 @@
         gap: 10px;
         transition: background-color 0.2s, border-color 0.2s;
       }
-      .controls-wrap { display: flex; flex-direction: column; gap: 8px; }
+      .controls-wrap { display: flex; flex-direction: column; gap: 6px; }
       #controls { display: flex; align-items: center; gap: 6px; }
+      .app-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text);
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+      }
+      .app-title .fa-hive { color: var(--hive-red); }
+      .app-tagline {
+        font-size: 0.75rem;
+        font-weight: 400;
+        color: var(--text-muted);
+      }
 
       .btn-ctrl {
         background: var(--btn-bg);
@@ -277,8 +291,12 @@
   <body>
     <!-- ── Top bar ──────────────────────────────────────── -->
     <div id="topbar">
-      <!-- Left: playback controls -->
+      <!-- Left: title + playback controls -->
       <div class="controls-wrap">
+        <div class="app-title">
+          <i class="fab fa-hive"></i> Hive Peeps
+          <span class="app-tagline">real people, live on the blockchain</span>
+        </div>
         <div id="controls">
           <button class="btn-ctrl" id="pause" title="Pause">
             <i class="fas fa-pause"></i>
