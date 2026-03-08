@@ -1,307 +1,374 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hive Supply Clock</title>
-<script src="https://cdn.jsdelivr.net/npm/@hiveio/hive-js/dist/hive.min.js"></script>
-<style>
-  :root {
-    --bg: #f0f0f8;
-    --card-bg: #ffffff;
-    --text-primary: #212529;
-    --text-secondary: #6b6b80;
-    --hive-color: #e31337;
-    --hbd-color: #21a05e;
-    --delta-pos: #21a05e;
-    --delta-neg: #e31337;
-    --border: #e7e7f1;
-    --shadow: 0 4px 24px rgba(33,37,41,0.08);
-    --toggle-bg: #e7e7f1;
-    --toggle-knob: #ffffff;
-    --block-bg: #f0f0f8;
-  }
-
-  [data-theme="dark"] {
-    --bg: #161a1d;
-    --card-bg: #212529;
-    --text-primary: #f0f0f8;
-    --text-secondary: #9b9baf;
-    --hive-color: #e31337;
-    --hbd-color: #2ecc82;
-    --delta-pos: #2ecc82;
-    --delta-neg: #e31337;
-    --border: #2e3338;
-    --shadow: 0 4px 24px rgba(0,0,0,0.4);
-    --toggle-bg: #2e3338;
-    --toggle-knob: #f0f0f8;
-    --block-bg: #1a1e22;
-  }
-
-  * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-  }
-
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: var(--bg);
-    color: var(--text-primary);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.3s, color 0.3s;
-  }
-
-  .header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    max-width: 520px;
-    margin-bottom: 2rem;
-    padding: 0 0.5rem;
-  }
-
-  .title {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--text-secondary);
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-  }
-
-  .theme-toggle {
-    background: var(--toggle-bg);
-    border: none;
-    border-radius: 999px;
-    width: 56px;
-    height: 28px;
-    cursor: pointer;
-    position: relative;
-    transition: background 0.3s;
-    flex-shrink: 0;
-  }
-
-  .theme-toggle::after {
-    content: '☀️';
-    font-size: 14px;
-    line-height: 22px;
-    text-align: center;
-    position: absolute;
-    top: 3px;
-    left: 3px;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background: var(--toggle-knob);
-    transition: transform 0.3s;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
-  }
-
-  [data-theme="dark"] .theme-toggle::after {
-    content: '🌙';
-    transform: translateX(28px);
-  }
-
-  .cards {
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-    width: 100%;
-    max-width: 520px;
-    padding: 0 0.5rem;
-  }
-
-  .card {
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 1.75rem 2rem;
-    box-shadow: var(--shadow);
-    transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
-  }
-
-  .card-label {
-    font-size: 0.8rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    margin-bottom: 0.6rem;
-  }
-
-  .card-label.hive { color: var(--hive-color); }
-  .card-label.hbd  { color: var(--hbd-color); }
-
-  .card-amount {
-    font-size: 2rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    font-variant-numeric: tabular-nums;
-    line-height: 1.1;
-  }
-
-  .card-delta {
-    font-size: 0.9rem;
-    font-weight: 500;
-    margin-top: 0.5rem;
-    min-height: 1.4em;
-    font-variant-numeric: tabular-nums;
-    transition: color 0.3s;
-  }
-
-  .card-delta.pos { color: var(--delta-pos); }
-  .card-delta.neg { color: var(--delta-neg); }
-  .card-delta.zero { color: var(--text-secondary); }
-
-  .block-info {
-    margin-top: 2rem;
-    text-align: center;
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    background: var(--block-bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 0.5rem 1rem;
-    width: 100%;
-    max-width: 520px;
-    font-variant-numeric: tabular-nums;
-    transition: background 0.3s, border-color 0.3s;
-  }
-
-  .pulse {
-    animation: pulse 0.4s ease-out;
-  }
-
-  @keyframes pulse {
-    0%   { opacity: 0.5; transform: scale(0.98); }
-    100% { opacity: 1;   transform: scale(1); }
-  }
-
-  .dot {
-    display: inline-block;
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    margin-right: 0.35rem;
-    vertical-align: middle;
-    animation: blink 3s infinite;
-  }
-
-  .dot.hive { background: var(--hive-color); }
-  .dot.hbd  { background: var(--hbd-color); }
-
-  @keyframes blink {
-    0%, 90%, 100% { opacity: 1; }
-    95%            { opacity: 0.2; }
-  }
-</style>
-</head>
-<body>
-
-<div class="header">
-  <span class="title">Hive Supply Clock</span>
-  <button class="theme-toggle" id="themeToggle" title="Toggle dark mode" aria-label="Toggle dark mode"></button>
-</div>
-
-<div class="cards">
-  <div class="card">
-    <div class="card-label hive"><span class="dot hive"></span>HIVE</div>
-    <div class="card-amount" id="hivesupply">—</div>
-    <div class="card-delta zero" id="hivedelta">&nbsp;</div>
-  </div>
-  <div class="card">
-    <div class="card-label hbd"><span class="dot hbd"></span>HBD</div>
-    <div class="card-amount" id="hbdsupply">—</div>
-    <div class="card-delta zero" id="hbddelta">&nbsp;</div>
-  </div>
-</div>
-
-<div class="block-info" id="blockinfo">Connecting...</div>
-
-<script>
-  hive.api.setOptions({ url: "https://api.syncad.com/" })
-
-  // Theme
-  const html = document.documentElement
-  const stored = localStorage.getItem('theme')
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-  if (stored === 'dark' || (!stored && prefersDark)) html.setAttribute('data-theme', 'dark')
-
-  document.getElementById('themeToggle').addEventListener('click', () => {
-    const isDark = html.getAttribute('data-theme') === 'dark'
-    html.setAttribute('data-theme', isDark ? 'light' : 'dark')
-    localStorage.setItem('theme', isDark ? 'light' : 'dark')
-  })
-
-  // Supply tracking
-  let prevHive = null
-  let prevHbd  = null
-
-  function setDelta(el, delta) {
-    el.classList.remove('pos', 'neg', 'zero')
-    if (delta === null || isNaN(delta)) {
-      el.innerHTML = '&nbsp;'
-      el.classList.add('zero')
-      return
-    }
-    if (delta > 0) {
-      el.textContent = `\u0394 +${delta.toLocaleString(undefined, {maximumFractionDigits: 3})}`
-      el.classList.add('pos')
-    } else if (delta < 0) {
-      el.textContent = `\u0394 ${delta.toLocaleString(undefined, {maximumFractionDigits: 3})}`
-      el.classList.add('neg')
-    } else {
-      el.textContent = '\u0394 0'
-      el.classList.add('zero')
-    }
-  }
-
-  function animatePulse(el) {
-    el.classList.remove('pulse')
-    void el.offsetWidth
-    el.classList.add('pulse')
-  }
-
-  function updateSupplies() {
-    hive.api.getDynamicGlobalProperties(function(err, result) {
-      if (err || !result) {
-        document.getElementById('blockinfo').textContent = 'Connection error — retrying...'
-        return
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hive Supply Clock</title>
+    <meta
+      name="description"
+      content="Live Hive and HBD token supply clock. Track the current circulating supply of HIVE and Hive Backed Dollars in real time."
+    />
+    <link rel="canonical" href="https://hiveuprss.github.io/supply/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://hiveuprss.github.io/supply/" />
+    <meta property="og:title" content="Hive Supply Clock" />
+    <meta
+      property="og:description"
+      content="Live Hive and HBD token supply clock. Track the current circulating supply of HIVE and Hive Backed Dollars in real time."
+    />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Hive Supply Clock" />
+    <meta
+      name="twitter:description"
+      content="Live Hive and HBD token supply clock. Track the current circulating supply of HIVE and Hive Backed Dollars in real time."
+    />
+    <script src="https://cdn.jsdelivr.net/npm/@hiveio/hive-js/dist/hive.min.js"></script>
+    <style>
+      :root {
+        --bg: #f0f0f8;
+        --card-bg: #ffffff;
+        --text-primary: #212529;
+        --text-secondary: #6b6b80;
+        --hive-color: #e31337;
+        --hbd-color: #21a05e;
+        --delta-pos: #21a05e;
+        --delta-neg: #e31337;
+        --border: #e7e7f1;
+        --shadow: 0 4px 24px rgba(33, 37, 41, 0.08);
+        --toggle-bg: #e7e7f1;
+        --toggle-knob: #ffffff;
+        --block-bg: #f0f0f8;
       }
 
-      const blockNum = result['head_block_number']
-      document.getElementById('blockinfo').textContent = `Block #${blockNum.toLocaleString()}`
-
-      if (result['current_supply']) {
-        const raw = result['current_supply']
-        const val = parseFloat(raw)
-        const el  = document.getElementById('hivesupply')
-        const parts = raw.split(' ')
-        el.textContent = `${Number(parts[0]).toLocaleString(undefined, {minimumFractionDigits: 3, maximumFractionDigits: 3})} ${parts[1] || ''}`
-        animatePulse(el)
-        setDelta(document.getElementById('hivedelta'), prevHive !== null ? val - prevHive : null)
-        prevHive = val
+      [data-theme="dark"] {
+        --bg: #161a1d;
+        --card-bg: #212529;
+        --text-primary: #f0f0f8;
+        --text-secondary: #9b9baf;
+        --hive-color: #e31337;
+        --hbd-color: #2ecc82;
+        --delta-pos: #2ecc82;
+        --delta-neg: #e31337;
+        --border: #2e3338;
+        --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+        --toggle-bg: #2e3338;
+        --toggle-knob: #f0f0f8;
+        --block-bg: #1a1e22;
       }
 
-      if (result['current_hbd_supply']) {
-        const raw = result['current_hbd_supply']
-        const val = parseFloat(raw)
-        const el  = document.getElementById('hbdsupply')
-        const parts = raw.split(' ')
-        el.textContent = `${Number(parts[0]).toLocaleString(undefined, {minimumFractionDigits: 3, maximumFractionDigits: 3})} ${parts[1] || ''}`
-        animatePulse(el)
-        setDelta(document.getElementById('hbddelta'), prevHbd !== null ? val - prevHbd : null)
-        prevHbd = val
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
       }
-    })
-  }
 
-  updateSupplies()
-  window.setInterval(updateSupplies, 3000)
-</script>
-</body>
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: var(--bg);
+        color: var(--text-primary);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        transition:
+          background 0.3s,
+          color 0.3s;
+      }
+
+      .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        max-width: 520px;
+        margin-bottom: 2rem;
+        padding: 0 0.5rem;
+      }
+
+      .title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+
+      .theme-toggle {
+        background: var(--toggle-bg);
+        border: none;
+        border-radius: 999px;
+        width: 56px;
+        height: 28px;
+        cursor: pointer;
+        position: relative;
+        transition: background 0.3s;
+        flex-shrink: 0;
+      }
+
+      .theme-toggle::after {
+        content: "☀️";
+        font-size: 14px;
+        line-height: 22px;
+        text-align: center;
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: var(--toggle-knob);
+        transition: transform 0.3s;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      [data-theme="dark"] .theme-toggle::after {
+        content: "🌙";
+        transform: translateX(28px);
+      }
+
+      .cards {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        width: 100%;
+        max-width: 520px;
+        padding: 0 0.5rem;
+      }
+
+      .card {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 1.75rem 2rem;
+        box-shadow: var(--shadow);
+        transition:
+          background 0.3s,
+          border-color 0.3s,
+          box-shadow 0.3s;
+      }
+
+      .card-label {
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        margin-bottom: 0.6rem;
+      }
+
+      .card-label.hive {
+        color: var(--hive-color);
+      }
+      .card-label.hbd {
+        color: var(--hbd-color);
+      }
+
+      .card-amount {
+        font-size: 2rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        font-variant-numeric: tabular-nums;
+        line-height: 1.1;
+      }
+
+      .card-delta {
+        font-size: 0.9rem;
+        font-weight: 500;
+        margin-top: 0.5rem;
+        min-height: 1.4em;
+        font-variant-numeric: tabular-nums;
+        transition: color 0.3s;
+      }
+
+      .card-delta.pos {
+        color: var(--delta-pos);
+      }
+      .card-delta.neg {
+        color: var(--delta-neg);
+      }
+      .card-delta.zero {
+        color: var(--text-secondary);
+      }
+
+      .block-info {
+        margin-top: 2rem;
+        text-align: center;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        background: var(--block-bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        width: 100%;
+        max-width: 520px;
+        font-variant-numeric: tabular-nums;
+        transition:
+          background 0.3s,
+          border-color 0.3s;
+      }
+
+      .pulse {
+        animation: pulse 0.4s ease-out;
+      }
+
+      @keyframes pulse {
+        0% {
+          opacity: 0.5;
+          transform: scale(0.98);
+        }
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      .dot {
+        display: inline-block;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        margin-right: 0.35rem;
+        vertical-align: middle;
+        animation: blink 3s infinite;
+      }
+
+      .dot.hive {
+        background: var(--hive-color);
+      }
+      .dot.hbd {
+        background: var(--hbd-color);
+      }
+
+      @keyframes blink {
+        0%,
+        90%,
+        100% {
+          opacity: 1;
+        }
+        95% {
+          opacity: 0.2;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <span class="title">Hive Supply Clock</span>
+      <button
+        class="theme-toggle"
+        id="themeToggle"
+        title="Toggle dark mode"
+        aria-label="Toggle dark mode"
+      ></button>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-label hive"><span class="dot hive"></span>HIVE</div>
+        <div class="card-amount" id="hivesupply">—</div>
+        <div class="card-delta zero" id="hivedelta">&nbsp;</div>
+      </div>
+      <div class="card">
+        <div class="card-label hbd"><span class="dot hbd"></span>HBD</div>
+        <div class="card-amount" id="hbdsupply">—</div>
+        <div class="card-delta zero" id="hbddelta">&nbsp;</div>
+      </div>
+    </div>
+
+    <div class="block-info" id="blockinfo">Connecting...</div>
+
+    <script>
+      hive.api.setOptions({ url: "https://api.syncad.com/" });
+
+      // Theme
+      const html = document.documentElement;
+      const stored = localStorage.getItem("theme");
+      const prefersDark = window.matchMedia(
+        "(prefers-color-scheme: dark)",
+      ).matches;
+      if (stored === "dark" || (!stored && prefersDark))
+        html.setAttribute("data-theme", "dark");
+
+      document.getElementById("themeToggle").addEventListener("click", () => {
+        const isDark = html.getAttribute("data-theme") === "dark";
+        html.setAttribute("data-theme", isDark ? "light" : "dark");
+        localStorage.setItem("theme", isDark ? "light" : "dark");
+      });
+
+      // Supply tracking
+      let prevHive = null;
+      let prevHbd = null;
+
+      function setDelta(el, delta) {
+        el.classList.remove("pos", "neg", "zero");
+        if (delta === null || isNaN(delta)) {
+          el.innerHTML = "&nbsp;";
+          el.classList.add("zero");
+          return;
+        }
+        if (delta > 0) {
+          el.textContent = `\u0394 +${delta.toLocaleString(undefined, { maximumFractionDigits: 3 })}`;
+          el.classList.add("pos");
+        } else if (delta < 0) {
+          el.textContent = `\u0394 ${delta.toLocaleString(undefined, { maximumFractionDigits: 3 })}`;
+          el.classList.add("neg");
+        } else {
+          el.textContent = "\u0394 0";
+          el.classList.add("zero");
+        }
+      }
+
+      function animatePulse(el) {
+        el.classList.remove("pulse");
+        void el.offsetWidth;
+        el.classList.add("pulse");
+      }
+
+      function updateSupplies() {
+        hive.api.getDynamicGlobalProperties(function (err, result) {
+          if (err || !result) {
+            document.getElementById("blockinfo").textContent =
+              "Connection error — retrying...";
+            return;
+          }
+
+          const blockNum = result["head_block_number"];
+          document.getElementById("blockinfo").textContent =
+            `Block #${blockNum.toLocaleString()}`;
+
+          if (result["current_supply"]) {
+            const raw = result["current_supply"];
+            const val = parseFloat(raw);
+            const el = document.getElementById("hivesupply");
+            const parts = raw.split(" ");
+            el.textContent = `${Number(parts[0]).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })} ${parts[1] || ""}`;
+            animatePulse(el);
+            setDelta(
+              document.getElementById("hivedelta"),
+              prevHive !== null ? val - prevHive : null,
+            );
+            prevHive = val;
+          }
+
+          if (result["current_hbd_supply"]) {
+            const raw = result["current_hbd_supply"];
+            const val = parseFloat(raw);
+            const el = document.getElementById("hbdsupply");
+            const parts = raw.split(" ");
+            el.textContent = `${Number(parts[0]).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })} ${parts[1] || ""}`;
+            animatePulse(el);
+            setDelta(
+              document.getElementById("hbddelta"),
+              prevHbd !== null ? val - prevHbd : null,
+            );
+            prevHbd = val;
+          }
+        });
+      }
+
+      updateSupplies();
+      window.setInterval(updateSupplies, 3000);
+    </script>
+  </body>
 </html>

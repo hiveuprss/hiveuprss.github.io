@@ -1,1061 +1,1279 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<!-- Created by peakd.com/@hivetrending -->
-
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hive Comment Stream</title>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-
-  <script src="https://cdn.jsdelivr.net/npm/@hiveio/hive-js/dist/hive.min.js"></script>
-
-  <link rel="stylesheet" href="thirdparty/fontawesome/css/all.min.css">
-  <script src="thirdparty/fontawesome/js/all.min.js"></script>
-
-  <style>
-  :root {
-    --hive-gold: #ffd23f;
-    --hive-dark: #0f1419;
-    --hive-card: #1a1f2e;
-    --hive-accent: #2d3748;
-    --hive-text: #e2e8f0;
-    --hive-text-muted: #a0aec0;
-    --accent-green: #48bb78;
-    --accent-red: #f56565;
-    --accent-blue: #4299e1;
-    --accent-cyan: #38b2ac;
-  }
-
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-
-  html, body {
-    width: 100%;
-    height: 100%;
-    background: var(--hive-dark);
-    color: var(--hive-text);
-    font-family: 'Space Grotesk', sans-serif;
-    overflow-x: hidden;
-  }
-
-  body {
-    background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #0f1419 100%);
-    position: relative;
-  }
-
-  body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background:
-      linear-gradient(90deg, transparent 24%, rgba(255, 210, 63, 0.05) 25%, rgba(255, 210, 63, 0.05) 26%, transparent 27%, transparent 74%, rgba(255, 210, 63, 0.05) 75%, rgba(255, 210, 63, 0.05) 76%, transparent 77%, transparent),
-      linear-gradient(0deg, transparent 24%, rgba(255, 210, 63, 0.05) 25%, rgba(255, 210, 63, 0.05) 26%, transparent 27%, transparent 74%, rgba(255, 210, 63, 0.05) 75%, rgba(255, 210, 63, 0.05) 76%, transparent 77%, transparent);
-    background-size: 50px 50px;
-    pointer-events: none;
-    z-index: 1;
-  }
-
-  .container-fluid {
-    position: relative;
-    z-index: 2;
-    padding: 2rem 1rem;
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-
-  /* Header Section */
-  .header-section {
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid rgba(255, 210, 63, 0.2);
-  }
-
-  .header-section h1 {
-    font-size: 1.5rem !important;
-  }
-
-  .block-info {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 0.75rem;
-  }
-
-  .info-card {
-    background: rgba(26, 31, 46, 0.8);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 210, 63, 0.2);
-    border-radius: 8px;
-    padding: 0.75rem 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    transition: all 0.3s ease;
-  }
-
-  .info-card:hover {
-    border-color: rgba(255, 210, 63, 0.5);
-    box-shadow: 0 0 15px rgba(255, 210, 63, 0.1);
-    transform: translateY(-1px);
-  }
-
-  .info-label {
-    font-size: 0.7rem;
-    color: var(--hive-text-muted);
-    letter-spacing: 0.3px;
-    text-transform: uppercase;
-    font-weight: 500;
-  }
-
-  .info-value {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 1rem;
-    color: var(--hive-gold);
-    font-weight: 600;
-    word-break: break-all;
-    line-height: 1.2;
-  }
-
-  /* Control Panel */
-  .controls-section {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 1rem;
-    flex-wrap: wrap;
-    margin: 2rem 0;
-  }
-
-  button {
-    background: rgba(255, 210, 63, 0.1);
-    border: 1.5px solid var(--hive-gold);
-    color: var(--hive-gold);
-    padding: 0.75rem 1.25rem;
-    border-radius: 8px;
-    cursor: pointer;
-    font-family: 'Space Grotesk', sans-serif;
-    font-weight: 600;
-    font-size: 0.95rem;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    min-width: 44px;
-    min-height: 44px;
-  }
-
-  button:hover:not(:disabled) {
-    background: rgba(255, 210, 63, 0.2);
-    box-shadow: 0 0 15px rgba(255, 210, 63, 0.3);
-    transform: translateY(-2px);
-  }
-
-  button:active:not(:disabled) {
-    transform: translateY(0);
-  }
-
-  button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  button i {
-    font-size: 1.1rem;
-  }
-
-  /* Comment Feed */
-  .feed-section {
-    margin: 2rem 0;
-    background: rgba(26, 31, 46, 0.6);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 210, 63, 0.15);
-    border-radius: 12px;
-    padding: 2rem;
-  }
-
-  .feed-title {
-    font-size: 0.875rem;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    color: var(--hive-text-muted);
-    margin-bottom: 1.5rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-
-  #content {
-    min-height: 400px;
-    max-height: 600px;
-    overflow-y: auto;
-    overflow-x: hidden;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    scroll-behavior: smooth;
-  }
-
-  #content::-webkit-scrollbar {
-    width: 8px;
-  }
-
-  #content::-webkit-scrollbar-track {
-    background: rgba(255, 210, 63, 0.05);
-    border-radius: 10px;
-  }
-
-  #content::-webkit-scrollbar-thumb {
-    background: rgba(255, 210, 63, 0.3);
-    border-radius: 10px;
-    transition: background 0.2s;
-  }
-
-  #content::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 210, 63, 0.5);
-  }
-
-  .comment {
-    display: flex;
-    flex-direction: column;
-    background: rgba(45, 55, 72, 0.6);
-    backdrop-filter: blur(5px);
-    border-left: 3px solid var(--hive-gold);
-    padding: 1rem;
-    border-radius: 8px;
-    font-size: 0.95rem;
-    line-height: 1.5;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    animation: slideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-    flex-shrink: 0;
-    will-change: transform, opacity;
-  }
-
-  @keyframes slideIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-  }
-
-  .comment:hover {
-    background: rgba(45, 55, 72, 0.8);
-    border-left-color: var(--hive-gold);
-    box-shadow: 0 0 15px rgba(255, 210, 63, 0.2);
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .comment a {
-    color: var(--hive-gold);
-    text-decoration: none;
-    border-bottom: 1px dashed rgba(255, 210, 63, 0.5);
-    transition: all 0.2s;
-  }
-
-  .comment a:hover {
-    color: #fff;
-    border-bottom-color: var(--hive-gold);
-  }
-
-  .comment b {
-    color: var(--hive-gold);
-    font-weight: 600;
-  }
-
-  .comment img {
-    margin-right: 0.5rem;
-    opacity: 0.8;
-  }
-
-  .comment-header {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 0.75rem;
-    font-size: 0.95rem;
-    border-bottom: 1px solid rgba(255, 210, 63, 0.2);
-    padding-bottom: 0.75rem;
-  }
-
-  .comment-header b {
-    color: var(--hive-gold);
-    font-weight: 600;
-    flex-grow: 1;
-  }
-
-  .comment-body {
-    color: var(--hive-text);
-    line-height: 1.6;
-    font-size: 0.95rem;
-  }
-
-  /* Color variations for different apps */
-  .comment.green { border-left-color: var(--hive-gold); }          /* Default */
-  .comment.leo { border-left-color: #f4d03f; }                    /* Leo Threads - Yellow */
-  .comment.ecency { border-left-color: var(--accent-blue); }      /* Ecency - Blue */
-  .comment.peakd { border-left-color: #000000; }                  /* PeakD - Black */
-  .comment.waivio { border-left-color: #ff9500; }                 /* Waivio - Orange */
-  .comment.snapie { border-left-color: var(--accent-cyan); }      /* Snapie - Cyan */
-  .comment.blue { border-left-color: var(--accent-blue); }
-  .comment.red { border-left-color: var(--accent-red); }
-  .comment.cyan { border-left-color: var(--accent-cyan); }
-  .comment.gray { border-left-color: var(--hive-text-muted); }
-
-  /* Footer/Info Section */
-  .info-section {
-    margin-top: 2.5rem;
-    padding-top: 2rem;
-    border-top: 1px solid rgba(255, 210, 63, 0.2);
-    text-align: center;
-  }
-
-  .info-box {
-    background: rgba(26, 31, 46, 0.8);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 210, 63, 0.2);
-    border-radius: 12px;
-    padding: 1.5rem;
-    max-width: 600px;
-    margin: 0 auto 1.5rem;
-    line-height: 1.7;
-    color: var(--hive-text-muted);
-    font-size: 0.95rem;
-  }
-
-  .credit {
-    font-size: 0.875rem;
-    color: var(--hive-text-muted);
-  }
-
-  .credit a {
-    color: var(--hive-gold);
-    text-decoration: none;
-    border-bottom: 1px solid rgba(255, 210, 63, 0.5);
-    transition: all 0.2s;
-  }
-
-  .credit a:hover {
-    color: #fff;
-    border-bottom-color: var(--hive-gold);
-  }
-
-  /* Responsive */
-  @media (max-width: 768px) {
-    .container-fluid {
-      padding: 1.5rem 1rem;
-    }
-
-    .block-info {
-      grid-template-columns: 1fr;
-    }
-
-    .viz-section {
-      min-height: 400px;
-      padding: 1rem;
-    }
-
-    #content {
-      max-height: 400px;
-    }
-
-    .info-value {
-      font-size: 1.2rem;
-    }
-
-    .controls-section {
-      gap: 0.75rem;
-    }
-
-    button {
-      padding: 0.6rem 1rem;
-      font-size: 0.85rem;
-    }
-  }
-
-  /* Utility */
-  .center {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  /* Theme Toggle */
-  .theme-toggle {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    user-select: none;
-  }
-
-  .theme-toggle input {
-    display: none;
-  }
-
-  .toggle-slider {
-    position: relative;
-    display: inline-block;
-    width: 50px;
-    height: 28px;
-    background: rgba(255, 210, 63, 0.2);
-    border: 1.5px solid var(--hive-gold);
-    border-radius: 34px;
-    transition: all 0.3s ease;
-  }
-
-  .toggle-slider::before {
-    content: '🌙';
-    position: absolute;
-    left: 4px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 0.9rem;
-    transition: all 0.3s ease;
-  }
-
-  .theme-toggle input:checked + .toggle-slider {
-    background: rgba(255, 210, 63, 0.3);
-  }
-
-  .theme-toggle input:checked + .toggle-slider::before {
-    content: '☀️';
-    left: auto;
-    right: 4px;
-  }
-
-  /* Light Mode */
-  body.light-mode {
-    --hive-dark: #f5f5f5;
-    --hive-card: #ffffff;
-    --hive-accent: #e8e8e8;
-    --hive-text: #1a202c;
-    --hive-text-muted: #718096;
-  }
-
-  body.light-mode {
-    background: linear-gradient(135deg, #f5f5f5 0%, #ffffff 50%, #f5f5f5 100%);
-  }
-
-  body.light-mode::before {
-    background:
-      linear-gradient(90deg, transparent 24%, rgba(0, 0, 0, 0.03) 25%, rgba(0, 0, 0, 0.03) 26%, transparent 27%, transparent 74%, rgba(0, 0, 0, 0.03) 75%, rgba(0, 0, 0, 0.03) 76%, transparent 77%, transparent),
-      linear-gradient(0deg, transparent 24%, rgba(0, 0, 0, 0.03) 25%, rgba(0, 0, 0, 0.03) 26%, transparent 27%, transparent 74%, rgba(0, 0, 0, 0.03) 75%, rgba(0, 0, 0, 0.03) 76%, transparent 77%, transparent);
-    background-size: 50px 50px;
-  }
-
-  body.light-mode .info-card {
-    background: rgba(255, 255, 255, 0.9);
-    border-color: rgba(255, 210, 63, 0.3);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-  }
-
-  body.light-mode .info-card:hover {
-    border-color: rgba(255, 210, 63, 0.6);
-    box-shadow: 0 4px 12px rgba(255, 210, 63, 0.1);
-  }
-
-  body.light-mode button {
-    background: rgba(255, 210, 63, 0.15);
-    border-color: var(--hive-gold);
-  }
-
-  body.light-mode button:hover:not(:disabled) {
-    background: rgba(255, 210, 63, 0.25);
-    box-shadow: 0 0 15px rgba(255, 210, 63, 0.25);
-  }
-
-  body.light-mode .comment {
-    background: rgba(255, 255, 255, 0.8);
-    border-left-color: var(--hive-gold);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  }
-
-  body.light-mode .comment:hover {
-    background: rgba(255, 255, 255, 0.95);
-    box-shadow: 0 4px 12px rgba(255, 210, 63, 0.15);
-  }
-
-  body.light-mode .info-box {
-    background: rgba(255, 255, 255, 0.9);
-    border-color: rgba(255, 210, 63, 0.3);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  }
-
-  body.light-mode .header-section {
-    border-bottom-color: rgba(255, 210, 63, 0.3);
-  }
-
-  body.light-mode .info-section {
-    border-top-color: rgba(255, 210, 63, 0.3);
-  }
-
-  body.light-mode #content::-webkit-scrollbar-track {
-    background: rgba(255, 210, 63, 0.08);
-  }
-
-  body.light-mode #content::-webkit-scrollbar-thumb {
-    background: rgba(255, 210, 63, 0.4);
-  }
-
-  body.light-mode #content::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 210, 63, 0.6);
-  }
-
-  body.light-mode .feed-section {
-    background: rgba(255, 255, 255, 0.9);
-    border-color: rgba(255, 210, 63, 0.2);
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  }
-
-  /* Block Modal */
-  .block-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1001;
-    animation: fadeIn 0.2s ease-out;
-  }
-
-  .block-modal[hidden] {
-    display: none;
-  }
-
-  .modal-content {
-    background: var(--hive-card);
-    border: 1px solid rgba(255, 210, 63, 0.2);
-    border-radius: 12px;
-    width: 90%;
-    max-width: 400px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-    animation: modalSlideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-
-  .modal-header {
-    padding: 1.5rem;
-    border-bottom: 1px solid rgba(255, 210, 63, 0.2);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .modal-header h3 {
-    margin: 0;
-    font-size: 1.3rem;
-    color: var(--hive-text);
-  }
-
-  .modal-close {
-    background: transparent;
-    border: none;
-    color: var(--hive-gold);
-    cursor: pointer;
-    padding: 0.5rem;
-    font-size: 1.3rem;
-    transition: all 0.2s;
-  }
-
-  .modal-close:hover {
-    transform: rotate(90deg);
-  }
-
-  .modal-body {
-    padding: 1.5rem;
-  }
-
-  #blockInput {
-    width: 100%;
-    padding: 0.75rem;
-    background: rgba(255, 210, 63, 0.1);
-    border: 1.5px solid var(--hive-gold);
-    border-radius: 8px;
-    color: var(--hive-text);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 1rem;
-    transition: all 0.2s;
-  }
-
-  #blockInput:focus {
-    outline: none;
-    background: rgba(255, 210, 63, 0.15);
-    box-shadow: 0 0 10px rgba(255, 210, 63, 0.3);
-  }
-
-  #blockInput::placeholder {
-    color: var(--hive-text-muted);
-  }
-
-  .modal-hint {
-    margin-top: 0.75rem;
-    font-size: 0.85rem;
-    color: var(--hive-text-muted);
-    text-align: center;
-  }
-
-  .modal-footer {
-    padding: 1rem 1.5rem;
-    border-top: 1px solid rgba(255, 210, 63, 0.2);
-    display: flex;
-    gap: 1rem;
-    justify-content: flex-end;
-  }
-
-  .modal-btn {
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    font-family: 'Space Grotesk', sans-serif;
-    font-weight: 600;
-    transition: all 0.2s;
-  }
-
-  .modal-btn-primary {
-    background: rgba(255, 210, 63, 0.2);
-    border: 1.5px solid var(--hive-gold);
-    color: var(--hive-gold);
-  }
-
-  .modal-btn-primary:hover {
-    background: rgba(255, 210, 63, 0.3);
-    box-shadow: 0 0 15px rgba(255, 210, 63, 0.3);
-  }
-
-  .modal-btn-secondary {
-    background: transparent;
-    border: 1.5px solid var(--hive-text-muted);
-    color: var(--hive-text-muted);
-  }
-
-  .modal-btn-secondary:hover {
-    border-color: var(--hive-text);
-    color: var(--hive-text);
-  }
-
-  body.light-mode .modal-content {
-    background: rgba(255, 255, 255, 0.95);
-  }
-
-  body.light-mode .modal-header,
-  body.light-mode .modal-footer {
-    border-color: rgba(255, 210, 63, 0.3);
-  }
-
-  body.light-mode #blockInput {
-    background: rgba(255, 210, 63, 0.08);
-    color: var(--hive-text);
-  }
-
-  body.light-mode #blockInput:focus {
-    background: rgba(255, 210, 63, 0.15);
-    box-shadow: 0 0 10px rgba(255, 210, 63, 0.2);
-  }
-
-  /* Filter Modal */
-  .filter-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: flex-start;
-    justify-content: flex-end;
-    z-index: 1000;
-    animation: fadeIn 0.2s ease-out;
-  }
-
-  .filter-modal[hidden] {
-    display: none;
-  }
-
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-
-  .filter-menu {
-    background: var(--hive-card);
-    border-left: 1px solid rgba(255, 210, 63, 0.2);
-    width: 300px;
-    height: 100%;
-    overflow-y: auto;
-    animation: slideInRight 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    box-shadow: -5px 0 20px rgba(0, 0, 0, 0.3);
-  }
-
-  @keyframes slideInRight {
-    from {
-      transform: translateX(100%);
-    }
-    to {
-      transform: translateX(0);
-    }
-  }
-
-  .filter-header {
-    padding: 1.5rem;
-    border-bottom: 1px solid rgba(255, 210, 63, 0.2);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    position: sticky;
-    top: 0;
-    background: var(--hive-card);
-  }
-
-  .filter-header h3 {
-    margin: 0;
-    font-size: 1.1rem;
-    color: var(--hive-text);
-  }
-
-  .close-btn {
-    background: transparent;
-    border: none;
-    color: var(--hive-gold);
-    cursor: pointer;
-    padding: 0.5rem;
-    font-size: 1.2rem;
-    transition: all 0.2s;
-  }
-
-  .close-btn:hover {
-    transform: rotate(90deg);
-  }
-
-  .filter-options {
-    padding: 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .filter-option {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    cursor: pointer;
-    padding: 0.75rem;
-    border-radius: 8px;
-    transition: all 0.2s;
-    user-select: none;
-  }
-
-  .filter-option:hover {
-    background: rgba(255, 210, 63, 0.1);
-  }
-
-  .filter-option input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
-    accent-color: var(--hive-gold);
-  }
-
-  .leo-dot, .ecency-dot, .peakd-dot, .snapie-dot, .waivio-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 2px;
-    flex-shrink: 0;
-  }
-
-  .leo-dot { background-color: #f4d03f; }
-  .ecency-dot { background-color: var(--accent-blue); }
-  .peakd-dot { background-color: #000000; }
-  .snapie-dot { background-color: var(--accent-cyan); }
-  .waivio-dot { background-color: #ff9500; }
-
-  .filter-option span:not(.leo-dot):not(.ecency-dot):not(.peakd-dot):not(.snapie-dot):not(.waivio-dot) {
-    color: var(--hive-text);
-    font-size: 0.95rem;
-  }
-
-  body.light-mode .filter-menu {
-    background: rgba(255, 255, 255, 0.95);
-    border-left-color: rgba(255, 210, 63, 0.3);
-  }
-
-  body.light-mode .filter-header {
-    border-bottom-color: rgba(255, 210, 63, 0.3);
-    background: rgba(255, 255, 255, 0.95);
-  }
-
-  body.light-mode .filter-option:hover {
-    background: rgba(255, 210, 63, 0.15);
-  }
-
-  /* Speed Dropdown */
-  #speedBtn {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    position: relative;
-  }
-
-  .speed-dropdown {
-    position: absolute;
-    bottom: -130px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--hive-card);
-    border: 1px solid rgba(255, 210, 63, 0.2);
-    border-radius: 8px;
-    overflow: hidden;
-    min-width: 100px;
-    z-index: 100;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-    animation: slideUp 0.2s ease-out;
-  }
-
-  .speed-dropdown[hidden] {
-    display: none;
-  }
-
-  @keyframes modalSlideUp {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .speed-option {
-    display: block;
-    width: 100%;
-    padding: 0.75rem 1rem;
-    background: transparent;
-    border: none;
-    color: var(--hive-text-muted);
-    cursor: pointer;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.9rem;
-    text-align: center;
-    transition: all 0.2s;
-    border-bottom: 1px solid rgba(255, 210, 63, 0.1);
-  }
-
-  .speed-option:last-child {
-    border-bottom: none;
-  }
-
-  .speed-option:hover {
-    background: rgba(255, 210, 63, 0.1);
-    color: var(--hive-gold);
-  }
-
-  .speed-option.active {
-    background: rgba(255, 210, 63, 0.2);
-    color: var(--hive-gold);
-    font-weight: 600;
-  }
-
-  /* Frontend Select */
-  .frontend-select {
-    width: 100%;
-    padding: 0.75rem;
-    background: rgba(255, 210, 63, 0.1);
-    border: 1.5px solid var(--hive-gold);
-    border-radius: 6px;
-    color: var(--hive-text);
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .frontend-select:hover {
-    background: rgba(255, 210, 63, 0.15);
-    border-color: #fff;
-  }
-
-  .frontend-select:focus {
-    outline: none;
-    background: rgba(255, 210, 63, 0.15);
-    box-shadow: 0 0 10px rgba(255, 210, 63, 0.3);
-  }
-
-  body.light-mode .frontend-select {
-    background: rgba(255, 210, 63, 0.1);
-    color: var(--hive-text);
-  }
-
-  body.light-mode .frontend-select:focus {
-    box-shadow: 0 0 10px rgba(255, 210, 63, 0.2);
-  }
-</style>
-</head>
-
-<body>
-  <div class="container-fluid">
-    <!-- Header with Block Info -->
-    <div class="header-section">
-      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; gap: 1rem; flex-wrap: wrap;">
-        <div style="display: flex; align-items: center; gap: 0.75rem;">
-          <i class="fab fa-hive" style="font-size: 2rem; color: var(--hive-gold);"></i>
-          <h1 style="margin: 0; font-size: 2rem; font-weight: 700; letter-spacing: -0.5px;">Hive Stream</h1>
-        </div>
-        <div style="display: flex; align-items: center; gap: 1rem;">
-          <button id="filterMenuBtn" title="Filter apps" style="padding: 0.75rem;">
-            <i class="fas fa-bars"></i>
-          </button>
-          <label class="theme-toggle" title="Toggle theme">
-            <input type="checkbox" id="themeToggle">
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-      </div>
-
-      <!-- Block Number Modal -->
-      <div id="blockModal" class="block-modal" hidden>
-        <div class="modal-content">
-          <div class="modal-header">
-            <h3>Jump to Block</h3>
-            <button class="modal-close" id="closeBlockBtn" title="Close">
-              <i class="fas fa-times"></i>
+  <!-- Created by peakd.com/@hivetrending -->
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hive Comment Stream</title>
+    <meta
+      name="description"
+      content="Live scrolling stream of comments posted on the Hive blockchain. Watch the Hive community engage in real time."
+    />
+    <link rel="canonical" href="https://hiveuprss.github.io/commentstream/" />
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:url"
+      content="https://hiveuprss.github.io/commentstream/"
+    />
+    <meta property="og:title" content="Hive Comment Stream" />
+    <meta
+      property="og:description"
+      content="Live scrolling stream of comments posted on the Hive blockchain. Watch the Hive community engage in real time."
+    />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Hive Comment Stream" />
+    <meta
+      name="twitter:description"
+      content="Live scrolling stream of comments posted on the Hive blockchain. Watch the Hive community engage in real time."
+    />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <script src="https://cdn.jsdelivr.net/npm/@hiveio/hive-js/dist/hive.min.js"></script>
+
+    <link rel="stylesheet" href="thirdparty/fontawesome/css/all.min.css" />
+    <script src="thirdparty/fontawesome/js/all.min.js"></script>
+
+    <style>
+      :root {
+        --hive-gold: #ffd23f;
+        --hive-dark: #0f1419;
+        --hive-card: #1a1f2e;
+        --hive-accent: #2d3748;
+        --hive-text: #e2e8f0;
+        --hive-text-muted: #a0aec0;
+        --accent-green: #48bb78;
+        --accent-red: #f56565;
+        --accent-blue: #4299e1;
+        --accent-cyan: #38b2ac;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        background: var(--hive-dark);
+        color: var(--hive-text);
+        font-family: "Space Grotesk", sans-serif;
+        overflow-x: hidden;
+      }
+
+      body {
+        background: linear-gradient(
+          135deg,
+          #0f1419 0%,
+          #1a1f2e 50%,
+          #0f1419 100%
+        );
+        position: relative;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background:
+          linear-gradient(
+            90deg,
+            transparent 24%,
+            rgba(255, 210, 63, 0.05) 25%,
+            rgba(255, 210, 63, 0.05) 26%,
+            transparent 27%,
+            transparent 74%,
+            rgba(255, 210, 63, 0.05) 75%,
+            rgba(255, 210, 63, 0.05) 76%,
+            transparent 77%,
+            transparent
+          ),
+          linear-gradient(
+            0deg,
+            transparent 24%,
+            rgba(255, 210, 63, 0.05) 25%,
+            rgba(255, 210, 63, 0.05) 26%,
+            transparent 27%,
+            transparent 74%,
+            rgba(255, 210, 63, 0.05) 75%,
+            rgba(255, 210, 63, 0.05) 76%,
+            transparent 77%,
+            transparent
+          );
+        background-size: 50px 50px;
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      .container-fluid {
+        position: relative;
+        z-index: 2;
+        padding: 2rem 1rem;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      /* Header Section */
+      .header-section {
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid rgba(255, 210, 63, 0.2);
+      }
+
+      .header-section h1 {
+        font-size: 1.5rem !important;
+      }
+
+      .block-info {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 0.75rem;
+      }
+
+      .info-card {
+        background: rgba(26, 31, 46, 0.8);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 210, 63, 0.2);
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        transition: all 0.3s ease;
+      }
+
+      .info-card:hover {
+        border-color: rgba(255, 210, 63, 0.5);
+        box-shadow: 0 0 15px rgba(255, 210, 63, 0.1);
+        transform: translateY(-1px);
+      }
+
+      .info-label {
+        font-size: 0.7rem;
+        color: var(--hive-text-muted);
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        font-weight: 500;
+      }
+
+      .info-value {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 1rem;
+        color: var(--hive-gold);
+        font-weight: 600;
+        word-break: break-all;
+        line-height: 1.2;
+      }
+
+      /* Control Panel */
+      .controls-section {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin: 2rem 0;
+      }
+
+      button {
+        background: rgba(255, 210, 63, 0.1);
+        border: 1.5px solid var(--hive-gold);
+        color: var(--hive-gold);
+        padding: 0.75rem 1.25rem;
+        border-radius: 8px;
+        cursor: pointer;
+        font-family: "Space Grotesk", sans-serif;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        min-width: 44px;
+        min-height: 44px;
+      }
+
+      button:hover:not(:disabled) {
+        background: rgba(255, 210, 63, 0.2);
+        box-shadow: 0 0 15px rgba(255, 210, 63, 0.3);
+        transform: translateY(-2px);
+      }
+
+      button:active:not(:disabled) {
+        transform: translateY(0);
+      }
+
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      button i {
+        font-size: 1.1rem;
+      }
+
+      /* Comment Feed */
+      .feed-section {
+        margin: 2rem 0;
+        background: rgba(26, 31, 46, 0.6);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 210, 63, 0.15);
+        border-radius: 12px;
+        padding: 2rem;
+      }
+
+      .feed-title {
+        font-size: 0.875rem;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        color: var(--hive-text-muted);
+        margin-bottom: 1.5rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      #content {
+        min-height: 400px;
+        max-height: 600px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        scroll-behavior: smooth;
+      }
+
+      #content::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      #content::-webkit-scrollbar-track {
+        background: rgba(255, 210, 63, 0.05);
+        border-radius: 10px;
+      }
+
+      #content::-webkit-scrollbar-thumb {
+        background: rgba(255, 210, 63, 0.3);
+        border-radius: 10px;
+        transition: background 0.2s;
+      }
+
+      #content::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 210, 63, 0.5);
+      }
+
+      .comment {
+        display: flex;
+        flex-direction: column;
+        background: rgba(45, 55, 72, 0.6);
+        backdrop-filter: blur(5px);
+        border-left: 3px solid var(--hive-gold);
+        padding: 1rem;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        animation: slideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        flex-shrink: 0;
+        will-change: transform, opacity;
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      .comment:hover {
+        background: rgba(45, 55, 72, 0.8);
+        border-left-color: var(--hive-gold);
+        box-shadow: 0 0 15px rgba(255, 210, 63, 0.2);
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .comment a {
+        color: var(--hive-gold);
+        text-decoration: none;
+        border-bottom: 1px dashed rgba(255, 210, 63, 0.5);
+        transition: all 0.2s;
+      }
+
+      .comment a:hover {
+        color: #fff;
+        border-bottom-color: var(--hive-gold);
+      }
+
+      .comment b {
+        color: var(--hive-gold);
+        font-weight: 600;
+      }
+
+      .comment img {
+        margin-right: 0.5rem;
+        opacity: 0.8;
+      }
+
+      .comment-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+        font-size: 0.95rem;
+        border-bottom: 1px solid rgba(255, 210, 63, 0.2);
+        padding-bottom: 0.75rem;
+      }
+
+      .comment-header b {
+        color: var(--hive-gold);
+        font-weight: 600;
+        flex-grow: 1;
+      }
+
+      .comment-body {
+        color: var(--hive-text);
+        line-height: 1.6;
+        font-size: 0.95rem;
+      }
+
+      /* Color variations for different apps */
+      .comment.green {
+        border-left-color: var(--hive-gold);
+      } /* Default */
+      .comment.leo {
+        border-left-color: #f4d03f;
+      } /* Leo Threads - Yellow */
+      .comment.ecency {
+        border-left-color: var(--accent-blue);
+      } /* Ecency - Blue */
+      .comment.peakd {
+        border-left-color: #000000;
+      } /* PeakD - Black */
+      .comment.waivio {
+        border-left-color: #ff9500;
+      } /* Waivio - Orange */
+      .comment.snapie {
+        border-left-color: var(--accent-cyan);
+      } /* Snapie - Cyan */
+      .comment.blue {
+        border-left-color: var(--accent-blue);
+      }
+      .comment.red {
+        border-left-color: var(--accent-red);
+      }
+      .comment.cyan {
+        border-left-color: var(--accent-cyan);
+      }
+      .comment.gray {
+        border-left-color: var(--hive-text-muted);
+      }
+
+      /* Footer/Info Section */
+      .info-section {
+        margin-top: 2.5rem;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(255, 210, 63, 0.2);
+        text-align: center;
+      }
+
+      .info-box {
+        background: rgba(26, 31, 46, 0.8);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 210, 63, 0.2);
+        border-radius: 12px;
+        padding: 1.5rem;
+        max-width: 600px;
+        margin: 0 auto 1.5rem;
+        line-height: 1.7;
+        color: var(--hive-text-muted);
+        font-size: 0.95rem;
+      }
+
+      .credit {
+        font-size: 0.875rem;
+        color: var(--hive-text-muted);
+      }
+
+      .credit a {
+        color: var(--hive-gold);
+        text-decoration: none;
+        border-bottom: 1px solid rgba(255, 210, 63, 0.5);
+        transition: all 0.2s;
+      }
+
+      .credit a:hover {
+        color: #fff;
+        border-bottom-color: var(--hive-gold);
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .container-fluid {
+          padding: 1.5rem 1rem;
+        }
+
+        .block-info {
+          grid-template-columns: 1fr;
+        }
+
+        .viz-section {
+          min-height: 400px;
+          padding: 1rem;
+        }
+
+        #content {
+          max-height: 400px;
+        }
+
+        .info-value {
+          font-size: 1.2rem;
+        }
+
+        .controls-section {
+          gap: 0.75rem;
+        }
+
+        button {
+          padding: 0.6rem 1rem;
+          font-size: 0.85rem;
+        }
+      }
+
+      /* Utility */
+      .center {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      /* Theme Toggle */
+      .theme-toggle {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .theme-toggle input {
+        display: none;
+      }
+
+      .toggle-slider {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 28px;
+        background: rgba(255, 210, 63, 0.2);
+        border: 1.5px solid var(--hive-gold);
+        border-radius: 34px;
+        transition: all 0.3s ease;
+      }
+
+      .toggle-slider::before {
+        content: "🌙";
+        position: absolute;
+        left: 4px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+      }
+
+      .theme-toggle input:checked + .toggle-slider {
+        background: rgba(255, 210, 63, 0.3);
+      }
+
+      .theme-toggle input:checked + .toggle-slider::before {
+        content: "☀️";
+        left: auto;
+        right: 4px;
+      }
+
+      /* Light Mode */
+      body.light-mode {
+        --hive-dark: #f5f5f5;
+        --hive-card: #ffffff;
+        --hive-accent: #e8e8e8;
+        --hive-text: #1a202c;
+        --hive-text-muted: #718096;
+      }
+
+      body.light-mode {
+        background: linear-gradient(
+          135deg,
+          #f5f5f5 0%,
+          #ffffff 50%,
+          #f5f5f5 100%
+        );
+      }
+
+      body.light-mode::before {
+        background:
+          linear-gradient(
+            90deg,
+            transparent 24%,
+            rgba(0, 0, 0, 0.03) 25%,
+            rgba(0, 0, 0, 0.03) 26%,
+            transparent 27%,
+            transparent 74%,
+            rgba(0, 0, 0, 0.03) 75%,
+            rgba(0, 0, 0, 0.03) 76%,
+            transparent 77%,
+            transparent
+          ),
+          linear-gradient(
+            0deg,
+            transparent 24%,
+            rgba(0, 0, 0, 0.03) 25%,
+            rgba(0, 0, 0, 0.03) 26%,
+            transparent 27%,
+            transparent 74%,
+            rgba(0, 0, 0, 0.03) 75%,
+            rgba(0, 0, 0, 0.03) 76%,
+            transparent 77%,
+            transparent
+          );
+        background-size: 50px 50px;
+      }
+
+      body.light-mode .info-card {
+        background: rgba(255, 255, 255, 0.9);
+        border-color: rgba(255, 210, 63, 0.3);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+      }
+
+      body.light-mode .info-card:hover {
+        border-color: rgba(255, 210, 63, 0.6);
+        box-shadow: 0 4px 12px rgba(255, 210, 63, 0.1);
+      }
+
+      body.light-mode button {
+        background: rgba(255, 210, 63, 0.15);
+        border-color: var(--hive-gold);
+      }
+
+      body.light-mode button:hover:not(:disabled) {
+        background: rgba(255, 210, 63, 0.25);
+        box-shadow: 0 0 15px rgba(255, 210, 63, 0.25);
+      }
+
+      body.light-mode .comment {
+        background: rgba(255, 255, 255, 0.8);
+        border-left-color: var(--hive-gold);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      }
+
+      body.light-mode .comment:hover {
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 4px 12px rgba(255, 210, 63, 0.15);
+      }
+
+      body.light-mode .info-box {
+        background: rgba(255, 255, 255, 0.9);
+        border-color: rgba(255, 210, 63, 0.3);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      }
+
+      body.light-mode .header-section {
+        border-bottom-color: rgba(255, 210, 63, 0.3);
+      }
+
+      body.light-mode .info-section {
+        border-top-color: rgba(255, 210, 63, 0.3);
+      }
+
+      body.light-mode #content::-webkit-scrollbar-track {
+        background: rgba(255, 210, 63, 0.08);
+      }
+
+      body.light-mode #content::-webkit-scrollbar-thumb {
+        background: rgba(255, 210, 63, 0.4);
+      }
+
+      body.light-mode #content::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 210, 63, 0.6);
+      }
+
+      body.light-mode .feed-section {
+        background: rgba(255, 255, 255, 0.9);
+        border-color: rgba(255, 210, 63, 0.2);
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+      }
+
+      /* Block Modal */
+      .block-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1001;
+        animation: fadeIn 0.2s ease-out;
+      }
+
+      .block-modal[hidden] {
+        display: none;
+      }
+
+      .modal-content {
+        background: var(--hive-card);
+        border: 1px solid rgba(255, 210, 63, 0.2);
+        border-radius: 12px;
+        width: 90%;
+        max-width: 400px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        animation: modalSlideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+
+      .modal-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid rgba(255, 210, 63, 0.2);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .modal-header h3 {
+        margin: 0;
+        font-size: 1.3rem;
+        color: var(--hive-text);
+      }
+
+      .modal-close {
+        background: transparent;
+        border: none;
+        color: var(--hive-gold);
+        cursor: pointer;
+        padding: 0.5rem;
+        font-size: 1.3rem;
+        transition: all 0.2s;
+      }
+
+      .modal-close:hover {
+        transform: rotate(90deg);
+      }
+
+      .modal-body {
+        padding: 1.5rem;
+      }
+
+      #blockInput {
+        width: 100%;
+        padding: 0.75rem;
+        background: rgba(255, 210, 63, 0.1);
+        border: 1.5px solid var(--hive-gold);
+        border-radius: 8px;
+        color: var(--hive-text);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 1rem;
+        transition: all 0.2s;
+      }
+
+      #blockInput:focus {
+        outline: none;
+        background: rgba(255, 210, 63, 0.15);
+        box-shadow: 0 0 10px rgba(255, 210, 63, 0.3);
+      }
+
+      #blockInput::placeholder {
+        color: var(--hive-text-muted);
+      }
+
+      .modal-hint {
+        margin-top: 0.75rem;
+        font-size: 0.85rem;
+        color: var(--hive-text-muted);
+        text-align: center;
+      }
+
+      .modal-footer {
+        padding: 1rem 1.5rem;
+        border-top: 1px solid rgba(255, 210, 63, 0.2);
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+      }
+
+      .modal-btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        font-family: "Space Grotesk", sans-serif;
+        font-weight: 600;
+        transition: all 0.2s;
+      }
+
+      .modal-btn-primary {
+        background: rgba(255, 210, 63, 0.2);
+        border: 1.5px solid var(--hive-gold);
+        color: var(--hive-gold);
+      }
+
+      .modal-btn-primary:hover {
+        background: rgba(255, 210, 63, 0.3);
+        box-shadow: 0 0 15px rgba(255, 210, 63, 0.3);
+      }
+
+      .modal-btn-secondary {
+        background: transparent;
+        border: 1.5px solid var(--hive-text-muted);
+        color: var(--hive-text-muted);
+      }
+
+      .modal-btn-secondary:hover {
+        border-color: var(--hive-text);
+        color: var(--hive-text);
+      }
+
+      body.light-mode .modal-content {
+        background: rgba(255, 255, 255, 0.95);
+      }
+
+      body.light-mode .modal-header,
+      body.light-mode .modal-footer {
+        border-color: rgba(255, 210, 63, 0.3);
+      }
+
+      body.light-mode #blockInput {
+        background: rgba(255, 210, 63, 0.08);
+        color: var(--hive-text);
+      }
+
+      body.light-mode #blockInput:focus {
+        background: rgba(255, 210, 63, 0.15);
+        box-shadow: 0 0 10px rgba(255, 210, 63, 0.2);
+      }
+
+      /* Filter Modal */
+      .filter-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: flex-start;
+        justify-content: flex-end;
+        z-index: 1000;
+        animation: fadeIn 0.2s ease-out;
+      }
+
+      .filter-modal[hidden] {
+        display: none;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      .filter-menu {
+        background: var(--hive-card);
+        border-left: 1px solid rgba(255, 210, 63, 0.2);
+        width: 300px;
+        height: 100%;
+        overflow-y: auto;
+        animation: slideInRight 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        box-shadow: -5px 0 20px rgba(0, 0, 0, 0.3);
+      }
+
+      @keyframes slideInRight {
+        from {
+          transform: translateX(100%);
+        }
+        to {
+          transform: translateX(0);
+        }
+      }
+
+      .filter-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid rgba(255, 210, 63, 0.2);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        background: var(--hive-card);
+      }
+
+      .filter-header h3 {
+        margin: 0;
+        font-size: 1.1rem;
+        color: var(--hive-text);
+      }
+
+      .close-btn {
+        background: transparent;
+        border: none;
+        color: var(--hive-gold);
+        cursor: pointer;
+        padding: 0.5rem;
+        font-size: 1.2rem;
+        transition: all 0.2s;
+      }
+
+      .close-btn:hover {
+        transform: rotate(90deg);
+      }
+
+      .filter-options {
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .filter-option {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        cursor: pointer;
+        padding: 0.75rem;
+        border-radius: 8px;
+        transition: all 0.2s;
+        user-select: none;
+      }
+
+      .filter-option:hover {
+        background: rgba(255, 210, 63, 0.1);
+      }
+
+      .filter-option input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        accent-color: var(--hive-gold);
+      }
+
+      .leo-dot,
+      .ecency-dot,
+      .peakd-dot,
+      .snapie-dot,
+      .waivio-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 2px;
+        flex-shrink: 0;
+      }
+
+      .leo-dot {
+        background-color: #f4d03f;
+      }
+      .ecency-dot {
+        background-color: var(--accent-blue);
+      }
+      .peakd-dot {
+        background-color: #000000;
+      }
+      .snapie-dot {
+        background-color: var(--accent-cyan);
+      }
+      .waivio-dot {
+        background-color: #ff9500;
+      }
+
+      .filter-option
+        span:not(.leo-dot):not(.ecency-dot):not(.peakd-dot):not(
+          .snapie-dot
+        ):not(.waivio-dot) {
+        color: var(--hive-text);
+        font-size: 0.95rem;
+      }
+
+      body.light-mode .filter-menu {
+        background: rgba(255, 255, 255, 0.95);
+        border-left-color: rgba(255, 210, 63, 0.3);
+      }
+
+      body.light-mode .filter-header {
+        border-bottom-color: rgba(255, 210, 63, 0.3);
+        background: rgba(255, 255, 255, 0.95);
+      }
+
+      body.light-mode .filter-option:hover {
+        background: rgba(255, 210, 63, 0.15);
+      }
+
+      /* Speed Dropdown */
+      #speedBtn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        position: relative;
+      }
+
+      .speed-dropdown {
+        position: absolute;
+        bottom: -130px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--hive-card);
+        border: 1px solid rgba(255, 210, 63, 0.2);
+        border-radius: 8px;
+        overflow: hidden;
+        min-width: 100px;
+        z-index: 100;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        animation: slideUp 0.2s ease-out;
+      }
+
+      .speed-dropdown[hidden] {
+        display: none;
+      }
+
+      @keyframes modalSlideUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .speed-option {
+        display: block;
+        width: 100%;
+        padding: 0.75rem 1rem;
+        background: transparent;
+        border: none;
+        color: var(--hive-text-muted);
+        cursor: pointer;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.9rem;
+        text-align: center;
+        transition: all 0.2s;
+        border-bottom: 1px solid rgba(255, 210, 63, 0.1);
+      }
+
+      .speed-option:last-child {
+        border-bottom: none;
+      }
+
+      .speed-option:hover {
+        background: rgba(255, 210, 63, 0.1);
+        color: var(--hive-gold);
+      }
+
+      .speed-option.active {
+        background: rgba(255, 210, 63, 0.2);
+        color: var(--hive-gold);
+        font-weight: 600;
+      }
+
+      /* Frontend Select */
+      .frontend-select {
+        width: 100%;
+        padding: 0.75rem;
+        background: rgba(255, 210, 63, 0.1);
+        border: 1.5px solid var(--hive-gold);
+        border-radius: 6px;
+        color: var(--hive-text);
+        font-family: "Space Grotesk", sans-serif;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .frontend-select:hover {
+        background: rgba(255, 210, 63, 0.15);
+        border-color: #fff;
+      }
+
+      .frontend-select:focus {
+        outline: none;
+        background: rgba(255, 210, 63, 0.15);
+        box-shadow: 0 0 10px rgba(255, 210, 63, 0.3);
+      }
+
+      body.light-mode .frontend-select {
+        background: rgba(255, 210, 63, 0.1);
+        color: var(--hive-text);
+      }
+
+      body.light-mode .frontend-select:focus {
+        box-shadow: 0 0 10px rgba(255, 210, 63, 0.2);
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container-fluid">
+      <!-- Header with Block Info -->
+      <div class="header-section">
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            gap: 1rem;
+            flex-wrap: wrap;
+          "
+        >
+          <div style="display: flex; align-items: center; gap: 0.75rem">
+            <i
+              class="fab fa-hive"
+              style="font-size: 2rem; color: var(--hive-gold)"
+            ></i>
+            <h1
+              style="
+                margin: 0;
+                font-size: 2rem;
+                font-weight: 700;
+                letter-spacing: -0.5px;
+              "
+            >
+              Hive Stream
+            </h1>
+          </div>
+          <div style="display: flex; align-items: center; gap: 1rem">
+            <button
+              id="filterMenuBtn"
+              title="Filter apps"
+              style="padding: 0.75rem"
+            >
+              <i class="fas fa-bars"></i>
             </button>
-          </div>
-          <div class="modal-body">
-            <input type="number" id="blockInput" placeholder="Enter block number..." min="0">
-            <p class="modal-hint">Leave empty to go to latest block</p>
-          </div>
-          <div class="modal-footer">
-            <button id="blockCancelBtn" class="modal-btn modal-btn-secondary">Cancel</button>
-            <button id="blockGoBtn" class="modal-btn modal-btn-primary">Go</button>
+            <label class="theme-toggle" title="Toggle theme">
+              <input type="checkbox" id="themeToggle" />
+              <span class="toggle-slider"></span>
+            </label>
           </div>
         </div>
-      </div>
 
-      <!-- Filter Menu Modal -->
-      <div id="filterModal" class="filter-modal" hidden>
-        <div class="filter-menu">
-          <div class="filter-header">
-            <h3>Filter Apps</h3>
-            <button id="closeFilterBtn" class="close-btn" title="Close menu">
-              <i class="fas fa-times"></i>
-            </button>
-          </div>
-          <div class="filter-options">
-            <div style="border-bottom: 1px solid rgba(255, 210, 63, 0.2); padding-bottom: 1rem; margin-bottom: 1rem;">
-              <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--hive-text-muted); text-transform: uppercase; font-weight: 600;">Front-end</label>
-              <select id="frontendSelect" class="frontend-select">
-                <option value="hive.blog">hive.blog</option>
-                <option value="peakd.com">peakd.com</option>
-                <option value="inleo.io">inleo.io</option>
-                <option value="ecency.com">ecency.com</option>
-              </select>
+        <!-- Block Number Modal -->
+        <div id="blockModal" class="block-modal" hidden>
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3>Jump to Block</h3>
+              <button class="modal-close" id="closeBlockBtn" title="Close">
+                <i class="fas fa-times"></i>
+              </button>
             </div>
+            <div class="modal-body">
+              <input
+                type="number"
+                id="blockInput"
+                placeholder="Enter block number..."
+                min="0"
+              />
+              <p class="modal-hint">Leave empty to go to latest block</p>
+            </div>
+            <div class="modal-footer">
+              <button id="blockCancelBtn" class="modal-btn modal-btn-secondary">
+                Cancel
+              </button>
+              <button id="blockGoBtn" class="modal-btn modal-btn-primary">
+                Go
+              </button>
+            </div>
+          </div>
+        </div>
 
-            <div style="font-size: 0.9rem; color: var(--hive-text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 0.5rem;">Filter Apps</div>
+        <!-- Filter Menu Modal -->
+        <div id="filterModal" class="filter-modal" hidden>
+          <div class="filter-menu">
+            <div class="filter-header">
+              <h3>Filter Apps</h3>
+              <button id="closeFilterBtn" class="close-btn" title="Close menu">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            <div class="filter-options">
+              <div
+                style="
+                  border-bottom: 1px solid rgba(255, 210, 63, 0.2);
+                  padding-bottom: 1rem;
+                  margin-bottom: 1rem;
+                "
+              >
+                <label
+                  style="
+                    display: block;
+                    margin-bottom: 0.5rem;
+                    font-size: 0.9rem;
+                    color: var(--hive-text-muted);
+                    text-transform: uppercase;
+                    font-weight: 600;
+                  "
+                  >Front-end</label
+                >
+                <select id="frontendSelect" class="frontend-select">
+                  <option value="hive.blog">hive.blog</option>
+                  <option value="peakd.com">peakd.com</option>
+                  <option value="inleo.io">inleo.io</option>
+                  <option value="ecency.com">ecency.com</option>
+                </select>
+              </div>
 
-            <label class="filter-option">
-              <input type="checkbox" class="app-filter" data-app="leo" checked>
-              <span class="leo-dot"></span>
-              <span>Leo Threads</span>
-            </label>
-            <label class="filter-option">
-              <input type="checkbox" class="app-filter" data-app="ecency" checked>
-              <span class="ecency-dot"></span>
-              <span>Ecency</span>
-            </label>
-            <label class="filter-option">
-              <input type="checkbox" class="app-filter" data-app="peakd" checked>
-              <span class="peakd-dot"></span>
-              <span>PeakD</span>
-            </label>
-            <label class="filter-option">
-              <input type="checkbox" class="app-filter" data-app="hivesnaps" checked>
-              <span class="snapie-dot"></span>
-              <span>Snapie</span>
-            </label>
-            <label class="filter-option">
-              <input type="checkbox" class="app-filter" data-app="waivio">
-              <span class="waivio-dot"></span>
-              <span>Waivio</span>
-            </label>
+              <div
+                style="
+                  font-size: 0.9rem;
+                  color: var(--hive-text-muted);
+                  text-transform: uppercase;
+                  font-weight: 600;
+                  margin-bottom: 0.5rem;
+                "
+              >
+                Filter Apps
+              </div>
+
+              <label class="filter-option">
+                <input
+                  type="checkbox"
+                  class="app-filter"
+                  data-app="leo"
+                  checked
+                />
+                <span class="leo-dot"></span>
+                <span>Leo Threads</span>
+              </label>
+              <label class="filter-option">
+                <input
+                  type="checkbox"
+                  class="app-filter"
+                  data-app="ecency"
+                  checked
+                />
+                <span class="ecency-dot"></span>
+                <span>Ecency</span>
+              </label>
+              <label class="filter-option">
+                <input
+                  type="checkbox"
+                  class="app-filter"
+                  data-app="peakd"
+                  checked
+                />
+                <span class="peakd-dot"></span>
+                <span>PeakD</span>
+              </label>
+              <label class="filter-option">
+                <input
+                  type="checkbox"
+                  class="app-filter"
+                  data-app="hivesnaps"
+                  checked
+                />
+                <span class="snapie-dot"></span>
+                <span>Snapie</span>
+              </label>
+              <label class="filter-option">
+                <input type="checkbox" class="app-filter" data-app="waivio" />
+                <span class="waivio-dot"></span>
+                <span>Waivio</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="block-info">
+          <div class="info-card">
+            <div class="info-label">Current Block</div>
+            <div class="info-value" id="blockNum">NaN</div>
+          </div>
+          <div class="info-card">
+            <div class="info-label">Timestamp</div>
+            <div class="info-value" id="timestamp" style="font-size: 1.1rem">
+              NaN
+            </div>
+          </div>
+          <div class="info-card">
+            <div class="info-label">Witness</div>
+            <div
+              class="info-value"
+              id="currentWitness"
+              style="font-size: 1.1rem"
+            >
+              NaN
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="block-info">
-        <div class="info-card">
-          <div class="info-label">Current Block</div>
-          <div class="info-value" id="blockNum">NaN</div>
-        </div>
-        <div class="info-card">
-          <div class="info-label">Timestamp</div>
-          <div class="info-value" id="timestamp" style="font-size: 1.1rem;">NaN</div>
-        </div>
-        <div class="info-card">
-          <div class="info-label">Witness</div>
-          <div class="info-value" id="currentWitness" style="font-size: 1.1rem;">NaN</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Control Panel -->
-    <div class="controls-section">
-      <button id="pausePlayBtn" title="Toggle stream">
-        <i class="fas fa-pause"></i>
-        <span>Pause</span>
-      </button>
-      <button id="gotoblock" title="Jump to block">
-        <i class="fas fa-search"></i>
-        <span>Block</span>
-      </button>
-      <div style="position: relative;">
-        <button id="speedBtn" title="Select playback speed">
-          <span>2x</span>
-          <i class="fas fa-chevron-down"></i>
+      <!-- Control Panel -->
+      <div class="controls-section">
+        <button id="pausePlayBtn" title="Toggle stream">
+          <i class="fas fa-pause"></i>
+          <span>Pause</span>
         </button>
+        <button id="gotoblock" title="Jump to block">
+          <i class="fas fa-search"></i>
+          <span>Block</span>
+        </button>
+        <div style="position: relative">
+          <button id="speedBtn" title="Select playback speed">
+            <span>2x</span>
+            <i class="fas fa-chevron-down"></i>
+          </button>
 
-        <!-- Speed Dropdown -->
-        <div id="speedDropdown" class="speed-dropdown" hidden>
-          <button class="speed-option" data-speed="1.0">1.0x</button>
-          <button class="speed-option" data-speed="2.0">2.0x</button>
-          <button class="speed-option" data-speed="3.0">3.0x</button>
+          <!-- Speed Dropdown -->
+          <div id="speedDropdown" class="speed-dropdown" hidden>
+            <button class="speed-option" data-speed="1.0">1.0x</button>
+            <button class="speed-option" data-speed="2.0">2.0x</button>
+            <button class="speed-option" data-speed="3.0">3.0x</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Comment Feed -->
+      <div class="feed-section">
+        <div class="feed-title">
+          <i class="fas fa-comments"></i> Live Comment Stream
+        </div>
+        <div id="content"></div>
+      </div>
+
+      <!-- Info Section -->
+      <div class="info-section">
+        <div class="info-box">
+          <p>
+            Every 3 seconds an immutable Hive block is forged. This
+            visualization shows the social engagement in those blocks in
+            real-time.
+          </p>
+          <p style="margin-top: 1rem">
+            Each immutable block is verified and linked to a chain of millions
+            of older blocks. <strong>A blockchain.</strong>
+          </p>
+        </div>
+        <div class="credit">
+          Built with ❤️ by
+          <a href="https://peakd.com/@hivetrending">@HiveTrending</a>
         </div>
       </div>
     </div>
 
-    <!-- Comment Feed -->
-    <div class="feed-section">
-      <div class="feed-title"><i class="fas fa-comments"></i> Live Comment Stream</div>
-      <div id="content"></div>
-    </div>
-
-    <!-- Info Section -->
-    <div class="info-section">
-      <div class="info-box">
-        <p>Every 3 seconds an immutable Hive block is forged. This visualization shows the social engagement in those blocks in real-time.</p>
-        <p style="margin-top: 1rem;">Each immutable block is verified and linked to a chain of millions of older blocks. <strong>A blockchain.</strong></p>
-      </div>
-      <div class="credit">
-        Built with ❤️ by <a href="https://peakd.com/@hivetrending">@HiveTrending</a>
-      </div>
-    </div>
-  </div>
-
-  <script src="index.js"></script>
-</body>
+    <script src="index.js"></script>
+  </body>
 </html>

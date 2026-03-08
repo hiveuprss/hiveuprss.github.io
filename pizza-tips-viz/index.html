@@ -1,14 +1,31 @@
-<!DOCTYPE html>
-<meta charset="utf-8">
+<!doctype html>
+<meta charset="utf-8" />
 <title>Visualizing 16,316 Pizza Tips</title>
-<link rel="stylesheet" type="text/css" href="./inspector.css">
+<meta
+  name="description"
+  content="Interactive data visualization of 16,316 Pizza token tips on the Hive blockchain."
+/>
+<link rel="canonical" href="https://hiveuprss.github.io/pizza-tips-viz/" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://hiveuprss.github.io/pizza-tips-viz/" />
+<meta property="og:title" content="Visualizing 16,316 Pizza Tips" />
+<meta
+  property="og:description"
+  content="Interactive data visualization of 16,316 Pizza token tips on the Hive blockchain."
+/>
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Visualizing 16,316 Pizza Tips" />
+<meta
+  name="twitter:description"
+  content="Interactive data visualization of 16,316 Pizza token tips on the Hive blockchain."
+/>
+<link rel="stylesheet" type="text/css" href="./inspector.css" />
 <body>
-<script type="module">
+  <script type="module">
+    import define from "./index.js";
+    import { Runtime, Library, Inspector } from "./runtime.js";
 
-import define from "./index.js";
-import {Runtime, Library, Inspector} from "./runtime.js";
-
-const runtime = new Runtime();
-const main = runtime.module(define, Inspector.into(document.body));
-
-</script>
+    const runtime = new Runtime();
+    const main = runtime.module(define, Inspector.into(document.body));
+  </script>
+</body>

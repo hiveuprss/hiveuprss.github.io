@@ -1,133 +1,241 @@
 <!-- <!DOCTYPE html> -->
 <!-- Created by peakd.com/@hivetrending -->
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>HiveIsBeautiful - Hive Block Visualization</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <head>
+    <meta charset="utf-8" />
+    <title>HiveIsBeautiful - Hive Block Visualization</title>
+    <meta
+      name="description"
+      content="Real-time visualization of Hive blockchain block contents. Watch transactions flow through the Hive network live."
+    />
+    <link rel="canonical" href="https://hiveuprss.github.io/hiveisbeautiful/" />
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:url"
+      content="https://hiveuprss.github.io/hiveisbeautiful/"
+    />
+    <meta
+      property="og:title"
+      content="HiveIsBeautiful - Hive Block Visualization"
+    />
+    <meta
+      property="og:description"
+      content="Real-time visualization of Hive blockchain block contents. Watch transactions flow through the Hive network live."
+    />
+    <meta name="twitter:card" content="summary" />
+    <meta
+      name="twitter:title"
+      content="HiveIsBeautiful - Hive Block Visualization"
+    />
+    <meta
+      name="twitter:description"
+      content="Real-time visualization of Hive blockchain block contents. Watch transactions flow through the Hive network live."
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"
+      integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/js/all.min.js" integrity="sha512-6PM0qYu5KExuNcKt5bURAoT6KCThUmHRewN3zUFNaoI6Di7XJPTMoT6K0nsagZKk2OB4L7E3q1uQKHNHd4stIQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@hiveio/hive-js/dist/hive.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
-  <link rel="icon" type="image/x-icon" href="/hiveisbeautiful/assets/favicon-CWwF4fVM.ico">
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/js/all.min.js"
+      integrity="sha512-6PM0qYu5KExuNcKt5bURAoT6KCThUmHRewN3zUFNaoI6Di7XJPTMoT6K0nsagZKk2OB4L7E3q1uQKHNHd4stIQ=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/@hiveio/hive-js/dist/hive.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="/hiveisbeautiful/assets/favicon-CWwF4fVM.ico"
+    />
 
-  <script>
-    // Apply saved theme before paint to avoid flash
-    (function() {
-      const saved = localStorage.getItem('hib-theme');
-      if (saved === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
-    })();
-  </script>
-  <script type="module" crossorigin src="/hiveisbeautiful/assets/index-JyQbR5fO.js"></script>
-  <link rel="stylesheet" crossorigin href="/hiveisbeautiful/assets/index-BdXHhpw7.css">
-</head>
+    <script>
+      // Apply saved theme before paint to avoid flash
+      (function () {
+        const saved = localStorage.getItem("hib-theme");
+        if (saved === "dark")
+          document.documentElement.setAttribute("data-theme", "dark");
+      })();
+    </script>
+    <script
+      type="module"
+      crossorigin
+      src="/hiveisbeautiful/assets/index-JyQbR5fO.js"
+    ></script>
+    <link
+      rel="stylesheet"
+      crossorigin
+      href="/hiveisbeautiful/assets/index-BdXHhpw7.css"
+    />
+  </head>
 
-<body>
-
-  <!-- ── Top bar ──────────────────────────────────────── -->
-  <div id="topbar">
-
-    <!-- Left: playback controls + toggle -->
-    <div class="controls-wrap">
-      <div id="controls">
-        <button class="btn-ctrl" id="pause" title="Pause"><i class="fas fa-pause"></i></button>
-        <button class="btn-ctrl" id="play" hidden title="Play"><i class="fas fa-play"></i></button>
-        <button class="btn-ctrl" id="gotoblock" title="Go to block"><i class="fas fa-search"></i></button>
-        <button class="btn-ctrl" id="backward" title="Step back"><i class="fas fa-fast-backward"></i></button>
-        <button class="btn-ctrl" id="fastforward" title="Fast forward"><i class="fas fa-fast-forward"></i></button>
-        <button class="btn-ctrl" id="speedgauge" disabled title="Speed">1x</button>
-        <button id="themeToggle" title="Toggle light/dark mode"><i class="fas fa-moon"></i></button>
-      </div>
-      <div class="form-check">
-        <input class="form-check-input" type="checkbox" value="" id="flexCheckCustomJSONs">
-        <label class="form-check-label" for="flexCheckCustomJSONs">Hide Custom JSONs</label>
-      </div>
-    </div>
-
-    <!-- Right: block info -->
-    <div class="block-info">
-      <div class="block-heading">
-        <i class="fab fa-hive fa-lg"></i>
-        <span class="block-num-pill">Block #<span id="blockNum">—</span></span>
-      </div>
-      <div class="meta-line">Timestamp: <span class="val" id="timestamp">—</span></div>
-      <div class="meta-line">Size: <span class="val" id="blockSize">—</span></div>
-      <div class="meta-line">Witness: <span class="val" id="currentWitness">—</span></div>
-      <div id="inspector" hidden class="meta-line mt-1"><strong>Inspector</strong></div>
-    </div>
-
-  </div>
-
-  <!-- ── Visualization ───────────────────────────────── -->
-  <div id="content">
-    <svg id="viz" width="800" height="700" class="center"></svg>
-  </div>
-
-  <!-- ── Footer ─────────────────────────────────────── -->
-  <footer class="footer-bar">
-    <div class="footer-inner">
-
-      <div class="footer-cols">
-        <!-- About -->
-        <div class="footer-col footer-about">
-          <div class="footer-col-title"><i class="fab fa-hive"></i> HiveIsBeautiful</div>
-          <p>Every 3 seconds an immutable Hive block is forged. This page visualizes those blocks in real-time.</p>
-          <p>Each block is verified and linked to a chain of millions of older blocks &mdash; a blockchain.</p>
+  <body>
+    <!-- ── Top bar ──────────────────────────────────────── -->
+    <div id="topbar">
+      <!-- Left: playback controls + toggle -->
+      <div class="controls-wrap">
+        <div id="controls">
+          <button class="btn-ctrl" id="pause" title="Pause">
+            <i class="fas fa-pause"></i>
+          </button>
+          <button class="btn-ctrl" id="play" hidden title="Play">
+            <i class="fas fa-play"></i>
+          </button>
+          <button class="btn-ctrl" id="gotoblock" title="Go to block">
+            <i class="fas fa-search"></i>
+          </button>
+          <button class="btn-ctrl" id="backward" title="Step back">
+            <i class="fas fa-fast-backward"></i>
+          </button>
+          <button class="btn-ctrl" id="fastforward" title="Fast forward">
+            <i class="fas fa-fast-forward"></i>
+          </button>
+          <button class="btn-ctrl" id="speedgauge" disabled title="Speed">
+            1x
+          </button>
+          <button id="themeToggle" title="Toggle light/dark mode">
+            <i class="fas fa-moon"></i>
+          </button>
         </div>
+        <div class="form-check">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            value=""
+            id="flexCheckCustomJSONs"
+          />
+          <label class="form-check-label" for="flexCheckCustomJSONs"
+            >Hide Custom JSONs</label
+          >
+        </div>
+      </div>
 
-        <!-- Legend -->
-        <div class="footer-col">
-          <div class="footer-col-title">Legend</div>
-          <div class="legend-grid">
-            <span class="legend-badge lb-green">SL</span><span class="legend-label">Splinterlands</span>
-            <span class="legend-badge lb-red">H-E</span><span class="legend-label">HiveEngine</span>
-            <span class="legend-badge lb-gray">Up</span><span class="legend-label">Upvote</span>
-            <span class="legend-badge lb-blue">GLS</span><span class="legend-label">GenesisLeagueSports</span>
-            <span class="legend-badge lb-blue">CS</span><span class="legend-label">CryptoShots</span>
-            <span class="legend-badge lb-gray">RC</span><span class="legend-label">Delegate RC</span>
+      <!-- Right: block info -->
+      <div class="block-info">
+        <div class="block-heading">
+          <i class="fab fa-hive fa-lg"></i>
+          <span class="block-num-pill"
+            >Block #<span id="blockNum">—</span></span
+          >
+        </div>
+        <div class="meta-line">
+          Timestamp: <span class="val" id="timestamp">—</span>
+        </div>
+        <div class="meta-line">
+          Size: <span class="val" id="blockSize">—</span>
+        </div>
+        <div class="meta-line">
+          Witness: <span class="val" id="currentWitness">—</span>
+        </div>
+        <div id="inspector" hidden class="meta-line mt-1">
+          <strong>Inspector</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Visualization ───────────────────────────────── -->
+    <div id="content">
+      <svg id="viz" width="800" height="700" class="center"></svg>
+    </div>
+
+    <!-- ── Footer ─────────────────────────────────────── -->
+    <footer class="footer-bar">
+      <div class="footer-inner">
+        <div class="footer-cols">
+          <!-- About -->
+          <div class="footer-col footer-about">
+            <div class="footer-col-title">
+              <i class="fab fa-hive"></i> HiveIsBeautiful
+            </div>
+            <p>
+              Every 3 seconds an immutable Hive block is forged. This page
+              visualizes those blocks in real-time.
+            </p>
+            <p>
+              Each block is verified and linked to a chain of millions of older
+              blocks &mdash; a blockchain.
+            </p>
+          </div>
+
+          <!-- Legend -->
+          <div class="footer-col">
+            <div class="footer-col-title">Legend</div>
+            <div class="legend-grid">
+              <span class="legend-badge lb-green">SL</span
+              ><span class="legend-label">Splinterlands</span>
+              <span class="legend-badge lb-red">H-E</span
+              ><span class="legend-label">HiveEngine</span>
+              <span class="legend-badge lb-gray">Up</span
+              ><span class="legend-label">Upvote</span>
+              <span class="legend-badge lb-blue">GLS</span
+              ><span class="legend-label">GenesisLeagueSports</span>
+              <span class="legend-badge lb-blue">CS</span
+              ><span class="legend-label">CryptoShots</span>
+              <span class="legend-badge lb-gray">RC</span
+              ><span class="legend-label">Delegate RC</span>
+            </div>
+          </div>
+
+          <!-- Credits -->
+          <div class="footer-col footer-credits">
+            <div class="footer-col-title">Credits</div>
+            <p>
+              Built by
+              <a href="https://peakd.com/@hivetrending">@HiveTrending</a>
+            </p>
+            <p>
+              Part of the
+              <a href="https://vote.hive.uno/@pizza.witness">@pizza.witness</a>
+              team
+            </p>
+            <p>
+              <a href="https://discord.gg/KcTy6vCNQY"
+                ><i class="fab fa-discord"></i> Discord support</a
+              >
+            </p>
           </div>
         </div>
 
-        <!-- Credits -->
-        <div class="footer-col footer-credits">
-          <div class="footer-col-title">Credits</div>
-          <p>Built by <a href="https://peakd.com/@hivetrending">@HiveTrending</a></p>
-          <p>Part of the <a href="https://vote.hive.uno/@pizza.witness">@pizza.witness</a> team</p>
-          <p><a href="https://discord.gg/KcTy6vCNQY"><i class="fab fa-discord"></i> Discord support</a></p>
+        <div class="footer-bottom">
+          <span>HiveIsBeautiful &mdash; open-source Hive block visualizer</span>
         </div>
       </div>
+    </footer>
 
-      <div class="footer-bottom">
-        <span>HiveIsBeautiful &mdash; open-source Hive block visualizer</span>
-      </div>
+    <script>
+      const toggle = document.getElementById("themeToggle");
+      const icon = toggle.querySelector("i");
 
-    </div>
-  </footer>
-
-  <script>
-    const toggle = document.getElementById('themeToggle');
-    const icon = toggle.querySelector('i');
-
-    function applyTheme(dark) {
-      if (dark) {
-        document.documentElement.setAttribute('data-theme', 'dark');
-        icon.className = 'fas fa-sun';
-        localStorage.setItem('hib-theme', 'dark');
-      } else {
-        document.documentElement.removeAttribute('data-theme');
-        icon.className = 'fas fa-moon';
-        localStorage.setItem('hib-theme', 'light');
+      function applyTheme(dark) {
+        if (dark) {
+          document.documentElement.setAttribute("data-theme", "dark");
+          icon.className = "fas fa-sun";
+          localStorage.setItem("hib-theme", "dark");
+        } else {
+          document.documentElement.removeAttribute("data-theme");
+          icon.className = "fas fa-moon";
+          localStorage.setItem("hib-theme", "light");
+        }
       }
-    }
 
-    // Sync icon with current state on load
-    applyTheme(document.documentElement.getAttribute('data-theme') === 'dark');
+      // Sync icon with current state on load
+      applyTheme(
+        document.documentElement.getAttribute("data-theme") === "dark",
+      );
 
-    toggle.addEventListener('click', () => {
-      applyTheme(document.documentElement.getAttribute('data-theme') !== 'dark');
-    });
-  </script>
-
-</body>
+      toggle.addEventListener("click", () => {
+        applyTheme(
+          document.documentElement.getAttribute("data-theme") !== "dark",
+        );
+      });
+    </script>
+  </body>
 </html>

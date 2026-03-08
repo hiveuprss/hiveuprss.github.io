@@ -200,6 +200,11 @@ Promise.all([totals_promise, runners_promise, queue_promise, markets_promise, hi
       for (value of values) {
         [account,staked,cntDelegators,locked] = value
         staked = parseFloat(staked)/1000
+
+        if (!staked) {
+          continue;
+        }
+
         totalDelegated += staked
         staked = staked.toLocaleString({minimumFractionDigits: 3})
         document.querySelector(`td#staked${account.replace('.','')}`).innerHTML = staked
