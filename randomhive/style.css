@@ -291,6 +291,16 @@ body {
   cursor: not-allowed;
   pointer-events: none;
 }
+.action-bar .btn-next-up {
+  background: #16a34a;
+  border-color: #16a34a;
+  color: #fff !important;
+  gap: 1px;
+}
+.action-bar .btn-next-up:hover {
+  background: #15803d !important;
+  border-color: #15803d !important;
+}
 .action-bar .btn-next {
   background: var(--accent);
   border-color: var(--accent);

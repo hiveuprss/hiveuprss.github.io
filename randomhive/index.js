@@ -89,30 +89,100 @@ function tryNextNode() {
 
 setNode(0)
 
-const MIN_BODY_LENGTH   = 250
-const SEEN_AUTHORS_KEY  = 'rh-seen-authors'
-const NSFW_CATEGORIES   = ['porn','dporn','xxx','nsfw']
+const MIN_BODY_LENGTH      = 250
+const NSFW_CATEGORIES      = ['porn','dporn','xxx','nsfw']
 
-function getSeenAuthors() {
-  try {
-    return new Set(JSON.parse(localStorage.getItem(SEEN_AUTHORS_KEY) || '[]'))
-  } catch (e) {
-    return new Set()
-  }
+const DISLIKED_AUTHORS_KEY = 'rh-disliked-authors'
+const SEEN_SLUGS_KEY       = 'rh-seen-slugs'
+const LIKED_AUTHORS_KEY    = 'rh-liked-authors'
+const LIKED_TAGS_KEY       = 'rh-liked-tags'
+const DISLIKED_TAGS_KEY    = 'rh-disliked-tags'
+const SEEN_SLUGS_MAX       = 100
+
+// Seen slugs (FIFO queue)
+function getSeenSlugs() {
+  try { return JSON.parse(localStorage.getItem(SEEN_SLUGS_KEY) || '[]') }
+  catch { return [] }
+}
+function addSeenSlug(slug) {
+  const q = getSeenSlugs()
+  if (!q.includes(slug)) q.push(slug)
+  if (q.length > SEEN_SLUGS_MAX) q.shift()
+  localStorage.setItem(SEEN_SLUGS_KEY, JSON.stringify(q))
 }
 
-function addSeenAuthor(author) {
-  const seen = getSeenAuthors()
-  seen.add(author)
-  localStorage.setItem(SEEN_AUTHORS_KEY, JSON.stringify([...seen]))
+// Disliked authors (hard exclude)
+function getDislikedAuthors() {
+  try { return new Set(JSON.parse(localStorage.getItem(DISLIKED_AUTHORS_KEY) || '[]')) }
+  catch { return new Set() }
+}
+function addDislikedAuthor(author) {
+  const s = getDislikedAuthors()
+  s.add(author)
+  localStorage.setItem(DISLIKED_AUTHORS_KEY, JSON.stringify([...s]))
+}
+
+// Generic count-map helpers
+function getCountMap(key) {
+  try { return JSON.parse(localStorage.getItem(key) || '{}') }
+  catch { return {} }
+}
+function incrementCountMap(key, items) {
+  const map  = getCountMap(key)
+  const list = Array.isArray(items) ? items : [items]
+  list.forEach(item => { map[item] = (map[item] || 0) + 1 })
+  localStorage.setItem(key, JSON.stringify(map))
+}
+
+// Convenience wrappers called on button click
+const recordLike = (author, tags) => {
+  incrementCountMap(LIKED_AUTHORS_KEY, author)
+  if (tags && tags.length) incrementCountMap(LIKED_TAGS_KEY, tags)
+}
+const recordDislike = (author, tags) => {
+  if (tags && tags.length) incrementCountMap(DISLIKED_TAGS_KEY, tags)
+}
+
+// Tag extraction helper
+function getPostTags(post) {
+  try {
+    const meta = JSON.parse(post.json_metadata || '{}')
+    return Array.isArray(meta.tags) ? meta.tags : []
+  } catch { return [] }
+}
+
+// Scoring + weighted random selection
+function scorePost(post, likedAuthors, likedTags, dislikedTags) {
+  const tags = getPostTags(post)
+  let score  = 1
+  score += (likedAuthors[post.author] || 0) * 2
+  tags.forEach(tag => {
+    score += (likedTags[tag]    || 0) * 1
+    score -= (dislikedTags[tag] || 0) * 0.5
+  })
+  return Math.max(0.1, score)
+}
+
+function weightedRandom(posts) {
+  const likedAuthors = getCountMap(LIKED_AUTHORS_KEY)
+  const likedTags    = getCountMap(LIKED_TAGS_KEY)
+  const dislikedTags = getCountMap(DISLIKED_TAGS_KEY)
+  const scores       = posts.map(p => scorePost(p, likedAuthors, likedTags, dislikedTags))
+  const total        = scores.reduce((a, b) => a + b, 0)
+  let rand           = Math.random() * total
+  for (let i = 0; i < posts.length; i++) {
+    rand -= scores[i]
+    if (rand <= 0) return posts[i]
+  }
+  return posts[posts.length - 1]
 }
 
 const MAX_PAGINATION_DEPTH = 50
 
 async function getPost(startAuthor, startPermlink, depth = 0) {
   if (depth >= MAX_PAGINATION_DEPTH) {
-    console.warn('Reached pagination depth limit — clearing seen authors and restarting.')
-    localStorage.removeItem(SEEN_AUTHORS_KEY)
+    console.warn('Reached pagination depth limit — clearing seen slugs and restarting.')
+    localStorage.removeItem(SEEN_SLUGS_KEY)
     return getPost()
   }
 
@@ -143,7 +213,10 @@ async function getPost(startAuthor, startPermlink, depth = 0) {
 
   posts = posts.filter(item => item.body_length >= MIN_BODY_LENGTH)
   posts = posts.filter(item => !NSFW_CATEGORIES.includes(item.category))
-  posts = posts.filter(item => !getSeenAuthors().has(item.author))
+  const seenSlugs       = getSeenSlugs()
+  const dislikedAuthors = getDislikedAuthors()
+  posts = posts.filter(item => !seenSlugs.includes(`${item.author}/${item.permlink}`))
+  posts = posts.filter(item => !dislikedAuthors.has(item.author))
 
   // If all authors already seen, paginate to next batch
   if (posts.length === 0) {
@@ -157,11 +230,19 @@ async function getPost(startAuthor, startPermlink, depth = 0) {
     return
   }
 
-  const post = posts[Math.floor(Math.random() * posts.length)]
-  addSeenAuthor(post.author)
+  const post = weightedRandom(posts)
+  addSeenSlug(`${post.author}/${post.permlink}`)
 
   // update button actions
-  document.querySelector('button.next').onclick = () => { getPost() }
+  document.querySelector('#next-up').onclick = () => {
+    recordLike(post.author, getPostTags(post))
+    getPost()
+  }
+  document.querySelector('#next-down').onclick = () => {
+    addDislikedAuthor(post.author)
+    recordDislike(post.author, getPostTags(post))
+    getPost()
+  }
 
   // Upvote button handler
   document.querySelector('button#upvote').onclick = () => castVote(post)
@@ -268,7 +349,15 @@ async function loadPostBySlug(author, permlink) {
   }
 
   // update button actions for slug-loaded post
-  document.querySelector('button.next').onclick = () => { getPost() }
+  document.querySelector('#next-up').onclick = () => {
+    recordLike(post.author, getPostTags(post))
+    getPost()
+  }
+  document.querySelector('#next-down').onclick = () => {
+    addDislikedAuthor(post.author)
+    recordDislike(post.author, getPostTags(post))
+    getPost()
+  }
   document.querySelector('button#upvote').onclick = () => castVote(post)
   document.querySelector('button#follow').onclick = () => {
     var accountName = window.localStorage.getItem('hiveaccount')
@@ -299,7 +388,8 @@ if (hashMatch) {
 } else {
   getPost()
 }
-document.querySelector('#next').onclick = getPost
+document.querySelector('#next-up').onclick = getPost
+document.querySelector('#next-down').onclick = getPost
 
 
 async function fetchAccountHP(accountName) {
