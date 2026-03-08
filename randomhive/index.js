@@ -2,6 +2,61 @@
 import { renderPostBody } from 'https://esm.sh/@ecency/render-helper@2.4.21'
 import DOMPurify from 'https://esm.sh/dompurify@3.2.3'
 
+// ── Vote popup (mobile) ──
+let showVoteSlider = false
+let pendingVotePost = null
+
+function openVotePopup(post) {
+  pendingVotePost = post
+  document.getElementById('vote-popup-slider').value = 100
+  document.getElementById('vote-popup-label').textContent = '100%'
+  const popup = document.getElementById('vote-popup')
+  popup.classList.add('open')
+  popup.setAttribute('aria-hidden', 'false')
+}
+
+function closeVotePopup() {
+  const popup = document.getElementById('vote-popup')
+  popup.classList.remove('open')
+  popup.setAttribute('aria-hidden', 'true')
+  pendingVotePost = null
+}
+
+document.getElementById('vote-popup-slider').addEventListener('input', function() {
+  document.getElementById('vote-popup-label').textContent = this.value + '%'
+})
+
+document.getElementById('vote-popup-close').addEventListener('click', closeVotePopup)
+
+document.getElementById('vote-popup').addEventListener('click', function(e) {
+  if (e.target === this) closeVotePopup()
+})
+
+document.getElementById('vote-popup-confirm').addEventListener('click', () => {
+  if (!pendingVotePost) return
+  const accountName = window.localStorage.getItem('hiveaccount')
+  if (!accountName) return
+  const weight = Math.round(parseInt(document.getElementById('vote-popup-slider').value) * 100)
+  hive_keychain.requestVote(accountName, pendingVotePost.permlink, pendingVotePost.author, weight, function(response) {
+    console.log(response)
+  })
+  closeVotePopup()
+})
+
+function castVote(post) {
+  const accountName = window.localStorage.getItem('hiveaccount')
+  if (!accountName) { console.log('Sign in first.'); return }
+  if (window.innerWidth <= 480 && showVoteSlider) {
+    openVotePopup(post)
+    return
+  }
+  const sliderEl = document.querySelector('#vote-weight-slider')
+  const weight = sliderEl ? Math.round(parseInt(sliderEl.value) * 100) : 10000
+  hive_keychain.requestVote(accountName, post.permlink, post.author, weight, function(response) {
+    console.log(response)
+  })
+}
+
 const API_NODES = [
   'https://api.syncad.com',
   'https://api.deathwing.me',
@@ -97,15 +152,7 @@ async function getPost(startAuthor, startPermlink, depth = 0) {
   document.querySelector('button.next').onclick = () => { getPost() }
 
   // Upvote button handler
-  document.querySelector('button#upvote').onclick = () => {
-    var accountName = window.localStorage.getItem('hiveaccount')
-    if (!accountName) { console.log('Sign in first.'); return }
-    const sliderEl = document.querySelector('#vote-weight-slider')
-    const weight = sliderEl ? Math.round(parseInt(sliderEl.value) * 100) : 10000
-    hive_keychain.requestVote(accountName, post.permlink, post.author, weight, function(response) {
-      console.log(response)
-    })
-  }
+  document.querySelector('button#upvote').onclick = () => castVote(post)
 
   // Follow button handler
   document.querySelector('button#follow').onclick = () => {
@@ -210,15 +257,7 @@ async function loadPostBySlug(author, permlink) {
 
   // update button actions for slug-loaded post
   document.querySelector('button.next').onclick = () => { getPost() }
-  document.querySelector('button#upvote').onclick = () => {
-    var accountName = window.localStorage.getItem('hiveaccount')
-    if (!accountName) { console.log('Sign in first.'); return }
-    const sliderEl = document.querySelector('#vote-weight-slider')
-    const weight = sliderEl ? Math.round(parseInt(sliderEl.value) * 100) : 10000
-    hive_keychain.requestVote(accountName, post.permlink, post.author, weight, function(response) {
-      console.log(response)
-    })
-  }
+  document.querySelector('button#upvote').onclick = () => castVote(post)
   document.querySelector('button#follow').onclick = () => {
     var accountName = window.localStorage.getItem('hiveaccount')
     if (!accountName) { console.log('Sign in first.'); return }
@@ -276,6 +315,7 @@ function toggleSigninUIState(signedIn) {
     if (accountName) {
       fetchAccountHP(accountName).then(hp => {
         if (hp >= 500) {
+          showVoteSlider = true
           document.querySelector('#vote-weight-container').style.display = 'flex'
         }
       }).catch(err => console.warn('Could not fetch HP:', err))
@@ -286,6 +326,7 @@ function toggleSigninUIState(signedIn) {
     document.querySelector('#upvote').disabled = true
     document.querySelector('#follow').disabled = true
     document.querySelector('#reblog').disabled = true
+    showVoteSlider = false
     document.querySelector('#vote-weight-container').style.display = 'none'
     document.querySelector('#vote-weight-slider').value = 100
     document.querySelector('#vote-weight-label').textContent = '100%'
