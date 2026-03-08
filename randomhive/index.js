@@ -134,12 +134,25 @@ function incrementCountMap(key, items) {
   localStorage.setItem(key, JSON.stringify(map))
 }
 
+const DECAY_FACTOR = 0.99
+const DECAY_KEYS   = [LIKED_AUTHORS_KEY, LIKED_TAGS_KEY, DISLIKED_TAGS_KEY]
+
+function decayCountMaps() {
+  DECAY_KEYS.forEach(key => {
+    const map = getCountMap(key)
+    Object.keys(map).forEach(k => { map[k] *= DECAY_FACTOR })
+    localStorage.setItem(key, JSON.stringify(map))
+  })
+}
+
 // Convenience wrappers called on button click
 const recordLike = (author, tags) => {
+  decayCountMaps()
   incrementCountMap(LIKED_AUTHORS_KEY, author)
   if (tags && tags.length) incrementCountMap(LIKED_TAGS_KEY, tags)
 }
 const recordDislike = (author, tags) => {
+  decayCountMaps()
   if (tags && tags.length) incrementCountMap(DISLIKED_TAGS_KEY, tags)
 }
 
