@@ -70,7 +70,6 @@ function castVote(post) {
 }
 
 const API_NODES = [
-  'https://api.syncad.com',
   'https://api.deathwing.me',
   'https://api.hive.blog',
 ]
@@ -468,7 +467,7 @@ document.querySelector('form#signin').onsubmit = (event) => {
 
   hive_keychain.requestSignBuffer(
     accountName,
-    'randomhive test signing',
+    'drip sign in - no broadcast',
     'Posting',
     (response) => {
       console.log(response)
