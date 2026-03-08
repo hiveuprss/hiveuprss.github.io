@@ -318,8 +318,8 @@ document.querySelector('form#signin').onsubmit = (event) => {
       console.log(response)
 
       if (response.success) {
-        toggleSigninUIState(true)
         window.localStorage.setItem('hiveaccount', accountName)
+        toggleSigninUIState(true)
       } else {
         console.log('Sign in error. Please check hive keychain.')
       }
