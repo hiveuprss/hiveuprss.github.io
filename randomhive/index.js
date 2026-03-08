@@ -22,8 +22,20 @@ function closeVotePopup() {
   pendingVotePost = null
 }
 
+const SNAP_POINTS = [25, 50, 75, 100]
+const SNAP_THRESHOLD = 8
+
 document.getElementById('vote-popup-slider').addEventListener('input', function() {
   document.getElementById('vote-popup-label').textContent = this.value + '%'
+})
+
+document.getElementById('vote-popup-slider').addEventListener('change', function() {
+  const v = parseInt(this.value)
+  const nearest = SNAP_POINTS.reduce((a, b) => Math.abs(b - v) < Math.abs(a - v) ? b : a)
+  if (Math.abs(nearest - v) <= SNAP_THRESHOLD) {
+    this.value = nearest
+    document.getElementById('vote-popup-label').textContent = nearest + '%'
+  }
 })
 
 document.getElementById('vote-popup-close').addEventListener('click', closeVotePopup)

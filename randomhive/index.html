@@ -100,7 +100,13 @@
           <button id="vote-popup-close" aria-label="Close">&#x2715;</button>
         </div>
         <div class="vote-popup-slider-row">
-          <input type="range" id="vote-popup-slider" min="1" max="100" step="1" value="100">
+          <input type="range" id="vote-popup-slider" min="1" max="100" step="1" value="100" list="vote-popup-ticks">
+          <datalist id="vote-popup-ticks">
+            <option value="25"></option>
+            <option value="50"></option>
+            <option value="75"></option>
+            <option value="100"></option>
+          </datalist>
           <span id="vote-popup-label">100%</span>
         </div>
         <button id="vote-popup-confirm">Upvote</button>
