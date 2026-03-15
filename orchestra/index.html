@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hive Orchestra 🎵</title>
+  <meta name="description" content="The Hive blockchain as live generative music. Every operation plays a note — votes, posts, transfers, and more.">
+  <link rel="canonical" href="https://hiveuprss.github.io/orchestra/">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://hiveuprss.github.io/orchestra/">
+  <meta property="og:title" content="Hive Orchestra 🎵">
+  <meta property="og:description" content="The Hive blockchain as live generative music. Every operation plays a note.">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Hive Orchestra 🎵">
+  <style>
+    :root {
+      --bg:      #07080f;
+      --surface: #0f111a;
+      --border:  #1e2235;
+      --text:    #e0e4f0;
+      --muted:   #5a607a;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 22px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .logo {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .logo span { color: #e31337; }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #43aa8b;
+      animation: pulse 1.6s ease-in-out infinite;
+    }
+    .dot.off { background: #555; animation: none; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.25} }
+
+    .vol-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 80px; height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: #e31337;
+      cursor: pointer;
+    }
+
+    .btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: border-color .2s, color .2s;
+    }
+    .btn:hover { border-color: #e31337; color: #e31337; }
+
+    /* ── Main layout ── */
+    .main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── Stage (canvas area) ── */
+    .stage {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    canvas {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+    }
+
+    #bubble-layer {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+    }
+
+    /* ── Sidebar ── */
+    aside {
+      width: 230px;
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .aside-section {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .aside-title {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    /* Legend */
+    .leg-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 7px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .leg-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .leg-note {
+      margin-left: auto;
+      font-size: 10px;
+      opacity: .5;
+    }
+
+    /* Stats */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .stat-item { text-align: center; }
+    .stat-val {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      display: block;
+    }
+    .stat-lbl {
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: .5px;
+    }
+
+    /* Feed */
+    .feed {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 0;
+    }
+    .feed::-webkit-scrollbar { width: 4px; }
+    .feed::-webkit-scrollbar-track { background: transparent; }
+    .feed::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .feed-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 16px;
+      font-size: 11px;
+      color: var(--muted);
+      border-left: 2px solid transparent;
+      transition: background .15s;
+    }
+    .feed-item.fresh {
+      background: rgba(255,255,255,.03);
+      border-left-color: var(--item-color, #555);
+      color: var(--text);
+      animation: fadein .3s ease;
+    }
+    @keyframes fadein { from { opacity: 0; transform: translateX(8px); } to { opacity:1; transform:none; } }
+
+    .feed-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--item-color, #555);
+      flex-shrink: 0;
+    }
+
+    /* start overlay */
+    #start-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(7,8,15,.9);
+      z-index: 10;
+      gap: 18px;
+      text-align: center;
+      padding: 30px;
+    }
+    #start-overlay h2 {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: 2px;
+    }
+    #start-overlay h2 span { color: #e31337; }
+    #start-overlay p {
+      color: var(--muted);
+      font-size: 14px;
+      max-width: 340px;
+      line-height: 1.6;
+    }
+    #start-btn {
+      background: #e31337;
+      border: none;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      padding: 14px 40px;
+      border-radius: 40px;
+      cursor: pointer;
+      letter-spacing: 1px;
+      transition: opacity .2s;
+    }
+    #start-btn:hover { opacity: .85; }
+
+    .back-link {
+      font-size: 12px;
+      color: var(--muted);
+      text-decoration: none;
+    }
+    .back-link:hover { color: var(--text); }
+  </style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="https://hiveuprss.github.io/">
+    <span>HIVE</span> ORCHESTRA 🎵
+  </a>
+  <div class="header-right">
+    <div class="vol-wrap">
+      <span>🔈</span>
+      <input type="range" id="vol" min="0" max="100" value="60">
+      <span>🔊</span>
+    </div>
+    <div class="status">
+      <div class="dot off" id="dot"></div>
+      <span id="status-txt">waiting</span>
+    </div>
+    <button class="btn" id="mute-btn" onclick="toggleMute()">Mute</button>
+    <a class="back-link" href="https://hiveuprss.github.io/">← back</a>
+  </div>
+</header>
+
+<div class="main">
+  <div class="stage">
+    <!-- Start overlay — required for AudioContext user gesture -->
+    <div id="start-overlay">
+      <h2><span>HIVE</span> ORCHESTRA 🎵</h2>
+      <p>The Hive blockchain as live generative music.<br>Every operation — vote, post, transfer, power-up — plays a unique instrument note.</p>
+      <button id="start-btn" onclick="start()">▶ Start the Music</button>
+      <a class="back-link" href="https://hiveuprss.github.io/">← back to tools</a>
+    </div>
+
+    <canvas id="viz"></canvas>
+    <canvas id="bubble-layer" id="bubbles"></canvas>
+  </div>
+
+  <aside>
+    <div class="aside-section">
+      <div class="aside-title">Instruments</div>
+      <div id="legend"></div>
+    </div>
+
+    <div class="aside-section">
+      <div class="aside-title">Stats</div>
+      <div class="stat-grid">
+        <div class="stat-item">
+          <span class="stat-val" id="s-ops">0</span>
+          <span class="stat-lbl">notes played</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-val" id="s-blocks">0</span>
+          <span class="stat-lbl">blocks</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-val" id="s-block-num">—</span>
+          <span class="stat-lbl">block #</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-val" id="s-bpm">—</span>
+          <span class="stat-lbl">ops/block</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="aside-title" style="padding:12px 16px 0; font-size:10px; font-weight:700; letter-spacing:1.5px; color:var(--muted); text-transform:uppercase;">Live Feed</div>
+    <div class="feed" id="feed"></div>
+  </aside>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@hiveio/hive-js/dist/hive.min.js"></script>
+<script>
+'use strict';
+
+// ── Instrument definitions ────────────────────────────────────────────────────
+// Each op type: color, label, synth params
+// Pentatonic scale (C D E G A) so all notes harmonise
+
+const PENTATONIC = [261.63, 293.66, 329.63, 392.00, 440.00,
+                    523.25, 587.33, 659.25, 783.99, 880.00,
+                    1046.50, 1174.66];
+
+const OPS = {
+  vote: {
+    color: '#43aa8b', label: 'Vote', note: 'pluck',
+    wave: 'triangle', freqIdx: [0,2,4,5,7,9], decay: 0.6, gain: 0.18,
+  },
+  comment: {
+    color: '#4cc9f0', label: 'Comment / Post', note: 'bell',
+    wave: 'sine', freqIdx: [4,5,7,9,11], decay: 1.4, gain: 0.22, harmonics: true,
+  },
+  transfer: {
+    color: '#f8961e', label: 'Transfer', note: 'bass',
+    wave: 'sine', freqIdx: [0,1,2], decay: 0.5, gain: 0.35, bass: true,
+  },
+  transfer_to_vesting: {
+    color: '#e31337', label: 'Power Up', note: 'rise',
+    wave: 'sine', freqIdx: [2,4,5,7,9], decay: 0.9, gain: 0.25, sweep: 'up',
+  },
+  withdraw_vesting: {
+    color: '#ff6b6b', label: 'Power Down', note: 'fall',
+    wave: 'sine', freqIdx: [9,7,5,4,2], decay: 0.9, gain: 0.2, sweep: 'down',
+  },
+  custom_json: {
+    color: '#9b5de5', label: 'Custom JSON', note: 'pad',
+    wave: 'sawtooth', freqIdx: [0,2,4,7], decay: 0.4, gain: 0.08,
+  },
+  claim_reward_balance: {
+    color: '#fee440', label: 'Claim Reward', note: 'ping',
+    wave: 'sine', freqIdx: [9,11], decay: 0.3, gain: 0.28,
+  },
+  account_create: {
+    color: '#00bbf9', label: 'New Account', note: 'fanfare',
+    wave: 'sine', freqIdx: [0,4,7,9], decay: 0.5, gain: 0.22, arpeggio: true,
+  },
+  create_claimed_account: {
+    color: '#00bbf9', label: null, note: 'fanfare',
+    wave: 'sine', freqIdx: [0,4,7,9], decay: 0.5, gain: 0.22, arpeggio: true,
+  },
+  account_create_with_delegation: {
+    color: '#00bbf9', label: null, note: 'fanfare',
+    wave: 'sine', freqIdx: [0,4,7,9], decay: 0.5, gain: 0.22, arpeggio: true,
+  },
+  delegate_vesting_shares: {
+    color: '#c77dff', label: 'Delegation', note: 'chord',
+    wave: 'sine', freqIdx: [0,4,7], decay: 0.7, gain: 0.15, chord: true,
+  },
+  account_witness_vote: {
+    color: '#f72585', label: 'Witness Vote', note: 'snap',
+    wave: 'square', freqIdx: [5,7], decay: 0.2, gain: 0.12,
+  },
+  convert: {
+    color: '#06d6a0', label: 'Convert HBD', note: 'gong',
+    wave: 'sine', freqIdx: [0,2], decay: 1.8, gain: 0.3,
+  },
+  collateralized_convert: {
+    color: '#06d6a0', label: null, wave: 'sine', freqIdx: [0,2], decay: 1.8, gain: 0.3,
+  },
+  proposal_vote: {
+    color: '#80ffdb', label: 'Proposal Vote', note: 'chime',
+    wave: 'sine', freqIdx: [7,9,11], decay: 1.1, gain: 0.18,
+  },
+};
+
+const DEFAULT_OP = {
+  color: '#888888', wave: 'triangle', freqIdx: [0,2,4], decay: 0.3, gain: 0.08,
+};
+
+function hexAlpha(hex, a) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+// ── Audio context ─────────────────────────────────────────────────────────────
+
+let actx, masterGain, analyser, muted = false;
+let masterVol = 0.6;
+
+function initAudio() {
+  actx = new (window.AudioContext || window.webkitAudioContext)();
+  masterGain = actx.createGain();
+  masterGain.gain.value = masterVol;
+
+  analyser = actx.createAnalyser();
+  analyser.fftSize = 512;
+  analyser.smoothingTimeConstant = 0.6;
+
+  masterGain.connect(analyser);
+  analyser.connect(actx.destination);
+}
+
+function playNote(op, amount) {
+  if (!actx || muted) return;
+  const def = OPS[op] || DEFAULT_OP;
+  const freqs = def.freqIdx.map(i => PENTATONIC[i] || PENTATONIC[0]);
+
+  // Scale gain with transfer amount (log)
+  let gainMul = 1;
+  if ((op === 'transfer' || op === 'transfer_to_vesting') && amount > 0) {
+    gainMul = Math.min(2.5, 0.5 + Math.log10(amount + 1) * 0.4);
+  }
+
+  const now = actx.currentTime;
+
+  if (def.arpeggio) {
+    // Quick ascending arpeggio
+    freqs.forEach((f, i) => {
+      scheduleOsc(def.wave, f, def.gain * gainMul * masterVol, now + i * 0.07, def.decay);
+    });
+  } else if (def.chord) {
+    // All notes at once
+    freqs.forEach(f => {
+      scheduleOsc(def.wave, f, def.gain * gainMul * masterVol * 0.7, now, def.decay);
+    });
+  } else if (def.sweep === 'up') {
+    const osc = actx.createOscillator();
+    const g   = actx.createGain();
+    const baseF = freqs[Math.floor(Math.random() * freqs.length)];
+    osc.type = def.wave;
+    osc.frequency.setValueAtTime(baseF, now);
+    osc.frequency.linearRampToValueAtTime(baseF * 2, now + def.decay);
+    g.gain.setValueAtTime(def.gain * gainMul * masterVol, now);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + def.decay);
+    osc.connect(g); g.connect(masterGain);
+    osc.start(now); osc.stop(now + def.decay + 0.05);
+  } else if (def.sweep === 'down') {
+    const osc = actx.createOscillator();
+    const g   = actx.createGain();
+    const baseF = freqs[Math.floor(Math.random() * freqs.length)];
+    osc.type = def.wave;
+    osc.frequency.setValueAtTime(baseF * 2, now);
+    osc.frequency.linearRampToValueAtTime(baseF, now + def.decay);
+    g.gain.setValueAtTime(def.gain * gainMul * masterVol, now);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + def.decay);
+    osc.connect(g); g.connect(masterGain);
+    osc.start(now); osc.stop(now + def.decay + 0.05);
+  } else if (def.bass) {
+    // Low-pitched thud scaled with amount
+    const bassFreq = Math.max(40, freqs[0] * 0.25);
+    scheduleOsc('sine', bassFreq, def.gain * gainMul * masterVol, now, def.decay);
+    if (def.harmonics) {
+      scheduleOsc('sine', bassFreq * 2, def.gain * 0.3 * masterVol, now, def.decay * 0.5);
+    }
+  } else {
+    // Pick random freq from the set
+    const f = freqs[Math.floor(Math.random() * freqs.length)];
+    scheduleOsc(def.wave, f, def.gain * gainMul * masterVol, now, def.decay);
+    if (def.harmonics) {
+      scheduleOsc('sine', f * 3.01, def.gain * 0.15 * masterVol, now, def.decay * 0.6);
+    }
+  }
+}
+
+function scheduleOsc(wave, freq, gainVal, startTime, duration) {
+  const osc = actx.createOscillator();
+  const g   = actx.createGain();
+  osc.type = wave;
+  osc.frequency.value = freq;
+  g.gain.setValueAtTime(gainVal, startTime);
+  g.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+  osc.connect(g); g.connect(masterGain);
+  osc.start(startTime); osc.stop(startTime + duration + 0.05);
+}
+
+// ── Canvas visualizer ─────────────────────────────────────────────────────────
+
+const viz  = document.getElementById('viz');
+const vctx = viz.getContext('2d');
+
+function resizeCanvas() {
+  viz.width  = viz.offsetWidth;
+  viz.height = viz.offsetHeight;
+}
+
+let bubbles = []; // { x, y, vy, r, color, label, alpha }
+
+function spawnBubble(opType) {
+  const def   = OPS[opType] || DEFAULT_OP;
+  const label = def.label || opType.replace(/_/g, ' ');
+  bubbles.push({
+    x:     viz.width  * (0.1 + Math.random() * 0.8),
+    y:     viz.height * (0.6 + Math.random() * 0.3),
+    vy:    -(0.6 + Math.random() * 0.8),
+    r:     16 + Math.random() * 14,
+    color: def.color || '#888',
+    label,
+    alpha: 1,
+  });
+}
+
+const TRAIL = 0.22;
+let freqData;
+
+function drawFrame() {
+  requestAnimationFrame(drawFrame);
+  if (!actx) return;
+
+  const W = viz.offsetWidth;
+  const H = viz.offsetHeight;
+  if (viz.width !== W || viz.height !== H) resizeCanvas();
+
+  // Fade background
+  vctx.fillStyle = `rgba(7, 8, 15, ${TRAIL})`;
+  vctx.fillRect(0, 0, W, H);
+
+  // FFT bars
+  if (analyser) {
+    if (!freqData || freqData.length !== analyser.frequencyBinCount) {
+      freqData = new Uint8Array(analyser.frequencyBinCount);
+    }
+    analyser.getByteFrequencyData(freqData);
+
+    const bars = 90;
+    const barW = (W / bars) * 0.7;
+    const gap  = (W / bars) * 0.3;
+    const step = Math.floor(freqData.length / bars);
+
+    for (let i = 0; i < bars; i++) {
+      const val    = freqData[i * step] / 255;
+      const barH   = val * H * 0.4;
+      const x      = i * (barW + gap) + gap / 2;
+      const y      = H - barH;
+      const hue    = 200 + val * 160;
+      const alpha  = 0.3 + val * 0.7;
+      vctx.fillStyle = `hsla(${hue}, 80%, 60%, ${alpha})`;
+      vctx.fillRect(x, y, barW, barH);
+    }
+
+    // Waveform line through the middle
+    const sliceW = W / freqData.length;
+    vctx.beginPath();
+    vctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    vctx.lineWidth = 1;
+    for (let i = 0; i < freqData.length; i++) {
+      const v = (freqData[i] / 255) * H * 0.25;
+      const x = i * sliceW;
+      const y = H * 0.5 - v;
+      i === 0 ? vctx.moveTo(x, y) : vctx.lineTo(x, y);
+    }
+    vctx.stroke();
+  }
+
+  // Bubbles
+  bubbles = bubbles.filter(b => {
+    b.y     += b.vy;
+    b.alpha -= 0.018;
+    if (b.alpha <= 0) return false;
+
+    vctx.save();
+    vctx.globalAlpha = b.alpha;
+
+    // Glow
+    const grd = vctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r * 2.5);
+    grd.addColorStop(0, hexAlpha(b.color, 0.67));
+    grd.addColorStop(1, hexAlpha(b.color, 0));
+    vctx.beginPath();
+    vctx.arc(b.x, b.y, b.r * 2.5, 0, Math.PI * 2);
+    vctx.fillStyle = grd;
+    vctx.fill();
+
+    // Circle
+    vctx.beginPath();
+    vctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+    vctx.fillStyle = hexAlpha(b.color, 0.33);
+    vctx.strokeStyle = hexAlpha(b.color, 0.8);
+    vctx.lineWidth = 1.5;
+    vctx.fill();
+    vctx.stroke();
+
+    // Label
+    vctx.fillStyle = '#fff';
+    vctx.font = `bold ${Math.max(9, b.r * 0.6)}px sans-serif`;
+    vctx.textAlign = 'center';
+    vctx.textBaseline = 'middle';
+    vctx.fillText(b.label.length > 12 ? b.label.slice(0,11)+'…' : b.label, b.x, b.y);
+
+    vctx.restore();
+    return true;
+  });
+}
+
+// ── Feed sidebar ──────────────────────────────────────────────────────────────
+
+const feedEl = document.getElementById('feed');
+const MAX_FEED = 60;
+
+function addFeedItem(opType, extra) {
+  const def   = OPS[opType] || DEFAULT_OP;
+  const label = def.label || opType.replace(/_/g, ' ');
+  const item  = document.createElement('div');
+  item.className = 'feed-item fresh';
+  item.style.setProperty('--item-color', def.color || '#555');
+  item.innerHTML = `<div class="feed-dot"></div><span>${label}${extra ? ' · <em style="opacity:.6">' + extra + '</em>' : ''}</span>`;
+  feedEl.prepend(item);
+  setTimeout(() => item.classList.remove('fresh'), 600);
+  while (feedEl.children.length > MAX_FEED) feedEl.lastChild.remove();
+}
+
+// ── Legend ────────────────────────────────────────────────────────────────────
+
+(function buildLegend() {
+  const el   = document.getElementById('legend');
+  const seen = new Set();
+  const noteNames = { pluck:'pluck', bell:'bell', bass:'bass', rise:'rise',
+                      fall:'fall', pad:'pad', ping:'ping', fanfare:'fanfare',
+                      chord:'chord', snap:'snap', gong:'gong', chime:'chime' };
+  for (const [key, def] of Object.entries(OPS)) {
+    if (!def.label || seen.has(def.label)) continue;
+    seen.add(def.label);
+    el.innerHTML += `<div class="leg-row">
+      <div class="leg-dot" style="background:${def.color}"></div>
+      <span>${def.label}</span>
+      <span class="leg-note">${def.note || ''}</span>
+    </div>`;
+  }
+  el.innerHTML += `<div class="leg-row">
+    <div class="leg-dot" style="background:#888888"></div>
+    <span>other</span>
+    <span class="leg-note">pluck</span>
+  </div>`;
+})();
+
+// ── Hive polling ──────────────────────────────────────────────────────────────
+
+hive.api.setOptions({ url: 'https://api.hive.blog' });
+
+let lastBlock   = 0;
+let totalOps    = 0;
+let totalBlocks = 0;
+let opQueue       = [];
+let started       = false;
+let playTimer     = null;
+let noteInterval  = 80; // ms between notes, recalculated per block
+
+function processQueue() {
+  playTimer = null;
+  if (!opQueue.length) return;
+  const { opType, amount, actor } = opQueue.shift();
+
+  playNote(opType, amount);
+  spawnBubble(opType);
+
+  const extra = actor ? `@${actor}` : (amount > 0 ? `${amount.toFixed(0)}` : '');
+  addFeedItem(opType, extra);
+
+  totalOps++;
+  document.getElementById('s-ops').textContent = totalOps.toLocaleString();
+
+  playTimer = setTimeout(processQueue, noteInterval);
+}
+
+async function pollBlocks() {
+  if (!started) return;
+  try {
+    const props = await new Promise((res, rej) =>
+      hive.api.getDynamicGlobalProperties((e, d) => e ? rej(e) : res(d)));
+
+    const head = props.head_block_number;
+    if (lastBlock === 0) {
+      lastBlock = head - 1;
+      setStatus('live');
+    }
+
+    let processed = 0;
+    while (lastBlock < head && processed < 3) {
+      lastBlock++;
+      processed++;
+
+      const block = await new Promise((res, rej) =>
+        hive.api.getBlock(lastBlock, (e, b) => e ? rej(e) : res(b)));
+
+      if (!block) continue;
+      totalBlocks++;
+
+      const ops = [];
+      for (const tx of (block.transactions || [])) {
+        for (const op of (tx.operations || [])) {
+          ops.push(op);
+        }
+      }
+
+      // Cap per block to avoid huge backlogs
+      const capped = ops.slice(0, 100);
+      // Space notes evenly across the full 3-second block window
+      noteInterval = Math.max(20, 3000 / capped.length);
+      for (const op of capped) {
+        const [type, data] = op;
+        const amount = parseFloat(data?.amount) || 0;
+        const actor  = data?.from || data?.account || data?.voter || data?.creator || null;
+        opQueue.push({ opType: type, amount, actor });
+      }
+
+      document.getElementById('s-block-num').textContent = lastBlock.toLocaleString();
+      document.getElementById('s-blocks').textContent    = totalBlocks.toLocaleString();
+      document.getElementById('s-bpm').textContent       = capped.length;
+
+      // Kick queue processing if idle
+      if (!playTimer) processQueue();
+    }
+  } catch (err) {
+    setStatus('error');
+    console.warn('poll:', err);
+  }
+}
+
+function setStatus(state) {
+  const dot = document.getElementById('dot');
+  const txt = document.getElementById('status-txt');
+  if (state === 'live') {
+    dot.className = 'dot'; txt.textContent = 'live';
+  } else {
+    dot.className = 'dot off'; txt.textContent = 'retrying…';
+  }
+}
+
+// ── Start ─────────────────────────────────────────────────────────────────────
+
+function start() {
+  document.getElementById('start-overlay').style.display = 'none';
+  initAudio();
+  drawFrame();
+  started = true;
+  pollBlocks();
+  setInterval(pollBlocks, 3000);
+}
+
+// ── Controls ──────────────────────────────────────────────────────────────────
+
+function toggleMute() {
+  muted = !muted;
+  document.getElementById('mute-btn').textContent = muted ? 'Unmute' : 'Mute';
+  if (masterGain) masterGain.gain.value = muted ? 0 : masterVol;
+}
+
+document.getElementById('vol').addEventListener('input', e => {
+  masterVol = e.target.value / 100;
+  if (masterGain && !muted) masterGain.gain.value = masterVol;
+});
+</script>
+</body>
+</html>
