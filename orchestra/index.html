@@ -167,6 +167,20 @@
       margin-bottom: 7px;
       font-size: 12px;
       color: var(--muted);
+      cursor: pointer;
+      border-radius: 6px;
+      padding: 3px 4px;
+      margin-left: -4px;
+      transition: background .15s, color .15s;
+      user-select: none;
+    }
+    .leg-row:hover {
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+    }
+    .leg-row.playing {
+      background: rgba(255,255,255,0.1);
+      color: var(--text);
     }
     .leg-dot {
       width: 8px; height: 8px;
@@ -372,7 +386,7 @@ const OPS = {
   },
   transfer: {
     color: '#f8961e', label: 'Transfer', note: 'bass',
-    wave: 'sine', freqIdx: [0,1,2], decay: 0.5, gain: 0.35, bass: true,
+    wave: 'sine', freqIdx: [0,1,2], decay: 0.9, gain: 0.6, bass: true,
   },
   transfer_to_vesting: {
     color: '#e31337', label: 'Power Up', note: 'rise',
@@ -498,12 +512,11 @@ function playNote(op, amount) {
     osc.connect(g); g.connect(masterGain);
     osc.start(now); osc.stop(now + def.decay + 0.05);
   } else if (def.bass) {
-    // Low-pitched thud scaled with amount
-    const bassFreq = Math.max(40, freqs[0] * 0.25);
-    scheduleOsc('sine', bassFreq, def.gain * gainMul * masterVol, now, def.decay);
-    if (def.harmonics) {
-      scheduleOsc('sine', bassFreq * 2, def.gain * 0.3 * masterVol, now, def.decay * 0.5);
-    }
+    // Deep sub-bass thud + harmonic layer
+    const bassFreq = Math.max(35, freqs[0] * 0.18);
+    scheduleOsc('sine', bassFreq,       def.gain * gainMul * masterVol,        now, def.decay);
+    scheduleOsc('sine', bassFreq * 2,   def.gain * gainMul * masterVol * 0.5,  now, def.decay * 0.7);
+    scheduleOsc('sine', bassFreq * 3,   def.gain * gainMul * masterVol * 0.25, now, def.decay * 0.4);
   } else {
     // Pick random freq from the set
     const f = freqs[Math.floor(Math.random() * freqs.length)];
@@ -661,26 +674,36 @@ function addFeedItem(opType, extra) {
 
 // ── Legend ────────────────────────────────────────────────────────────────────
 
+function previewOp(opType, rowEl) {
+  if (!actx) return;
+  playNote(opType, 500);
+  spawnBubble(opType);
+  rowEl.classList.add('playing');
+  setTimeout(() => rowEl.classList.remove('playing'), 400);
+}
+
 (function buildLegend() {
   const el   = document.getElementById('legend');
   const seen = new Set();
-  const noteNames = { pluck:'pluck', bell:'bell', bass:'bass', rise:'rise',
-                      fall:'fall', pad:'pad', ping:'ping', fanfare:'fanfare',
-                      chord:'chord', snap:'snap', gong:'gong', chime:'chime' };
   for (const [key, def] of Object.entries(OPS)) {
     if (!def.label || seen.has(def.label)) continue;
     seen.add(def.label);
-    el.innerHTML += `<div class="leg-row">
-      <div class="leg-dot" style="background:${def.color}"></div>
+    const row = document.createElement('div');
+    row.className = 'leg-row';
+    row.title = 'Click to preview';
+    row.innerHTML = `<div class="leg-dot" style="background:${def.color}"></div>
       <span>${def.label}</span>
-      <span class="leg-note">${def.note || ''}</span>
-    </div>`;
+      <span class="leg-note">${def.note || ''}</span>`;
+    row.addEventListener('click', () => previewOp(key, row));
+    el.appendChild(row);
   }
-  el.innerHTML += `<div class="leg-row">
-    <div class="leg-dot" style="background:#888888"></div>
-    <span>other</span>
-    <span class="leg-note">pluck</span>
-  </div>`;
+  const other = document.createElement('div');
+  other.className = 'leg-row';
+  other.title = 'Click to preview';
+  other.innerHTML = `<div class="leg-dot" style="background:#888888"></div>
+    <span>other</span><span class="leg-note">pluck</span>`;
+  other.addEventListener('click', () => previewOp('__other__', other));
+  el.appendChild(other);
 })();
 
 // ── Hive polling ──────────────────────────────────────────────────────────────
