@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hive Fireworks 🎆</title>
+  <meta name="description" content="Every Hive blockchain operation fires a firework. Real-time visualization of the Hive blockchain as a live fireworks show.">
+  <link rel="canonical" href="https://hiveuprss.github.io/fireworks/">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://hiveuprss.github.io/fireworks/">
+  <meta property="og:title" content="Hive Fireworks 🎆">
+  <meta property="og:description" content="Every Hive blockchain operation fires a firework. Real-time visualization of the Hive blockchain as a live fireworks show.">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Hive Fireworks 🎆">
+  <meta name="twitter:description" content="Every Hive blockchain operation fires a firework. Watch the Hive blockchain come alive.">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #050510;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    canvas {
+      display: block;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+    }
+
+    /* ── HUD overlays ── */
+    #title {
+      position: fixed;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: rgba(255,255,255,0.9);
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-shadow: 0 0 20px rgba(255,100,100,0.7), 0 0 40px rgba(255,100,100,0.3);
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    #title a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    #title span {
+      color: #e31337;
+    }
+
+    #block-info {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: rgba(255,255,255,0.5);
+      font-size: 12px;
+      letter-spacing: 1px;
+      pointer-events: none;
+      text-align: center;
+    }
+
+    #block-info strong {
+      color: rgba(255,255,255,0.8);
+    }
+
+    #legend {
+      position: fixed;
+      top: 60px;
+      right: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      pointer-events: none;
+    }
+
+    .leg-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.65);
+    }
+
+    .leg-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    #stats {
+      position: fixed;
+      top: 60px;
+      left: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      pointer-events: none;
+    }
+
+    .stat-row {
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .stat-row strong {
+      color: rgba(255,255,255,0.85);
+      font-size: 16px;
+      display: block;
+    }
+
+    #controls {
+      position: fixed;
+      bottom: 50px;
+      right: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .ctrl-btn {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.7);
+      padding: 6px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: background 0.2s, border-color 0.2s;
+      letter-spacing: 0.5px;
+    }
+
+    .ctrl-btn:hover {
+      background: rgba(255,255,255,0.15);
+      border-color: rgba(255,255,255,0.4);
+      color: #fff;
+    }
+
+    #status-dot {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #43aa8b;
+      margin-right: 5px;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    #status-dot.paused {
+      background: #888;
+      animation: none;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+
+<div id="title">
+  <a href="https://hiveuprss.github.io/">
+    <span>HIVE</span> FIREWORKS 🎆
+  </a>
+</div>
+
+<div id="stats">
+  <div class="stat-row">
+    <strong id="stat-ops">0</strong>
+    ops fired
+  </div>
+  <div class="stat-row">
+    <strong id="stat-blocks">0</strong>
+    blocks seen
+  </div>
+  <div class="stat-row" style="margin-top:4px">
+    <span id="status-dot"></span>
+    <span id="status-text">connecting…</span>
+  </div>
+</div>
+
+<div id="legend"></div>
+
+<div id="controls">
+  <button class="ctrl-btn" id="pause-btn" onclick="togglePause()">⏸ Pause</button>
+  <a class="ctrl-btn" href="https://hiveuprss.github.io/" style="text-decoration:none;text-align:center">← back</a>
+</div>
+
+<div id="block-info">
+  block <strong id="block-num">—</strong>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@hiveio/hive-js/dist/hive.min.js"></script>
+<script>
+'use strict';
+
+// ── Config ────────────────────────────────────────────────────────────────────
+
+const OP_COLORS = {
+  vote:                         { color: '#43aa8b', label: 'vote' },
+  comment:                      { color: '#4cc9f0', label: 'comment / post' },
+  comment_options:              { color: '#4cc9f0', label: null },
+  transfer:                     { color: '#f8961e', label: 'transfer' },
+  transfer_to_vesting:          { color: '#e31337', label: 'power up' },
+  withdraw_vesting:             { color: '#ff6b6b', label: 'power down' },
+  custom_json:                  { color: '#9b5de5', label: 'custom_json' },
+  claim_reward_balance:         { color: '#fee440', label: 'claim reward' },
+  account_create:               { color: '#00bbf9', label: 'new account' },
+  account_create_with_delegation: { color: '#00bbf9', label: null },
+  create_claimed_account:       { color: '#00bbf9', label: null },
+  account_update:               { color: '#f15bb5', label: 'account update' },
+  account_update2:              { color: '#f15bb5', label: null },
+  account_witness_vote:         { color: '#f72585', label: 'witness vote' },
+  account_witness_proxy:        { color: '#f72585', label: null },
+  limit_order_create:           { color: '#ff9f1c', label: 'market order' },
+  limit_order_cancel:           { color: '#ff9f1c', label: null },
+  fill_order:                   { color: '#ffbf69', label: null },
+  convert:                      { color: '#06d6a0', label: 'convert HBD' },
+  collateralized_convert:       { color: '#06d6a0', label: null },
+  fill_convert_request:         { color: '#06d6a0', label: null },
+  delegate_vesting_shares:      { color: '#c77dff', label: 'delegation' },
+  escrow_transfer:              { color: '#ff6d00', label: 'escrow' },
+  proposal_vote:                { color: '#80ffdb', label: 'proposal vote' },
+};
+
+const DEFAULT_COLOR = '#cccccc';
+
+// Gravity tuning
+const GRAVITY     = 0.06;
+const TRAIL_ALPHA = 0.18;  // lower = longer trails
+const MAX_QUEUE   = 120;   // cap burst size per block
+
+// ── Canvas setup ──────────────────────────────────────────────────────────────
+
+const canvas = document.getElementById('canvas');
+const ctx    = canvas.getContext('2d');
+
+function resize() {
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ── State ─────────────────────────────────────────────────────────────────────
+
+let rockets    = [];   // { x, y, vx, vy, color, size, trail[] }
+let particles  = [];   // { x, y, vx, vy, alpha, color, size }
+let opQueue    = [];   // ops waiting to be launched
+
+let totalOps    = 0;
+let totalBlocks = 0;
+let lastBlock   = 0;
+let paused      = false;
+let launchTimer = 0;
+
+// ── Legend ────────────────────────────────────────────────────────────────────
+
+(function buildLegend() {
+  const el  = document.getElementById('legend');
+  const seen = new Set();
+  for (const key of Object.keys(OP_COLORS)) {
+    const { color, label } = OP_COLORS[key];
+    if (!label || seen.has(label)) continue;
+    seen.add(label);
+    el.innerHTML += `<div class="leg-row">
+      <div class="leg-dot" style="background:${color}"></div>
+      <span>${label}</span>
+    </div>`;
+  }
+  el.innerHTML += `<div class="leg-row">
+    <div class="leg-dot" style="background:${DEFAULT_COLOR}"></div>
+    <span>other</span>
+  </div>`;
+})();
+
+// ── Fireworks physics ─────────────────────────────────────────────────────────
+
+function launchRocket(opType, amount) {
+  const { color } = OP_COLORS[opType] || { color: DEFAULT_COLOR };
+
+  // Explosion size: base 3, scale with transfer amount
+  let size = 3 + Math.random() * 1.5;
+  if (opType === 'transfer' && amount > 0) {
+    size = Math.min(12, 3 + Math.log10(amount + 1) * 2.5);
+  } else if (opType === 'transfer_to_vesting' && amount > 0) {
+    size = Math.min(10, 3 + Math.log10(amount + 1) * 2);
+  }
+
+  // Launch from random point near bottom
+  const x  = canvas.width  * (0.1 + Math.random() * 0.8);
+  const y  = canvas.height;
+
+  // Target height: upper 60% of canvas
+  const targetY = canvas.height * (0.1 + Math.random() * 0.5);
+  const travelT = 40 + Math.random() * 20;
+  const vy = (targetY - y) / travelT;
+  const vx = (Math.random() - 0.5) * 1.5;
+
+  rockets.push({ x, y, vx, vy, color, size, targetY, trail: [], exploded: false });
+}
+
+function explode(r) {
+  const count = Math.floor(60 + r.size * 15);
+  for (let i = 0; i < count; i++) {
+    const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.3;
+    const speed = (1 + Math.random() * 2.5) * (r.size / 4);
+    particles.push({
+      x:     r.x,
+      y:     r.y,
+      vx:    Math.cos(angle) * speed,
+      vy:    Math.sin(angle) * speed,
+      alpha: 1,
+      color: r.color,
+      size:  0.8 + Math.random() * 1.4,
+    });
+  }
+  // Occasional "glitter" secondary burst
+  if (r.size > 5) {
+    for (let i = 0; i < 20; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = Math.random() * 1.2;
+      particles.push({
+        x: r.x, y: r.y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        alpha: 0.7,
+        color: '#ffffff',
+        size:  0.5,
+      });
+    }
+  }
+}
+
+// ── Render loop ───────────────────────────────────────────────────────────────
+
+let lastTime = 0;
+
+function frame(ts) {
+  requestAnimationFrame(frame);
+  if (paused) return;
+
+  const dt = ts - lastTime;
+  lastTime = ts;
+
+  // Fade background (trail effect)
+  ctx.fillStyle = `rgba(5, 5, 16, ${TRAIL_ALPHA})`;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Launch queued ops at a metered rate (~every 60ms)
+  launchTimer += dt;
+  if (launchTimer > 60 && opQueue.length > 0) {
+    launchTimer = 0;
+    const { opType, amount } = opQueue.shift();
+    launchRocket(opType, amount);
+  }
+
+  // Update & draw rockets
+  rockets = rockets.filter(r => {
+    if (r.exploded) return false;
+
+    r.trail.push({ x: r.x, y: r.y });
+    if (r.trail.length > 8) r.trail.shift();
+
+    r.x  += r.vx;
+    r.y  += r.vy;
+    r.vy += GRAVITY * 0.3;
+
+    // Draw trail
+    for (let i = 0; i < r.trail.length; i++) {
+      const a = (i / r.trail.length) * 0.8;
+      ctx.beginPath();
+      ctx.arc(r.trail[i].x, r.trail[i].y, 1.5, 0, Math.PI * 2);
+      ctx.fillStyle = r.color.replace(')', `,${a})`).replace('rgb', 'rgba').replace('#', 'rgba(').replace(
+        /rgba\(([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2}),/, (m, r2, g2, b2) =>
+          `rgba(${parseInt(r2,16)},${parseInt(g2,16)},${parseInt(b2,16)},`
+      );
+      ctx.fill();
+    }
+
+    // Draw rocket head
+    ctx.beginPath();
+    ctx.arc(r.x, r.y, 2, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffffff';
+    ctx.fill();
+
+    // Explode when near target
+    if (r.y <= r.targetY) {
+      explode(r);
+      r.exploded = true;
+      return false;
+    }
+    return true;
+  });
+
+  // Update & draw particles
+  particles = particles.filter(p => {
+    p.x     += p.vx;
+    p.y     += p.vy;
+    p.vy    += GRAVITY;
+    p.vx    *= 0.98;
+    p.alpha -= 0.012;
+    if (p.alpha <= 0) return false;
+
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    ctx.fillStyle = hexToRgba(p.color, p.alpha);
+    ctx.fill();
+    return true;
+  });
+}
+
+requestAnimationFrame(frame);
+
+// ── Color utility ─────────────────────────────────────────────────────────────
+
+function hexToRgba(hex, alpha) {
+  const r = parseInt(hex.slice(1,3), 16);
+  const g = parseInt(hex.slice(3,5), 16);
+  const b = parseInt(hex.slice(5,7), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+// ── Hive block polling ────────────────────────────────────────────────────────
+
+hive.api.setOptions({ url: 'https://api.hive.blog' });
+
+async function fetchBlock(num) {
+  return new Promise((res, rej) => {
+    hive.api.getBlock(num, (err, block) => err ? rej(err) : res(block));
+  });
+}
+
+async function fetchProps() {
+  return new Promise((res, rej) => {
+    hive.api.getDynamicGlobalProperties((err, props) => err ? rej(err) : res(props));
+  });
+}
+
+function getAmount(op) {
+  try {
+    const [type, data] = op;
+    if (type === 'transfer' || type === 'transfer_to_vesting') {
+      const val = parseFloat(data.amount);
+      return isNaN(val) ? 0 : val;
+    }
+  } catch (_) {}
+  return 0;
+}
+
+async function pollBlocks() {
+  try {
+    const props = await fetchProps();
+    const head  = props.head_block_number;
+
+    if (lastBlock === 0) {
+      lastBlock = head - 1;
+      setStatus('live', 'live');
+    }
+
+    while (lastBlock < head) {
+      lastBlock++;
+      const block = await fetchBlock(lastBlock);
+      if (!block) continue;
+
+      totalBlocks++;
+      document.getElementById('block-num').textContent  = lastBlock.toLocaleString();
+      document.getElementById('stat-blocks').textContent = totalBlocks.toLocaleString();
+
+      // Collect ops from all transactions
+      const ops = [];
+      for (const tx of (block.transactions || [])) {
+        for (const op of (tx.operations || [])) {
+          ops.push(op);
+        }
+      }
+
+      // Cap per-block burst to avoid firework overload
+      const capped = ops.slice(0, MAX_QUEUE);
+      totalOps += capped.length;
+      document.getElementById('stat-ops').textContent = totalOps.toLocaleString();
+
+      for (const op of capped) {
+        opQueue.push({ opType: op[0], amount: getAmount(op) });
+      }
+
+      // Don't try to catch up more than 3 blocks at once
+      if (lastBlock >= head - 3) break;
+    }
+  } catch (err) {
+    setStatus('error', 'retrying…');
+    console.warn('poll error:', err);
+  }
+}
+
+function setStatus(state, text) {
+  const dot  = document.getElementById('status-dot');
+  const span = document.getElementById('status-text');
+  span.textContent = text;
+  dot.className    = state === 'live' ? '' : 'paused';
+  if (state === 'live') dot.style.background = '#43aa8b';
+  else dot.style.background = '#e31337';
+}
+
+// Poll every 3 seconds (Hive blocks every ~3s)
+pollBlocks();
+setInterval(pollBlocks, 3000);
+
+// ── Controls ──────────────────────────────────────────────────────────────────
+
+function togglePause() {
+  paused = !paused;
+  const btn = document.getElementById('pause-btn');
+  const dot = document.getElementById('status-dot');
+  if (paused) {
+    btn.textContent   = '▶ Resume';
+    dot.className     = 'paused';
+    document.getElementById('status-text').textContent = 'paused';
+  } else {
+    btn.textContent   = '⏸ Pause';
+    dot.className     = '';
+    dot.style.background = '#43aa8b';
+    document.getElementById('status-text').textContent = 'live';
+  }
+}
+</script>
+</body>
+</html>
