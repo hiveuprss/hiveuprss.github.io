@@ -21,16 +21,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://hiveuprss.github.io/dluxmonitor/</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://hiveuprss.github.io/duatmonitor/</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://hiveuprss.github.io/firehive/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -87,16 +77,6 @@
   </url>
   <url>
     <loc>https://hiveuprss.github.io/spkcc-claim/</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://hiveuprss.github.io/spkccmonitor/</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://hiveuprss.github.io/spktestmonitor/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
