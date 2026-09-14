@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hive HAF NFT Explorer</title>
+    <meta
+      name="description"
+      content="Explore Hive Layer-1 NFTs tracked by the HAF nft_tracker API — browse collections, holders, and transactions."
+    />
+    <link rel="canonical" href="https://hiveuprss.github.io/nftexplorer/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://hiveuprss.github.io/nftexplorer/" />
+    <meta property="og:title" content="Hive HAF NFT Explorer" />
+    <meta
+      property="og:description"
+      content="Explore Hive Layer-1 NFTs tracked by the HAF nft_tracker API — browse collections, holders, and transactions."
+    />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Hive HAF NFT Explorer" />
+    <meta
+      name="twitter:description"
+      content="Explore Hive Layer-1 NFTs tracked by the HAF nft_tracker API — browse collections, holders, and transactions."
+    />
+    <link rel="icon" href="favicon.ico" />
+    <link rel="stylesheet" href="style.css" />
+    <script src="theme.js"></script>
+  </head>
+  <body>
+    <header class="app-header">
+      <a class="app-logo" href="#/">
+        <img src="assets/hive-32.png" alt="" />
+        HAF NFT Explorer
+      </a>
+      <span class="header-tagline">Hive Layer-1 NFTs via nft_tracker</span>
+      <div class="header-spacer"></div>
+      <div class="header-right">
+        <div id="node-status" class="node-pill" title="API node">
+          <span class="dot"></span>
+          <span id="node-label">Connecting…</span>
+        </div>
+        <button class="btn-ghost" id="refresh-nodes" type="button" title="Rediscover API nodes">
+          Nodes
+        </button>
+        <button class="btn-ghost" id="theme-toggle" type="button" title="Toggle dark mode">
+          Theme
+        </button>
+      </div>
+    </header>
+
+    <main class="main">
+      <section class="panel">
+        <div class="tabs" role="tablist">
+          <button class="tab active" data-tab="collections" type="button">Collections</button>
+          <button class="tab" data-tab="holder" type="button">By holder</button>
+          <button class="tab" data-tab="tx" type="button">By transaction</button>
+        </div>
+
+        <div class="toolbar">
+          <form id="search-form" class="search-row">
+            <select id="search-mode" class="select" aria-label="Search mode">
+              <option value="collections">Filter collections</option>
+              <option value="holder">Holder account</option>
+              <option value="tx">Transaction ID</option>
+            </select>
+            <input
+              id="search-input"
+              class="input"
+              type="search"
+              placeholder="Search symbol, name, creator…"
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <button class="btn-primary" type="submit">Go</button>
+          </form>
+        </div>
+
+        <div id="status" class="status info" hidden></div>
+        <div id="view"></div>
+      </section>
+
+            <p class="footer">
+        Powered by
+        <a href="https://gitlab.syncad.com/hive/nft_tracker" target="_blank" rel="noopener"
+          >Hive nft_tracker</a
+        >
+        · nodes from
+        <a href="https://beacon.peakd.com" target="_blank" rel="noopener">beacon.peakd.com</a>
+        · by
+        <a href="https://hive.blog/@hivetrending" target="_blank" rel="noopener">@hivetrending</a>
+      </p>
+    </main>
+
+    <div id="drawer-backdrop" class="drawer-backdrop" hidden></div>
+    <aside id="drawer" class="drawer" aria-hidden="true">
+      <div class="drawer-header">
+        <div>
+          <div class="title" id="drawer-title">Instance</div>
+          <div class="sub" id="drawer-sub"></div>
+        </div>
+        <button class="btn-ghost" id="drawer-close" type="button">Close</button>
+      </div>
+      <div id="drawer-body"></div>
+    </aside>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

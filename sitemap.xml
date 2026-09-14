@@ -76,6 +76,11 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://hiveuprss.github.io/nftexplorer/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://hiveuprss.github.io/spkcc-claim/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
