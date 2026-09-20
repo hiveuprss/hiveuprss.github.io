@@ -605,6 +605,13 @@
           })}%`;
         }
 
+        function formatDelta(delta) {
+          return delta.toLocaleString(undefined, {
+            minimumFractionDigits: 3,
+            maximumFractionDigits: 3,
+          });
+        }
+
         function setDelta(el, delta) {
           el.classList.remove("pos", "neg", "zero");
           if (delta === null || Number.isNaN(delta)) {
@@ -613,13 +620,13 @@
             return;
           }
           if (delta > 0) {
-            el.textContent = `\u0394 +${delta.toLocaleString(undefined, { maximumFractionDigits: 3 })}`;
+            el.textContent = `\u0394 +${formatDelta(delta)}`;
             el.classList.add("pos");
           } else if (delta < 0) {
-            el.textContent = `\u0394 ${delta.toLocaleString(undefined, { maximumFractionDigits: 3 })}`;
+            el.textContent = `\u0394 ${formatDelta(delta)}`;
             el.classList.add("neg");
           } else {
-            el.textContent = "\u0394 0";
+            el.textContent = "\u0394 0.000";
             el.classList.add("zero");
           }
         }
