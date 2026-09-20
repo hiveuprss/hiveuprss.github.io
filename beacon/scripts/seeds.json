@@ -1,0 +1,38 @@
+{
+  "hive": [
+    "https://api.hive.blog",
+    "https://api.deathwing.me",
+    "https://rpc.mahdiyari.info",
+    "https://hapi.ecency.com",
+    "https://api.c0ff33a.uk",
+    "https://techcoderx.com",
+    "https://hiveapi.actifit.io",
+    "https://hive.atexoras.com:2096",
+    "https://rpc.ausbit.dev",
+    "https://rpc.ecency.com",
+    "https://api.pharesim.me",
+    "https://api.openhive.network",
+    "https://api.syncad.com",
+    "https://anyx.io",
+    "https://hive-api.arcange.eu",
+    "https://hive.roelandp.nl",
+    "https://api.hive.blue",
+    "https://hived.emre.sh",
+    "https://hive-api.3speak.tv"
+  ],
+  "engine": [
+    "https://herpc.actifit.io",
+    "https://enginerpc.com",
+    "https://api.hive-engine.com/rpc/",
+    "https://api2.hive-engine.com/rpc/",
+    "https://api.primersion.com",
+    "https://herpc.filoz.info",
+    "https://herpc.dtools.dev",
+    "https://herpc.liotes.com",
+    "https://engine.hive.pizza",
+    "https://he.c0ff33a.uk",
+    "https://heapi.c0ff33a.uk",
+    "https://he.atexoras.com:2083",
+    "https://herpc.kanibot.com"
+  ]
+}

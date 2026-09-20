@@ -1,0 +1,43 @@
+name: Beacon node probe
+
+on:
+  schedule:
+    - cron: "*/20 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: beacon-probe
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v4
+        with:
+          ref: master
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Probe nodes
+        run: node beacon/scripts/probe.mjs
+
+      - name: Commit snapshot if changed
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add beacon/nodes.json beacon/nodes.md
+          if git diff --cached --quiet; then
+            echo "Snapshot unchanged"
+          else
+            git commit -m "chore(beacon): refresh node health snapshot"
+            git push origin HEAD:master
+          fi
