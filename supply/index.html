@@ -527,6 +527,7 @@
           lastVirtual: null,
           lastOkAt: null,
           lastConnKey: "",
+          rpcPinned: false,
         };
 
         function normalizeUrl(url) {
@@ -554,6 +555,19 @@
           const label = isDark ? "Switch to light theme" : "Switch to dark theme";
           themeToggle.setAttribute("aria-label", label);
           themeToggle.title = label;
+        }
+
+        const rpcOverride = new URLSearchParams(location.search).get("rpc");
+        if (rpcOverride) {
+          const list = rpcOverride
+            .split(",")
+            .map(normalizeUrl)
+            .filter(Boolean);
+          if (list.length) {
+            state.nodes = list;
+            state.nodeIndex = 0;
+            state.rpcPinned = true;
+          }
         }
 
         const stored = localStorage.getItem("theme");
@@ -655,6 +669,7 @@
         }
 
         async function refreshNodeList() {
+          if (state.rpcPinned) return;
           const controller = new AbortController();
           const timer = setTimeout(() => controller.abort(), BEACON_TIMEOUT_MS);
           try {
@@ -720,7 +735,7 @@
           for (let i = 0; i < state.nodes.length; i += 1) {
             const idx = (start + i) % state.nodes.length;
             const url = state.nodes[idx];
-            setRpcLine(url, i > 0 ? "trying next node" : "polling");
+            if (i > 0) setRpcLine(url, "trying next node");
             try {
               const result = await fetchDgp(url);
               state.nodeIndex = idx;
