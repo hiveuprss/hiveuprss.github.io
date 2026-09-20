@@ -6,23 +6,23 @@
     <title>Hive Supply Clock</title>
     <meta
       name="description"
-      content="Live Hive and HBD token supply clock. Track the current circulating supply of HIVE and Hive Backed Dollars in real time."
+      content="Live Hive and HBD circulating supply clock, plus virtual supply and HBD savings/print rates from Hive dynamic global properties."
     />
     <link rel="canonical" href="https://hiveuprss.github.io/supply/" />
+    <link rel="icon" href="../favicon.ico" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://hiveuprss.github.io/supply/" />
     <meta property="og:title" content="Hive Supply Clock" />
     <meta
       property="og:description"
-      content="Live Hive and HBD token supply clock. Track the current circulating supply of HIVE and Hive Backed Dollars in real time."
+      content="Live Hive and HBD circulating supply clock, plus virtual supply and HBD savings/print rates from Hive dynamic global properties."
     />
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="Hive Supply Clock" />
     <meta
       name="twitter:description"
-      content="Live Hive and HBD token supply clock. Track the current circulating supply of HIVE and Hive Backed Dollars in real time."
+      content="Live Hive and HBD circulating supply clock, plus virtual supply and HBD savings/print rates from Hive dynamic global properties."
     />
-    <script src="https://cdn.jsdelivr.net/npm/@hiveio/hive-js/dist/hive.min.js"></script>
     <style>
       :root {
         --bg: #f0f0f8;
@@ -38,6 +38,10 @@
         --toggle-bg: #e7e7f1;
         --toggle-knob: #ffffff;
         --block-bg: #f0f0f8;
+        --live: #21a05e;
+        --degraded: #c48a12;
+        --error: #e31337;
+        --focus: #4c6fff;
       }
 
       [data-theme="dark"] {
@@ -54,12 +58,24 @@
         --toggle-bg: #2e3338;
         --toggle-knob: #f0f0f8;
         --block-bg: #1a1e22;
+        --live: #2ecc82;
+        --degraded: #e0b044;
+        --error: #e31337;
+        --focus: #8aa4ff;
       }
 
       * {
         box-sizing: border-box;
         margin: 0;
         padding: 0;
+      }
+
+      html {
+        color-scheme: light;
+      }
+
+      [data-theme="dark"] {
+        color-scheme: dark;
       }
 
       body {
@@ -72,6 +88,7 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
+        padding: 1.5rem 0.75rem;
         transition:
           background 0.3s,
           color 0.3s;
@@ -85,6 +102,7 @@
         max-width: 520px;
         margin-bottom: 2rem;
         padding: 0 0.5rem;
+        gap: 1rem;
       }
 
       .title {
@@ -105,6 +123,15 @@
         position: relative;
         transition: background 0.3s;
         flex-shrink: 0;
+      }
+
+      .theme-toggle:focus {
+        outline: none;
+      }
+
+      .theme-toggle:focus-visible {
+        outline: 2px solid var(--focus);
+        outline-offset: 3px;
       }
 
       .theme-toggle::after {
@@ -149,6 +176,10 @@
           box-shadow 0.3s;
       }
 
+      .card.compact {
+        padding: 1.15rem 1.35rem;
+      }
+
       .card-label {
         font-size: 0.8rem;
         font-weight: 700;
@@ -163,6 +194,9 @@
       .card-label.hbd {
         color: var(--hbd-color);
       }
+      .card-label.muted {
+        color: var(--text-secondary);
+      }
 
       .card-amount {
         font-size: 2rem;
@@ -172,6 +206,10 @@
         line-height: 1.1;
       }
 
+      .card.compact .card-amount {
+        font-size: 1.35rem;
+      }
+
       .card-delta {
         font-size: 0.9rem;
         font-weight: 500;
@@ -179,6 +217,13 @@
         min-height: 1.4em;
         font-variant-numeric: tabular-nums;
         transition: color 0.3s;
+      }
+
+      .card-hint {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        margin-top: 0.45rem;
+        line-height: 1.35;
       }
 
       .card-delta.pos {
@@ -191,21 +236,105 @@
         color: var(--text-secondary);
       }
 
-      .block-info {
-        margin-top: 2rem;
+      .metrics {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        width: 100%;
+        max-width: 520px;
+        padding: 0 0.5rem;
+        margin-top: 1.25rem;
+      }
+
+      .metric {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 0.9rem 1rem;
+        box-shadow: var(--shadow);
+      }
+
+      .metric-label {
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--text-secondary);
+        margin-bottom: 0.35rem;
+      }
+
+      .metric-value {
+        font-size: 1.15rem;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .status-panel {
+        margin-top: 1.5rem;
         text-align: center;
         font-size: 0.8rem;
         color: var(--text-secondary);
         background: var(--block-bg);
         border: 1px solid var(--border);
         border-radius: 8px;
-        padding: 0.5rem 1rem;
+        padding: 0.75rem 1rem;
         width: 100%;
         max-width: 520px;
         font-variant-numeric: tabular-nums;
+        line-height: 1.5;
         transition:
           background 0.3s,
           border-color 0.3s;
+      }
+
+      .status-line {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+        font-weight: 600;
+      }
+
+      .status-line.live {
+        color: var(--live);
+      }
+      .status-line.degraded {
+        color: var(--degraded);
+      }
+      .status-line.error {
+        color: var(--error);
+      }
+      .status-line.connecting {
+        color: var(--text-secondary);
+      }
+
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: currentColor;
+        flex-shrink: 0;
+      }
+
+      .status-meta {
+        margin-top: 0.2rem;
+      }
+
+      .rpc-line {
+        margin-top: 0.15rem;
+        word-break: break-all;
+      }
+
+      .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
       }
 
       .pulse {
@@ -250,125 +379,462 @@
           opacity: 0.2;
         }
       }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation: none !important;
+          transition: none !important;
+        }
+      }
+
+      @media (max-width: 480px) {
+        body {
+          justify-content: flex-start;
+          padding: 1.75rem 0.85rem 2rem;
+        }
+
+        .header,
+        .cards,
+        .metrics,
+        .status-panel {
+          padding-left: 0;
+          padding-right: 0;
+        }
+
+        .card {
+          padding: 1.35rem 1.2rem;
+        }
+
+        .card-amount {
+          font-size: 1.55rem;
+        }
+
+        .card.compact .card-amount {
+          font-size: 1.2rem;
+        }
+      }
     </style>
   </head>
   <body>
-    <div class="header">
-      <span class="title">Hive Supply Clock</span>
+    <header class="header">
+      <h1 class="title">Hive Supply Clock</h1>
       <button
+        type="button"
         class="theme-toggle"
         id="themeToggle"
-        title="Toggle dark mode"
-        aria-label="Toggle dark mode"
+        role="switch"
+        aria-checked="false"
+        title="Switch to dark theme"
+        aria-label="Switch to dark theme"
       ></button>
-    </div>
+    </header>
 
-    <div class="cards">
-      <div class="card">
-        <div class="card-label hive"><span class="dot hive"></span>HIVE</div>
+    <main class="cards">
+      <section class="card" aria-labelledby="hive-label">
+        <div class="card-label hive" id="hive-label">
+          <span class="dot hive" aria-hidden="true"></span>HIVE
+        </div>
         <div class="card-amount" id="hivesupply">—</div>
         <div class="card-delta zero" id="hivedelta">&nbsp;</div>
-      </div>
-      <div class="card">
-        <div class="card-label hbd"><span class="dot hbd"></span>HBD</div>
+      </section>
+      <section class="card" aria-labelledby="hbd-label">
+        <div class="card-label hbd" id="hbd-label">
+          <span class="dot hbd" aria-hidden="true"></span>HBD
+        </div>
         <div class="card-amount" id="hbdsupply">—</div>
         <div class="card-delta zero" id="hbddelta">&nbsp;</div>
+      </section>
+      <section class="card compact" aria-labelledby="virtual-label">
+        <div class="card-label muted" id="virtual-label">Virtual supply</div>
+        <div class="card-amount" id="virtualsupply">—</div>
+        <p class="card-hint">
+          All HIVE plus all HBD if converted at the current median price feed.
+        </p>
+      </section>
+    </main>
+
+    <div class="metrics">
+      <div class="metric" title="Annual interest paid on HBD in savings (DGP hbd_interest_rate).">
+        <div class="metric-label">HBD savings rate</div>
+        <div class="metric-value" id="hbdinterest">—</div>
+      </div>
+      <div
+        class="metric"
+        title="Share of author rewards currently paid in newly printed HBD (DGP hbd_print_rate)."
+      >
+        <div class="metric-label">HBD print rate</div>
+        <div class="metric-value" id="hbdprint">—</div>
       </div>
     </div>
 
-    <div class="block-info" id="blockinfo">Connecting...</div>
+    <div class="status-panel">
+      <div class="status-line connecting" id="connStatus">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span id="connLabel">Connecting</span>
+      </div>
+      <div class="status-meta" id="blockinfo">Waiting for first update…</div>
+      <div class="rpc-line" id="rpcline">RPC —</div>
+    </div>
+    <div class="visually-hidden" id="connLive" role="status" aria-live="polite"></div>
 
     <script>
-      hive.api.setOptions({ url: "https://api.syncad.com/" });
+      (function () {
+        const SEED_NODES = [
+          "https://api.hive.blog",
+          "https://api.syncad.com",
+          "https://api.deathwing.me",
+          "https://rpc.mahdiyari.info",
+          "https://api.c0ff33a.uk",
+          "https://hive-api.arcange.eu",
+        ];
+        const BEACON_URL = "https://hiveuprss.github.io/beacon/nodes.json";
+        const BASE_POLL_MS = 3000;
+        const MAX_BACKOFF_MS = 15000;
+        const RPC_TIMEOUT_MS = 8000;
+        const BEACON_TIMEOUT_MS = 4000;
+        const reduceMotion = window.matchMedia(
+          "(prefers-reduced-motion: reduce)",
+        ).matches;
 
-      // Theme
-      const html = document.documentElement;
-      const stored = localStorage.getItem("theme");
-      const prefersDark = window.matchMedia(
-        "(prefers-color-scheme: dark)",
-      ).matches;
-      if (stored === "dark" || (!stored && prefersDark))
-        html.setAttribute("data-theme", "dark");
+        const html = document.documentElement;
+        const themeToggle = document.getElementById("themeToggle");
+        const els = {
+          hive: document.getElementById("hivesupply"),
+          hiveDelta: document.getElementById("hivedelta"),
+          hbd: document.getElementById("hbdsupply"),
+          hbdDelta: document.getElementById("hbddelta"),
+          virtual: document.getElementById("virtualsupply"),
+          interest: document.getElementById("hbdinterest"),
+          print: document.getElementById("hbdprint"),
+          conn: document.getElementById("connStatus"),
+          connLabel: document.getElementById("connLabel"),
+          connLive: document.getElementById("connLive"),
+          block: document.getElementById("blockinfo"),
+          rpc: document.getElementById("rpcline"),
+        };
 
-      document.getElementById("themeToggle").addEventListener("click", () => {
-        const isDark = html.getAttribute("data-theme") === "dark";
-        html.setAttribute("data-theme", isDark ? "light" : "dark");
-        localStorage.setItem("theme", isDark ? "light" : "dark");
-      });
+        const state = {
+          nodes: SEED_NODES.slice(),
+          nodeIndex: 0,
+          inFlight: false,
+          backoffMs: BASE_POLL_MS,
+          timer: null,
+          failStreak: 0,
+          lastHive: null,
+          lastHbd: null,
+          lastVirtual: null,
+          lastOkAt: null,
+          lastConnKey: "",
+        };
 
-      // Supply tracking
-      let prevHive = null;
-      let prevHbd = null;
-
-      function setDelta(el, delta) {
-        el.classList.remove("pos", "neg", "zero");
-        if (delta === null || isNaN(delta)) {
-          el.innerHTML = "&nbsp;";
-          el.classList.add("zero");
-          return;
+        function normalizeUrl(url) {
+          return String(url || "")
+            .trim()
+            .replace(/\/+$/, "");
         }
-        if (delta > 0) {
-          el.textContent = `\u0394 +${delta.toLocaleString(undefined, { maximumFractionDigits: 3 })}`;
-          el.classList.add("pos");
-        } else if (delta < 0) {
-          el.textContent = `\u0394 ${delta.toLocaleString(undefined, { maximumFractionDigits: 3 })}`;
-          el.classList.add("neg");
-        } else {
-          el.textContent = "\u0394 0";
-          el.classList.add("zero");
+
+        function hostOf(url) {
+          try {
+            return new URL(normalizeUrl(url)).host;
+          } catch {
+            return normalizeUrl(url) || "—";
+          }
         }
-      }
 
-      function animatePulse(el) {
-        el.classList.remove("pulse");
-        void el.offsetWidth;
-        el.classList.add("pulse");
-      }
+        function currentNode() {
+          return state.nodes[state.nodeIndex] || SEED_NODES[0];
+        }
 
-      function updateSupplies() {
-        hive.api.getDynamicGlobalProperties(function (err, result) {
-          if (err || !result) {
-            document.getElementById("blockinfo").textContent =
-              "Connection error — retrying...";
+        function applyTheme(theme) {
+          html.setAttribute("data-theme", theme);
+          const isDark = theme === "dark";
+          themeToggle.setAttribute("aria-checked", String(isDark));
+          const label = isDark ? "Switch to light theme" : "Switch to dark theme";
+          themeToggle.setAttribute("aria-label", label);
+          themeToggle.title = label;
+        }
+
+        const stored = localStorage.getItem("theme");
+        const prefersDark = window.matchMedia(
+          "(prefers-color-scheme: dark)",
+        ).matches;
+        applyTheme(stored === "dark" || (!stored && prefersDark) ? "dark" : "light");
+
+        themeToggle.addEventListener("click", () => {
+          const next =
+            html.getAttribute("data-theme") === "dark" ? "light" : "dark";
+          applyTheme(next);
+          localStorage.setItem("theme", next);
+        });
+
+        function formatAmount(raw) {
+          const parts = String(raw).split(" ");
+          const num = Number(parts[0]);
+          if (!Number.isFinite(num)) return null;
+          return {
+            value: num,
+            text: `${num.toLocaleString(undefined, {
+              minimumFractionDigits: 3,
+              maximumFractionDigits: 3,
+            })} ${parts[1] || ""}`.trim(),
+          };
+        }
+
+        function hivePercent(value) {
+          const n = Number(value);
+          if (!Number.isFinite(n)) return null;
+          return `${(n / 100).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}%`;
+        }
+
+        function setDelta(el, delta) {
+          el.classList.remove("pos", "neg", "zero");
+          if (delta === null || Number.isNaN(delta)) {
+            el.innerHTML = "&nbsp;";
+            el.classList.add("zero");
             return;
           }
+          if (delta > 0) {
+            el.textContent = `\u0394 +${delta.toLocaleString(undefined, { maximumFractionDigits: 3 })}`;
+            el.classList.add("pos");
+          } else if (delta < 0) {
+            el.textContent = `\u0394 ${delta.toLocaleString(undefined, { maximumFractionDigits: 3 })}`;
+            el.classList.add("neg");
+          } else {
+            el.textContent = "\u0394 0";
+            el.classList.add("zero");
+          }
+        }
 
-          const blockNum = result["head_block_number"];
-          document.getElementById("blockinfo").textContent =
-            `Block #${blockNum.toLocaleString()}`;
+        function pulse(el) {
+          if (reduceMotion) return;
+          el.classList.remove("pulse");
+          void el.offsetWidth;
+          el.classList.add("pulse");
+        }
 
-          if (result["current_supply"]) {
-            const raw = result["current_supply"];
-            const val = parseFloat(raw);
-            const el = document.getElementById("hivesupply");
-            const parts = raw.split(" ");
-            el.textContent = `${Number(parts[0]).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })} ${parts[1] || ""}`;
-            animatePulse(el);
+        function setConnection(kind, label) {
+          els.conn.className = `status-line ${kind}`;
+          els.connLabel.textContent = label;
+          const key = `${kind}:${label}`;
+          if (key !== state.lastConnKey) {
+            state.lastConnKey = key;
+            els.connLive.textContent = label;
+          }
+        }
+
+        function setRpcLine(url, extra) {
+          const host = hostOf(url);
+          els.rpc.textContent = extra ? `RPC ${host} · ${extra}` : `RPC ${host}`;
+          els.rpc.title = normalizeUrl(url);
+        }
+
+        function mergeBeaconNodes(beacon) {
+          const out = [];
+          const seen = new Set();
+          const add = (url) => {
+            const normalized = normalizeUrl(url);
+            if (!normalized || seen.has(normalized)) return;
+            seen.add(normalized);
+            out.push(normalized);
+          };
+          if (beacon && beacon.recommend && beacon.recommend.hive) {
+            add(beacon.recommend.hive);
+          }
+          if (beacon && Array.isArray(beacon.hive)) {
+            beacon.hive.forEach((node) => {
+              if (node && node.ok && node.url) add(node.url);
+            });
+          }
+          SEED_NODES.forEach(add);
+          return out;
+        }
+
+        async function refreshNodeList() {
+          const controller = new AbortController();
+          const timer = setTimeout(() => controller.abort(), BEACON_TIMEOUT_MS);
+          try {
+            const res = await fetch(BEACON_URL, {
+              headers: { Accept: "application/json" },
+              cache: "no-store",
+              signal: controller.signal,
+            });
+            if (!res.ok) throw new Error(`beacon ${res.status}`);
+            const data = await res.json();
+            const merged = mergeBeaconNodes(data);
+            if (!merged.length) return;
+            const current = currentNode();
+            state.nodes = merged;
+            const idx = state.nodes.indexOf(current);
+            state.nodeIndex = idx >= 0 ? idx : 0;
+          } catch {
+            // Beacon is optional (draft/404/offline). Keep the seed list.
+            if (!state.nodes.length) {
+              state.nodes = SEED_NODES.slice();
+              state.nodeIndex = 0;
+            }
+          } finally {
+            clearTimeout(timer);
+          }
+        }
+
+        async function fetchDgp(url) {
+          const controller = new AbortController();
+          const timer = setTimeout(() => controller.abort(), RPC_TIMEOUT_MS);
+          try {
+            const res = await fetch(url, {
+              method: "POST",
+              headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                jsonrpc: "2.0",
+                method: "condenser_api.get_dynamic_global_properties",
+                params: [],
+                id: 1,
+              }),
+              signal: controller.signal,
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const json = await res.json();
+            if (!json || json.error || !json.result) {
+              throw new Error(json && json.error && json.error.message ? json.error.message : "empty result");
+            }
+            if (!json.result.current_supply || !json.result.current_hbd_supply) {
+              throw new Error("invalid DGP");
+            }
+            return json.result;
+          } finally {
+            clearTimeout(timer);
+          }
+        }
+
+        async function fetchDgpWithFailover() {
+          const start = state.nodeIndex;
+          let lastError = null;
+          for (let i = 0; i < state.nodes.length; i += 1) {
+            const idx = (start + i) % state.nodes.length;
+            const url = state.nodes[idx];
+            setRpcLine(url, i > 0 ? "trying next node" : "polling");
+            try {
+              const result = await fetchDgp(url);
+              state.nodeIndex = idx;
+              return { result, url, failedOver: i > 0 };
+            } catch (err) {
+              lastError = err;
+            }
+          }
+          throw lastError || new Error("All Hive RPCs failed");
+        }
+
+        function renderDgp(result, url, failedOver) {
+          const hive = formatAmount(result.current_supply);
+          const hbd = formatAmount(result.current_hbd_supply);
+          const virtual = result.virtual_supply
+            ? formatAmount(result.virtual_supply)
+            : null;
+
+          if (hive) {
+            if (hive.text !== els.hive.textContent) {
+              els.hive.textContent = hive.text;
+              pulse(els.hive);
+            }
             setDelta(
-              document.getElementById("hivedelta"),
-              prevHive !== null ? val - prevHive : null,
+              els.hiveDelta,
+              state.lastHive !== null ? hive.value - state.lastHive : null,
             );
-            prevHive = val;
+            state.lastHive = hive.value;
           }
 
-          if (result["current_hbd_supply"]) {
-            const raw = result["current_hbd_supply"];
-            const val = parseFloat(raw);
-            const el = document.getElementById("hbdsupply");
-            const parts = raw.split(" ");
-            el.textContent = `${Number(parts[0]).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })} ${parts[1] || ""}`;
-            animatePulse(el);
+          if (hbd) {
+            if (hbd.text !== els.hbd.textContent) {
+              els.hbd.textContent = hbd.text;
+              pulse(els.hbd);
+            }
             setDelta(
-              document.getElementById("hbddelta"),
-              prevHbd !== null ? val - prevHbd : null,
+              els.hbdDelta,
+              state.lastHbd !== null ? hbd.value - state.lastHbd : null,
             );
-            prevHbd = val;
+            state.lastHbd = hbd.value;
           }
-        });
-      }
 
-      updateSupplies();
-      window.setInterval(updateSupplies, 3000);
+          if (virtual) {
+            if (virtual.text !== els.virtual.textContent) {
+              els.virtual.textContent = virtual.text;
+              pulse(els.virtual);
+            }
+            state.lastVirtual = virtual.value;
+          }
+
+          const interest = hivePercent(result.hbd_interest_rate);
+          if (interest) els.interest.textContent = interest;
+          const print = hivePercent(result.hbd_print_rate);
+          if (print) els.print.textContent = print;
+
+          const now = new Date();
+          state.lastOkAt = now;
+          const blockNum = Number(result.head_block_number);
+          const updated = now.toLocaleTimeString();
+          els.block.textContent = Number.isFinite(blockNum)
+            ? `Block #${blockNum.toLocaleString()} · Updated ${updated}`
+            : `Updated ${updated}`;
+          els.block.title = result.time
+            ? `Chain time ${result.time} UTC`
+            : now.toISOString();
+
+          setConnection(failedOver ? "degraded" : "live", failedOver ? "Degraded" : "Live");
+          setRpcLine(url, failedOver ? "failed over" : "");
+        }
+
+        async function updateSupplies() {
+          const { result, url, failedOver } = await fetchDgpWithFailover();
+          renderDgp(result, url, failedOver);
+        }
+
+        function schedule(ms) {
+          clearTimeout(state.timer);
+          state.timer = setTimeout(tick, ms);
+        }
+
+        async function tick() {
+          if (state.inFlight) {
+            schedule(state.backoffMs);
+            return;
+          }
+          state.inFlight = true;
+          try {
+            await updateSupplies();
+            state.failStreak = 0;
+            state.backoffMs = BASE_POLL_MS;
+          } catch {
+            state.failStreak += 1;
+            state.backoffMs = Math.min(
+              Math.round(state.backoffMs * 1.6),
+              MAX_BACKOFF_MS,
+            );
+            setConnection("error", "Error — retrying");
+            setRpcLine(currentNode(), "all nodes failed");
+            if (!state.lastOkAt) {
+              els.block.textContent = "Connection error — retrying…";
+            }
+            if (state.failStreak === 1 || state.failStreak % 3 === 0) {
+              refreshNodeList();
+            }
+          } finally {
+            state.inFlight = false;
+            schedule(state.backoffMs);
+          }
+        }
+
+        setRpcLine(currentNode(), "starting");
+        refreshNodeList();
+        tick();
+      })();
     </script>
   </body>
 </html>
