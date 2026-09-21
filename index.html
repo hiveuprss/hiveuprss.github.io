@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hive Tools by @hivetrending</title>
-    <meta name="description" content="Real-time Hive blockchain tools and visualizations by @hivetrending. Live streams and utilities for the Hive ecosystem.">
+    <title>hivetrending // tool shelf</title>
+    <meta name="description" content="Real-time Hive instruments by @hivetrending — streams, monitors, and the occasional fireworks.">
     <link rel="canonical" href="https://hiveuprss.github.io/">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://hiveuprss.github.io/">
-    <meta property="og:title" content="Hive Tools by @hivetrending">
-    <meta property="og:description" content="Real-time Hive blockchain tools and visualizations by @hivetrending. Live streams and utilities for the Hive ecosystem.">
+    <meta property="og:title" content="hivetrending // tool shelf">
+    <meta property="og:description" content="Real-time Hive instruments by @hivetrending — streams, monitors, and the occasional fireworks.">
     <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="Hive Tools by @hivetrending">
-    <meta name="twitter:description" content="Real-time Hive blockchain tools and visualizations by @hivetrending. Live streams and utilities for the Hive ecosystem.">
+    <meta name="twitter:title" content="hivetrending // tool shelf">
+    <meta name="twitter:description" content="Real-time Hive instruments by @hivetrending — streams, monitors, and the occasional fireworks.">
     <style>
         :root {
             --hive-red: #E31337;
@@ -27,6 +27,8 @@
             --accent: var(--hive-red);
             --border: var(--hive-grey);
             --shadow: rgba(0, 0, 0, 0.15);
+            --shelf-bg: #fafafc;
+            --chrome: #ececf4;
         }
 
         html.dark {
@@ -36,6 +38,8 @@
             --text-muted: #aaa;
             --border: #3a3f44;
             --shadow: rgba(0, 0, 0, 0.5);
+            --shelf-bg: #262a2e;
+            --chrome: #22262a;
         }
 
         * {
@@ -76,6 +80,7 @@
             font-size: 14px;
             color: var(--text-muted);
             transition: border-color 0.2s, color 0.2s;
+            z-index: 1;
         }
 
         .dark-toggle:hover {
@@ -83,11 +88,19 @@
             color: var(--accent);
         }
 
+        .hero {
+            padding-right: 88px;
+            margin-bottom: 28px;
+        }
+
         h1 {
             color: var(--text);
-            margin-bottom: 30px;
+            margin-bottom: 10px;
             font-size: 28px;
             font-weight: 600;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+            letter-spacing: -0.03em;
+            line-height: 1.25;
         }
 
         h1 a {
@@ -100,13 +113,100 @@
             opacity: 0.8;
         }
 
-        ul {
+        h1 .sep {
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .lede {
+            color: var(--text-muted);
+            font-size: 16px;
+            line-height: 1.5;
+            max-width: 38em;
+        }
+
+        .cta-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 18px;
+        }
+
+        .cta {
+            display: inline-block;
+            padding: 6px 14px;
+            border: 1px solid var(--accent);
+            border-radius: 999px;
+            color: var(--accent);
+            text-decoration: none;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+            font-size: 13px;
+            transition: background 0.15s, color 0.15s;
+        }
+
+        .cta:hover {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .shells {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px;
+            background: var(--shelf-bg);
+        }
+
+        .shelf {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--container-bg);
+            overflow: hidden;
+        }
+
+        .shelf + .shelf {
+            margin-top: 12px;
+        }
+
+        .shelf-chrome {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            flex-wrap: wrap;
+            background: var(--chrome);
+            border-bottom: 1px solid var(--border);
+            padding: 8px 14px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .shelf-chrome .prompt {
+            color: var(--text-muted);
+        }
+
+        .shelf-chrome h2 {
+            color: var(--accent);
+            font-size: 13px;
+            font-weight: 600;
+            border: 0;
+            margin: 0;
+            padding: 0;
+        }
+
+        .shelf-chrome .hint {
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        .shelf ul {
             list-style: none;
+            padding: 10px 18px 12px;
         }
 
         li {
-            margin-bottom: 16px;
+            margin-bottom: 4px;
             color: var(--text-muted);
+            font-size: 15px;
+            line-height: 1.45;
         }
 
         li a {
@@ -115,7 +215,7 @@
             font-weight: 500;
             transition: opacity 0.2s;
             display: inline-block;
-            padding: 8px 0;
+            padding: 7px 0 1px;
             border-bottom: 2px solid transparent;
         }
 
@@ -129,27 +229,53 @@
             font-weight: 600;
         }
 
-        h2 {
-            color: var(--accent);
-            font-size: 20px;
-            margin-top: 30px;
-            margin-bottom: 16px;
-            font-weight: 600;
-            border-bottom: 2px solid var(--accent);
-            padding-bottom: 8px;
+        footer {
+            margin-top: 28px;
+            color: var(--text-muted);
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            text-align: center;
         }
 
-        h2:first-of-type {
-            margin-top: 0;
+        @media (max-width: 640px) {
+            body {
+                padding: 16px 12px;
+            }
+
+            .container {
+                padding: 28px 18px 24px;
+            }
+
+            .hero {
+                padding-right: 0;
+                padding-top: 28px;
+            }
+
+            h1 {
+                font-size: 22px;
+            }
+
+            .lede {
+                font-size: 15px;
+            }
+
+            .shells {
+                padding: 8px;
+            }
+
+            .shelf ul {
+                padding: 8px 14px 10px;
+            }
         }
     </style>
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
-      "name": "Hive Tools by @hivetrending",
+      "name": "hivetrending // tool shelf",
       "url": "https://hiveuprss.github.io/",
-      "description": "Real-time Hive blockchain tools and visualizations by @hivetrending. Live streams and utilities for the Hive ecosystem.",
+      "description": "Real-time Hive instruments by @hivetrending — streams, monitors, and the occasional fireworks.",
       "author": {
         "@type": "Person",
         "name": "hivetrending",
@@ -161,28 +287,71 @@
 <body>
     <div class="container">
         <button class="dark-toggle" onclick="toggleDark()" title="Toggle dark mode">☀︎ / ☽</button>
-        <h1>Hive Tools by <a href="https://hive.blog/@hivetrending">@hivetrending</a></h1>
 
-        <h2>Utilities</h2>
-        <ul>
-            <li><a href="./orchestra/"><strong>Hive Orchestra 🎵</strong></a> - the Hive blockchain as live generative music — every operation plays a unique instrument note</li>
-            <li><a href="./fireworks/"><strong>Hive Fireworks 🎆</strong></a> - every blockchain operation fires a firework — watch the Hive blockchain as a live fireworks show</li>
-            <li><a href="./hiveisbeautiful/"><strong>hiveisbeautiful</strong></a> - real-time visualization of Hive blocks contents</li>
-            <li><a href="https://hiverss.com"><strong>hiveRSS</strong></a> - create RSS feeds for any Hive blog</li>
-            <li><a href="./drip/"><strong>Drip</strong></a> - show a random recently-published Hive blog post</li>
-            <li><a href="./nftexplorer/"><strong>HAF NFT Explorer</strong></a> - browse Hive Layer-1 NFTs via the HAF nft_tracker API</li>
-            <li><a href="./supply/"><strong>supply</strong></a> - show current Hive and HBD token supply info</li>
-        </ul>
+        <header class="hero">
+            <h1><a href="https://hive.blog/@hivetrending">hivetrending</a> <span class="sep">//</span> tool shelf</h1>
+            <p class="lede">real-time Hive instruments — streams, monitors, and the occasional fireworks.</p>
+            <nav class="cta-row" aria-label="Off-shelf links">
+                <a class="cta" href="https://moonsiege.com/?ref=1">Moon</a>
+                <a class="cta" href="https://hive.pizza">Guild</a>
+                <a class="cta" href="https://github.com/hiveuprss">GitHub</a>
+            </nav>
+        </header>
 
-        <h2>Streams</h2>
-        <ul>
-            <li><a href="./accountstream/"><strong>accountstream</strong></a> - scrolling stream view of Hive account creation</li>
-            <li><a href="./commentstream/"><strong>commentstream</strong></a> - scrolling stream view of Hive comments</li>
-            <li><a href="./convertstream/"><strong>convertstream</strong></a> - scrolling stream view of Hive collateralized conversions</li>
-            <li><a href="./firehive/"><strong>firehive</strong></a> - firehose stream of all hive activities</li>
-            <li><a href="./hbdstream/"><strong>hbdstream</strong></a> - scrolling stream view of HBD transfers</li>
-            <li><a href="./transferstream/"><strong>transferstream</strong></a> - scrolling stream view of Hive and HiveEngine transfers</li>
-        </ul>
+        <div class="shells">
+            <section class="shelf" aria-labelledby="pulse-heading">
+                <div class="shelf-chrome">
+                    <span class="prompt">~/</span>
+                    <h2 id="pulse-heading">pulse</h2>
+                    <span class="hint">live ledgers</span>
+                </div>
+                <ul>
+                    <li><a href="./accountstream/"><strong>accountstream</strong></a> - scrolling stream view of Hive account creation</li>
+                    <li><a href="./commentstream/"><strong>commentstream</strong></a> - scrolling stream view of Hive comments</li>
+                    <li><a href="./transferstream/"><strong>transferstream</strong></a> - scrolling stream view of Hive and HiveEngine transfers</li>
+                    <li><a href="./hbdstream/"><strong>hbdstream</strong></a> - scrolling stream view of HBD transfers</li>
+                    <li><a href="./convertstream/"><strong>convertstream</strong></a> - scrolling stream view of Hive collateralized conversions</li>
+                    <li><a href="./supply/"><strong>supply</strong></a> - show current Hive and HBD token supply info</li>
+                </ul>
+            </section>
+
+            <section class="shelf" aria-labelledby="instruments-heading">
+                <div class="shelf-chrome">
+                    <span class="prompt">~/</span>
+                    <h2 id="instruments-heading">instruments</h2>
+                    <span class="hint">sensory overlays</span>
+                </div>
+                <ul>
+                    <li><a href="./orchestra/"><strong>Hive Orchestra 🎵</strong></a> - the Hive blockchain as live generative music — every operation plays a unique instrument note</li>
+                    <li><a href="./fireworks/"><strong>Hive Fireworks 🎆</strong></a> - every blockchain operation fires a firework — watch the Hive blockchain as a live fireworks show</li>
+                    <li><a href="./hiveisbeautiful/"><strong>hiveisbeautiful</strong></a> - real-time visualization of Hive blocks contents</li>
+                    <li><a href="./firehive/"><strong>firehive</strong></a> - firehose stream of all hive activities</li>
+                    <li><a href="./drip/"><strong>Drip</strong></a> - show a random recently-published Hive blog post</li>
+                    <li><a href="./nftexplorer/"><strong>HAF NFT Explorer</strong></a> - browse Hive Layer-1 NFTs via the HAF nft_tracker API</li>
+                    <li><a href="./pizza-tips-viz/"><strong>pizza-tips-viz</strong></a> - interactive graph of 16,316 Pizza token tips on Hive</li>
+                    <li><a href="./peeps/"><strong>peeps</strong></a> - watch real people transacting on the Hive blockchain, live</li>
+                    <li><a href="https://hiverss.com"><strong>hiveRSS</strong></a> - create RSS feeds for any Hive blog</li>
+                </ul>
+            </section>
+
+            <section class="shelf" aria-labelledby="monitors-heading">
+                <div class="shelf-chrome">
+                    <span class="prompt">~/</span>
+                    <h2 id="monitors-heading">monitors</h2>
+                    <span class="hint">side-chain watchfaces</span>
+                </div>
+                <ul>
+                    <li><a href="./dluxmonitor/"><strong>DLUX Monitor</strong></a> - show current DLUX side-chain node list and other info</li>
+                    <li><a href="./duatmonitor/"><strong>DUAT Monitor</strong></a> - show current DUAT (Ragnarok claim chain) node list and other info</li>
+                    <li><a href="./spkccmonitor/"><strong>SPKCC Monitor</strong></a> - show current SPKCC (Spk Network Claim Chain) node list and other info</li>
+                    <li><a href="./spktestmonitor/"><strong>SPK Testnet Monitor</strong></a> - show current Spk Testnet (Spk Network Test Net) node list and other info</li>
+                    <li><a href="./podping-tiles/"><strong>podping-tiles</strong></a> - live map of Podping updates — podcast publishers announcing new episodes</li>
+                    <!-- beacon/ can be linked here after the Hive Node Beacon PR merges -->
+                </ul>
+            </section>
+        </div>
+
+        <footer>economics 2.0 · no key pastes · no Vile Offspring in prod</footer>
     </div>
     <script>
         const html = document.documentElement;
