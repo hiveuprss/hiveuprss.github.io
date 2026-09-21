@@ -167,6 +167,10 @@
             margin-top: 12px;
         }
 
+        .shelf.featured {
+            border-color: var(--accent);
+        }
+
         .shelf-chrome {
             display: flex;
             align-items: baseline;
@@ -299,6 +303,17 @@
         </header>
 
         <div class="shells">
+            <section class="shelf featured" aria-labelledby="featured-heading">
+                <div class="shelf-chrome">
+                    <span class="prompt">~/</span>
+                    <h2 id="featured-heading">featured</h2>
+                    <span class="hint">start here</span>
+                </div>
+                <ul>
+                    <li><a href="./drip/"><strong>Drip</strong></a> - open a random recently-published Hive post — one fresh read from the chain</li>
+                </ul>
+            </section>
+
             <section class="shelf" aria-labelledby="pulse-heading">
                 <div class="shelf-chrome">
                     <span class="prompt">~/</span>
@@ -326,7 +341,6 @@
                     <li><a href="./fireworks/"><strong>Hive Fireworks 🎆</strong></a> - every blockchain operation fires a firework — watch the Hive blockchain as a live fireworks show</li>
                     <li><a href="./hiveisbeautiful/"><strong>hiveisbeautiful</strong></a> - real-time visualization of Hive blocks contents</li>
                     <li><a href="./firehive/"><strong>firehive</strong></a> - firehose stream of all hive activities</li>
-                    <li><a href="./drip/"><strong>Drip</strong></a> - show a random recently-published Hive blog post</li>
                     <li><a href="./nftexplorer/"><strong>HAF NFT Explorer</strong></a> - browse Hive Layer-1 NFTs via the HAF nft_tracker API</li>
                     <li><a href="./pizza-tips-viz/"><strong>pizza-tips-viz</strong></a> - interactive graph of 16,316 Pizza token tips on Hive</li>
                     <li><a href="./peeps/"><strong>peeps</strong></a> - watch real people transacting on the Hive blockchain, live</li>
@@ -338,15 +352,11 @@
                 <div class="shelf-chrome">
                     <span class="prompt">~/</span>
                     <h2 id="monitors-heading">monitors</h2>
-                    <span class="hint">side-chain watchfaces</span>
+                    <span class="hint">health &amp; pings</span>
                 </div>
                 <ul>
-                    <li><a href="./dluxmonitor/"><strong>DLUX Monitor</strong></a> - show current DLUX side-chain node list and other info</li>
-                    <li><a href="./duatmonitor/"><strong>DUAT Monitor</strong></a> - show current DUAT (Ragnarok claim chain) node list and other info</li>
-                    <li><a href="./spkccmonitor/"><strong>SPKCC Monitor</strong></a> - show current SPKCC (Spk Network Claim Chain) node list and other info</li>
-                    <li><a href="./spktestmonitor/"><strong>SPK Testnet Monitor</strong></a> - show current Spk Testnet (Spk Network Test Net) node list and other info</li>
                     <li><a href="./podping-tiles/"><strong>podping-tiles</strong></a> - live map of Podping updates — podcast publishers announcing new episodes</li>
-                    <!-- beacon/ can be linked here after the Hive Node Beacon PR merges -->
+                    <li><a href="./beacon/"><strong>Hive Node Beacon</strong></a> - Hive and Hive Engine RPC health snapshot for agents and curl</li>
                 </ul>
             </section>
         </div>
