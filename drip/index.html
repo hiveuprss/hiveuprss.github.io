@@ -1,202 +1,255 @@
 <!doctype html>
-<html data-theme="light">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f3efe9" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="
-      default-src 'none';
-      script-src 'self' https://esm.sh https://cdn.jsdelivr.net https://code.jquery.com;
-      style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net;
-      img-src * data: blob:;
-      connect-src https://api.deathwing.me https://api.hive.blog https://esm.sh https://cdn.jsdelivr.net ws://localhost:5173;
-      font-src 'self';
-      frame-src https://www.youtube.com https://www.youtube-nocookie.com https://3speak.tv https://odysee.com https://rumble.com;
-    "
+      content="default-src 'none'; script-src 'self' https://esm.sh https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src * data: blob:; connect-src https://api.deathwing.me https://api.hive.blog https://esm.sh https://cdn.jsdelivr.net; font-src 'self'; frame-src https://www.youtube.com https://www.youtube-nocookie.com https://3speak.tv https://odysee.com https://rumble.com;"
     />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
-      integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
-      crossorigin="anonymous"
+    <title>Drip</title>
+    <meta
+      name="description"
+      content="Discover a recent Hive post, one at a time. Filter by tag or reputation, then upvote, follow, or reblog with Hive Keychain."
+    />
+    <link rel="canonical" href="https://hiveuprss.github.io/drip/" />
+    <link rel="icon" href="assets/hive-32.png" />
+    <link rel="apple-touch-icon" href="assets/hive-144.png" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://hiveuprss.github.io/drip/" />
+    <meta property="og:title" content="Drip" />
+    <meta
+      property="og:description"
+      content="Discover a recent Hive post, one at a time. Filter by tag or reputation, then upvote, follow, or reblog with Hive Keychain."
+    />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Drip" />
+    <meta
+      name="twitter:description"
+      content="Discover a recent Hive post, one at a time. Filter by tag or reputation, then upvote, follow, or reblog with Hive Keychain."
     />
     <link rel="stylesheet" href="thirdparty/fontawesome/css/all.min.css" />
     <link rel="stylesheet" href="style.css" />
     <script src="theme.js"></script>
-    <script
-      src="https://code.jquery.com/jquery-3.6.0.min.js"
-      integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
-      crossorigin="anonymous"
-    ></script>
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js"
-      integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF"
-      crossorigin="anonymous"
-    ></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#post-card">Skip to post</a>
+    <div id="toasts" aria-live="polite"></div>
+
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="topbar-row">
+          <a class="app-logo" href="./">
+            <img src="assets/hive-32.png" width="28" height="28" alt="" />
+            <span>Drip</span>
+          </a>
+          <p class="header-tagline">Recent Hive posts, one at a time</p>
+          <div class="header-spacer"></div>
+          <div class="header-tools">
+            <form id="signin" class="signin-form">
+              <label class="sr-only" for="username">Hive username</label>
+              <span class="at-mark" aria-hidden="true">@</span>
+              <input
+                id="username"
+                name="username"
+                type="text"
+                maxlength="16"
+                placeholder="username"
+                autocomplete="username"
+                autocapitalize="off"
+                autocorrect="off"
+                spellcheck="false"
+                enterkeyhint="go"
+              />
+              <button type="submit" id="signin-button">Sign in</button>
+            </form>
+            <div id="account-chip" class="account-chip" hidden>
+              <span class="avatar" id="account-avatar" aria-hidden="true"></span>
+              <span class="account-meta">
+                <strong id="account-name"></strong>
+                <small id="account-hp">Signed in</small>
+              </span>
+              <button type="button" class="btn-ghost" id="signout" title="Sign out" aria-label="Sign out">
+                <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
+              </button>
+            </div>
+            <button
+              type="button"
+              class="btn-ghost"
+              id="theme-toggle"
+              title="Switch to dark mode"
+              aria-label="Switch to dark mode"
+              aria-pressed="false"
+            >
+              <i class="fas fa-moon" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+
+        <form id="filters" class="filters-form">
+          <div class="field">
+            <label for="filter-tag">Tag</label>
+            <input
+              id="filter-tag"
+              type="text"
+              maxlength="64"
+              placeholder="any"
+              autocomplete="off"
+              autocapitalize="off"
+              spellcheck="false"
+            />
+          </div>
+          <div class="field">
+            <label for="filter-rep">Min reputation</label>
+            <select id="filter-rep">
+              <option value="0">Any</option>
+              <option value="25" selected>25+</option>
+              <option value="35">35+</option>
+              <option value="50">50+</option>
+              <option value="60">60+</option>
+            </select>
+          </div>
+          <button type="submit" class="btn-tiny">Apply</button>
+          <button type="button" class="btn-tiny btn-quiet" id="clear-filters">Reset</button>
+          <button type="button" class="btn-tiny btn-quiet" id="reset-seen" title="Allow posts you have already opened to appear again">
+            Forget seen
+          </button>
+        </form>
+        <p id="keychain-hint" class="keychain-hint" hidden>
+          Install
+          <a href="https://hive-keychain.com" target="_blank" rel="noopener noreferrer">Hive Keychain</a>
+          to sign in and vote.
+        </p>
+      </div>
+    </header>
+
+    <main class="main-wrap">
+      <p id="discovery-status" class="discovery-status" aria-live="polite">Searching recent posts…</p>
+      <article id="post-card" class="post-card is-empty" aria-busy="true">
+        <div id="post-state">
+          <div class="skeleton" aria-hidden="true">
+            <div class="sk sk-title"></div>
+            <div class="sk sk-meta"></div>
+            <div class="sk sk-line"></div>
+            <div class="sk sk-line"></div>
+            <div class="sk sk-line short"></div>
+          </div>
+          <p class="skeleton-label">Looking for a post…</p>
+        </div>
+        <div id="hr-content" hidden></div>
+      </article>
+    </main>
+    <p id="post-announcer" class="sr-only" aria-live="polite"></p>
+
+    <nav class="action-bar" aria-label="Post actions">
+      <p class="branding">
+        Brought to you by
+        <a href="https://peakd.com/@hivetrending" target="_blank" rel="noopener noreferrer">@HiveTrending</a>
+      </p>
+      <div class="action-cluster">
+        <div class="action-group" role="group" aria-label="Read elsewhere">
+          <a class="btn-icon" id="peakd" title="View on PeakD" aria-label="View on PeakD" aria-disabled="true" tabindex="-1">
+            <img src="assets/peakd-32.png" width="18" height="18" alt="" />
+            <span class="btn-label">PeakD</span>
+          </a>
+          <a class="btn-icon" id="hiveblog" title="View on Hive.blog" aria-label="View on Hive.blog" aria-disabled="true" tabindex="-1">
+            <img src="assets/hive-32.png" width="18" height="18" alt="" />
+            <span class="btn-label">Blog</span>
+          </a>
+        </div>
+        <div class="action-group" role="group" aria-label="Engage">
+          <button type="button" class="btn-icon" id="upvote" title="Upvote (V)" aria-label="Upvote" aria-keyshortcuts="V" disabled>
+            <i class="fas fa-heart" aria-hidden="true"></i>
+            <span class="btn-label">Upvote</span>
+            <span id="vote-weight-badge" class="weight-badge">100%</span>
+          </button>
+          <div id="vote-weight-container">
+            <label class="sr-only" for="vote-weight-slider">Vote weight</label>
+            <input
+              type="range"
+              id="vote-weight-slider"
+              min="1"
+              max="100"
+              step="1"
+              value="100"
+              aria-valuemin="1"
+              aria-valuemax="100"
+              aria-valuenow="100"
+            />
+            <span id="vote-weight-label">100%</span>
+          </div>
+          <button type="button" class="btn-icon" id="follow" title="Follow author (F)" aria-label="Follow author" aria-keyshortcuts="F" aria-pressed="false" disabled>
+            <i class="fas fa-user-plus" aria-hidden="true"></i>
+            <span class="btn-label">Follow</span>
+          </button>
+          <button type="button" class="btn-icon" id="reblog" title="Reblog (R)" aria-label="Reblog" aria-keyshortcuts="R" disabled>
+            <i class="fas fa-retweet" aria-hidden="true"></i>
+            <span class="btn-label">Reblog</span>
+          </button>
+        </div>
+        <div class="action-group" role="group" aria-label="Next post">
+          <button type="button" class="btn-icon btn-next-up" id="next-up" title="More like this (L)" aria-label="More like this, next post" aria-keyshortcuts="L">
+            <i class="fas fa-thumbs-up" aria-hidden="true"></i>
+            <span class="btn-label">Like</span>
+          </button>
+          <button type="button" class="btn-icon btn-next" id="next-down" title="Not for me — hide this author (N)" aria-label="Not for me, hide this author and show another post" aria-keyshortcuts="N">
+            <i class="fas fa-forward" aria-hidden="true"></i>
+            <span class="btn-label">Skip</span>
+          </button>
+          <button type="button" class="btn-icon btn-help" id="shortcut-help" title="Keyboard shortcuts" aria-label="Keyboard shortcuts" aria-haspopup="dialog">
+            ?
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <div id="vote-popup" class="modal" hidden>
+      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="vote-popup-title">
+        <div class="modal-header">
+          <h2 id="vote-popup-title">Vote weight</h2>
+          <button type="button" id="vote-popup-close" class="btn-ghost" aria-label="Close vote weight">
+            <i class="fas fa-times" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div class="vote-popup-slider-row">
+          <label class="sr-only" for="vote-popup-slider">Vote weight</label>
+          <input type="range" id="vote-popup-slider" min="1" max="100" step="1" value="100" />
+          <span id="vote-popup-label">100%</span>
+        </div>
+        <button type="button" id="vote-popup-confirm" class="btn-solid">Upvote</button>
+      </div>
+    </div>
+
+    <div id="help-dialog" class="modal" hidden>
+      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="help-title">
+        <div class="modal-header">
+          <h2 id="help-title">Keyboard shortcuts</h2>
+          <button type="button" id="help-close" class="btn-ghost" aria-label="Close shortcuts">
+            <i class="fas fa-times" aria-hidden="true"></i>
+          </button>
+        </div>
+        <ul class="shortcut-list">
+          <li><kbd>L</kbd> More like this, next post</li>
+          <li><kbd>N</kbd> Not for me, hide the author</li>
+          <li><kbd>V</kbd> Upvote</li>
+          <li><kbd>F</kbd> Follow or unfollow</li>
+          <li><kbd>R</kbd> Reblog</li>
+          <li><kbd>?</kbd> Show this list</li>
+          <li><kbd>Esc</kbd> Close dialogs</li>
+        </ul>
+      </div>
+    </div>
+
+    <noscript>
+      <p class="noscript">Drip needs JavaScript to load posts from Hive.</p>
+    </noscript>
 
     <script
       src="https://cdn.jsdelivr.net/npm/hive-tx@5.6.0-beta.1/dist/hive-tx.min.js"
       integrity="sha384-sK7c3vlAGPdEXkxJPtXku2++tadZEGH1bFPve59a01+BkbT+qETDVDR4t+qpjjV0"
       crossorigin="anonymous"
     ></script>
-    <title>Drip</title>
-    <meta
-      name="description"
-      content="Discover a random recently-published post from the Hive blockchain. A fun way to explore Hive content."
-    />
-    <link rel="canonical" href="https://hiveuprss.github.io/drip/" />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://hiveuprss.github.io/drip/" />
-    <meta property="og:title" content="Drip" />
-    <meta
-      property="og:description"
-      content="Discover a random recently-published post from the Hive blockchain. A fun way to explore Hive content."
-    />
-    <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="Drip" />
-    <meta
-      name="twitter:description"
-      content="Discover a random recently-published post from the Hive blockchain. A fun way to explore Hive content."
-    />
-  </head>
-  <body>
-    <!-- Header -->
-    <header class="app-header">
-      <a class="app-logo" href="#">
-        <img src="assets/hive-32.png" alt="Hive" />
-        Drip
-      </a>
-      <span class="header-tagline"
-        >Discover random posts from the Hive blockchain</span
-      >
-      <div class="header-spacer"></div>
-      <div class="header-right">
-        <div id="signin-container">
-          <form id="signin">
-            <div class="input-group">
-              <span class="input-group-text">@</span>
-              <input
-                type="text"
-                class="form-control"
-                placeholder="Username"
-                aria-label="Username"
-              />
-              <button class="btn btn-primary" type="submit" title="Sign in">
-                <i class="fas fa-sign-in-alt"></i>
-              </button>
-            </div>
-          </form>
-        </div>
-        <div id="signout-container" style="display: none">
-          <button class="btn-ghost" id="signout" title="Sign out">
-            <i class="fas fa-sign-out-alt"></i>
-          </button>
-        </div>
-        <button class="btn-ghost" id="theme-toggle" title="Toggle dark mode">
-          <i class="fas fa-moon"></i>
-        </button>
-      </div>
-    </header>
-
-    <!-- Content -->
-    <div class="main-wrap">
-      <div class="row g-4">
-        <div class="col-lg-9" id="hr-content"></div>
-        <div class="col-lg-3" id="hr-content-md"></div>
-      </div>
-    </div>
-
-    <!-- Action bar -->
-    <nav class="action-bar">
-      <a
-        class="btn-icon"
-        id="peakd"
-        href=""
-        title="View on PeakD"
-        target="_blank"
-      >
-        <img src="assets/peakd-16.png" alt="PeakD" />
-      </a>
-      <a
-        class="btn-icon"
-        id="hiveblog"
-        href=""
-        title="View on Hive.blog"
-        target="_blank"
-      >
-        <img src="assets/hive-16.png" alt="Hive.blog" />
-      </a>
-      <div class="sep"></div>
-      <button class="btn-icon" id="upvote" title="Upvote">
-        <i class="fa fa-heart"></i>
-      </button>
-      <div id="vote-weight-container">
-        <input
-          type="range"
-          id="vote-weight-slider"
-          min="1"
-          max="100"
-          step="1"
-          value="100"
-          list="vote-weight-ticks"
-        />
-        <datalist id="vote-weight-ticks">
-          <option value="25"></option>
-          <option value="50"></option>
-          <option value="75"></option>
-          <option value="100"></option>
-        </datalist>
-        <span id="vote-weight-label">100%</span>
-      </div>
-      <button class="btn-icon" id="follow" title="Follow">
-        <i class="fa fa-users"></i>
-      </button>
-      <button class="btn-icon" id="reblog" title="Reblog">
-        <i class="fa fa-share"></i>
-      </button>
-      <div class="sep"></div>
-      <button class="btn-icon btn-next-up next" id="next-up" title="Liked it – next post">
-        <i class="fa fa-thumbs-up"></i><i class="fa fa-chevron-right"></i>
-      </button>
-      <button class="btn-icon btn-next next" id="next-down" title="Not for me – next post">
-        <i class="fa fa-thumbs-down"></i><i class="fa fa-chevron-right"></i>
-      </button>
-      <span class="branding"
-        >Brought to you by
-        <a href="https://peakd.com/@hivetrending">@HiveTrending</a></span
-      >
-    </nav>
-
-    <!-- Vote weight popup (mobile) -->
-    <div id="vote-popup" aria-hidden="true">
-      <div id="vote-popup-inner">
-        <div class="vote-popup-header">
-          <span>Vote weight</span>
-          <button id="vote-popup-close" aria-label="Close">&#x2715;</button>
-        </div>
-        <div class="vote-popup-slider-row">
-          <input
-            type="range"
-            id="vote-popup-slider"
-            min="1"
-            max="100"
-            step="1"
-            value="100"
-            list="vote-popup-ticks"
-          />
-          <datalist id="vote-popup-ticks">
-            <option value="25"></option>
-            <option value="50"></option>
-            <option value="75"></option>
-            <option value="100"></option>
-          </datalist>
-          <span id="vote-popup-label">100%</span>
-        </div>
-        <button id="vote-popup-confirm">Upvote</button>
-      </div>
-    </div>
-
     <script type="module" src="index.js"></script>
   </body>
 </html>
