@@ -1,130 +1,130 @@
 {
   "schema": 1,
-  "checked_at": "2026-10-23T12:19:51.457Z",
+  "checked_at": "2026-10-23T17:17:16.886Z",
   "source": "hiveuprss.github.io/beacon",
   "recommend": {
     "hive": "https://api.hive.blog",
-    "engine": "https://herpc.actifit.io"
+    "engine": "https://he.c0ff33a.uk"
   },
   "hive": [
     {
       "url": "https://api.hive.blog",
       "ok": true,
-      "ms": 149,
-      "head": 111024105,
-      "err": null
-    },
-    {
-      "url": "https://api.deathwing.me",
-      "ok": true,
-      "ms": 187,
-      "head": 111024105,
+      "ms": 208,
+      "head": 111030031,
       "err": null
     },
     {
       "url": "https://api.syncad.com",
       "ok": true,
-      "ms": 198,
-      "head": 111024105,
+      "ms": 241,
+      "head": 111030031,
       "err": null
     },
     {
-      "url": "https://rpc.mahdiyari.info",
+      "url": "https://api.deathwing.me",
       "ok": true,
-      "ms": 271,
-      "head": 111024105,
-      "err": null
-    },
-    {
-      "url": "https://hiveapi.actifit.io",
-      "ok": true,
-      "ms": 471,
-      "head": 111024105,
+      "ms": 560,
+      "head": 111030031,
       "err": null
     },
     {
       "url": "https://api.openhive.network",
       "ok": true,
-      "ms": 575,
-      "head": 111024105,
+      "ms": 585,
+      "head": 111030032,
       "err": null
     },
     {
-      "url": "https://api.c0ff33a.uk",
+      "url": "https://hiveapi.actifit.io",
       "ok": true,
-      "ms": 647,
-      "head": 111024105,
+      "ms": 660,
+      "head": 111030031,
       "err": null
     },
     {
       "url": "https://techcoderx.com",
       "ok": true,
-      "ms": 717,
-      "head": 111024105,
+      "ms": 970,
+      "head": 111030031,
       "err": null
     },
     {
-      "url": "https://hive.roelandp.nl",
+      "url": "https://rpc.mahdiyari.info",
       "ok": true,
-      "ms": 949,
-      "head": 111024105,
+      "ms": 997,
+      "head": 111030031,
+      "err": null
+    },
+    {
+      "url": "https://api.c0ff33a.uk",
+      "ok": true,
+      "ms": 1008,
+      "head": 111030031,
       "err": null
     },
     {
       "url": "https://hive.atexoras.com:2096",
       "ok": true,
-      "ms": 1050,
-      "head": 111024105,
+      "ms": 1174,
+      "head": 111030031,
       "err": null
     },
     {
       "url": "https://hapi.ecency.com",
       "ok": false,
-      "ms": 111,
+      "ms": 175,
       "head": null,
       "err": "ENOTFOUND"
     },
     {
       "url": "https://api.pharesim.me",
       "ok": false,
-      "ms": 383,
+      "ms": 468,
       "head": null,
       "err": "ENOTFOUND"
     },
     {
       "url": "https://rpc.ecency.com",
       "ok": false,
-      "ms": 423,
+      "ms": 662,
       "head": null,
       "err": "ENOTFOUND"
     },
     {
-      "url": "https://hived.emre.sh",
+      "url": "https://hive.roelandp.nl",
       "ok": false,
-      "ms": 634,
+      "ms": 716,
       "head": null,
-      "err": "ECONNREFUSED"
-    },
-    {
-      "url": "https://rpc.ausbit.dev",
-      "ok": false,
-      "ms": 658,
-      "head": null,
-      "err": "http 521"
+      "err": "http 500"
     },
     {
       "url": "https://api.hive.blue",
       "ok": false,
-      "ms": 852,
+      "ms": 833,
       "head": null,
       "err": "ECONNRESET"
     },
     {
+      "url": "https://hived.emre.sh",
+      "ok": false,
+      "ms": 1025,
+      "head": null,
+      "err": "ECONNREFUSED"
+    },
+    {
       "url": "https://anyx.io",
       "ok": false,
-      "ms": 4187,
+      "ms": 5695,
       "head": null,
       "err": "http 502"
+    },
+    {
+      "url": "https://rpc.ausbit.dev",
+      "ok": false,
+      "ms": 8001,
+      "head": null,
+      "err": "timeout"
     },
     {
       "url": "https://hive-api.arcange.eu",
@@ -143,108 +143,108 @@
   ],
   "engine": [
     {
+      "url": "https://he.c0ff33a.uk",
+      "ok": true,
+      "ms": 803,
+      "head": 63962083,
+      "hive_ref": 111030029,
+      "err": null
+    },
+    {
       "url": "https://herpc.actifit.io",
       "ok": true,
-      "ms": 451,
-      "head": 63956214,
-      "hive_ref": 111024103,
+      "ms": 871,
+      "head": 63962083,
+      "hive_ref": 111030029,
       "err": null
     },
     {
       "url": "https://enginerpc.com",
       "ok": true,
-      "ms": 485,
-      "head": 63956214,
-      "hive_ref": 111024103,
-      "err": null
-    },
-    {
-      "url": "https://api.primersion.com",
-      "ok": true,
-      "ms": 552,
-      "head": 63956214,
-      "hive_ref": 111024103,
-      "err": null
-    },
-    {
-      "url": "https://herpc.dtools.dev",
-      "ok": true,
-      "ms": 593,
-      "head": 63956214,
-      "hive_ref": 111024103,
-      "err": null
-    },
-    {
-      "url": "https://he.c0ff33a.uk",
-      "ok": true,
-      "ms": 677,
-      "head": 63956214,
-      "hive_ref": 111024103,
-      "err": null
-    },
-    {
-      "url": "https://herpc.kanibot.com",
-      "ok": true,
-      "ms": 694,
-      "head": 63956214,
-      "hive_ref": 111024103,
-      "err": null
-    },
-    {
-      "url": "https://api.hive-engine.com/rpc/",
-      "ok": true,
-      "ms": 727,
-      "head": 63956214,
-      "hive_ref": 111024103,
+      "ms": 938,
+      "head": 63962083,
+      "hive_ref": 111030029,
       "err": null
     },
     {
       "url": "https://api2.hive-engine.com/rpc/",
       "ok": true,
-      "ms": 739,
-      "head": 63956213,
-      "hive_ref": 111024102,
+      "ms": 1049,
+      "head": 63962082,
+      "hive_ref": 111030028,
       "err": null
     },
     {
       "url": "https://herpc.filoz.info",
       "ok": true,
-      "ms": 755,
-      "head": 63956211,
-      "hive_ref": 111024100,
+      "ms": 1072,
+      "head": 63962083,
+      "hive_ref": 111030029,
+      "err": null
+    },
+    {
+      "url": "https://api.hive-engine.com/rpc/",
+      "ok": true,
+      "ms": 1083,
+      "head": 63962083,
+      "hive_ref": 111030029,
       "err": null
     },
     {
       "url": "https://herpc.liotes.com",
       "ok": true,
-      "ms": 836,
-      "head": 63956210,
-      "hive_ref": 111024099,
+      "ms": 1150,
+      "head": 63962083,
+      "hive_ref": 111030029,
       "err": null
     },
     {
       "url": "https://heapi.c0ff33a.uk",
       "ok": true,
-      "ms": 875,
-      "head": 63956214,
-      "hive_ref": 111024103,
-      "err": null
-    },
-    {
-      "url": "https://he.atexoras.com:2083",
-      "ok": true,
-      "ms": 1310,
-      "head": 63956214,
-      "hive_ref": 111024103,
+      "ms": 1163,
+      "head": 63962083,
+      "hive_ref": 111030029,
       "err": null
     },
     {
       "url": "https://engine.hive.pizza",
       "ok": true,
-      "ms": 3181,
-      "head": 63956215,
-      "hive_ref": 111024104,
+      "ms": 1186,
+      "head": 63962083,
+      "hive_ref": 111030029,
       "err": null
+    },
+    {
+      "url": "https://api.primersion.com",
+      "ok": true,
+      "ms": 1189,
+      "head": 63962083,
+      "hive_ref": 111030029,
+      "err": null
+    },
+    {
+      "url": "https://herpc.dtools.dev",
+      "ok": true,
+      "ms": 1450,
+      "head": 63962083,
+      "hive_ref": 111030029,
+      "err": null
+    },
+    {
+      "url": "https://herpc.kanibot.com",
+      "ok": true,
+      "ms": 1555,
+      "head": 63962083,
+      "hive_ref": 111030029,
+      "err": null
+    },
+    {
+      "url": "https://he.atexoras.com:2083",
+      "ok": false,
+      "ms": 8000,
+      "head": null,
+      "hive_ref": null,
+      "err": "timeout"
     }
   ]
 }
