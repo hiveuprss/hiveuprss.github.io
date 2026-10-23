@@ -1,6 +1,6 @@
 # Hive Node Beacon
 
-Checked at **2026-10-23T01:52:15.990Z**  
+Checked at **2026-10-23T06:48:50.567Z**  
 Source: `hiveuprss.github.io/beacon`  
 Schema: `1`
 
@@ -11,7 +11,7 @@ Machine-readable copy: [nodes.json](./nodes.json)
 | chain | url |
 | --- | --- |
 | hive | https://api.hive.blog |
-| engine | https://herpc.actifit.io |
+| engine | https://enginerpc.com |
 
 Healthy nodes are listed first, then by ascending `ms`.
 
@@ -19,40 +19,40 @@ Healthy nodes are listed first, then by ascending `ms`.
 
 | ok | ms | head | url | err |
 | --- | --- | --- | --- | --- |
-| true | 246 | 111011599 | https://api.hive.blog | — |
-| true | 285 | 111011599 | https://api.deathwing.me | — |
-| true | 357 | 111011599 | https://rpc.mahdiyari.info | — |
-| true | 449 | 111011599 | https://api.syncad.com | — |
-| true | 504 | 111011599 | https://techcoderx.com | — |
-| true | 572 | 111011599 | https://hive.atexoras.com:2096 | — |
-| true | 613 | 111011599 | https://hiveapi.actifit.io | — |
-| true | 842 | 111011599 | https://api.c0ff33a.uk | — |
-| true | 936 | 111011599 | https://api.openhive.network | — |
-| false | 146 | — | https://hapi.ecency.com | ENOTFOUND |
-| false | 442 | — | https://api.pharesim.me | ENOTFOUND |
-| false | 492 | — | https://rpc.ecency.com | ENOTFOUND |
-| false | 756 | — | https://hived.emre.sh | ECONNREFUSED |
-| false | 758 | — | https://hive.roelandp.nl | http 500 |
-| false | 764 | — | https://rpc.ausbit.dev | http 521 |
-| false | 848 | — | https://api.hive.blue | ECONNRESET |
-| false | 8001 | — | https://hive-api.arcange.eu | timeout |
-| false | 8001 | — | https://hive-api.3speak.tv | timeout |
-| false | 8002 | — | https://anyx.io | timeout |
+| true | 230 | 111017509 | https://api.hive.blog | — |
+| true | 281 | 111017509 | https://api.deathwing.me | — |
+| true | 298 | 111017510 | https://api.syncad.com | — |
+| true | 409 | 111017510 | https://rpc.mahdiyari.info | — |
+| true | 659 | 111017510 | https://hiveapi.actifit.io | — |
+| true | 676 | 111017510 | https://api.openhive.network | — |
+| true | 708 | 111017510 | https://hive.roelandp.nl | — |
+| true | 882 | 111017510 | https://api.c0ff33a.uk | — |
+| true | 1100 | 111017510 | https://techcoderx.com | — |
+| true | 1103 | 111017509 | https://hive.atexoras.com:2096 | — |
+| false | 145 | — | https://hapi.ecency.com | ENOTFOUND |
+| false | 452 | — | https://api.pharesim.me | ENOTFOUND |
+| false | 470 | — | https://rpc.ecency.com | ENOTFOUND |
+| false | 734 | — | https://rpc.ausbit.dev | http 521 |
+| false | 745 | — | https://hived.emre.sh | ECONNREFUSED |
+| false | 909 | — | https://api.hive.blue | ECONNRESET |
+| false | 4816 | — | https://anyx.io | http 502 |
+| false | 8000 | — | https://hive-api.arcange.eu | timeout |
+| false | 8000 | — | https://hive-api.3speak.tv | timeout |
 
 ## Hive Engine
 
 | ok | ms | head | hive_ref | url | err |
 | --- | --- | --- | --- | --- | --- |
-| true | 548 | 63943865 | 111011597 | https://herpc.actifit.io | — |
-| true | 758 | 63943865 | 111011597 | https://enginerpc.com | — |
-| true | 877 | 63943865 | 111011597 | https://engine.hive.pizza | — |
-| true | 899 | 63943865 | 111011597 | https://api.hive-engine.com/rpc/ | — |
-| true | 904 | 63943865 | 111011597 | https://herpc.kanibot.com | — |
-| true | 929 | 63943864 | 111011596 | https://api2.hive-engine.com/rpc/ | — |
-| true | 962 | 63943865 | 111011597 | https://herpc.filoz.info | — |
-| true | 978 | 63943865 | 111011597 | https://api.primersion.com | — |
-| true | 1038 | 63943865 | 111011597 | https://herpc.dtools.dev | — |
-| true | 1049 | 63943865 | 111011597 | https://herpc.liotes.com | — |
-| true | 1211 | 63943865 | 111011597 | https://he.c0ff33a.uk | — |
-| true | 1227 | 63943865 | 111011597 | https://heapi.c0ff33a.uk | — |
-| true | 1725 | 63943865 | 111011597 | https://he.atexoras.com:2083 | — |
+| true | 663 | 63949703 | 111017508 | https://enginerpc.com | — |
+| true | 674 | 63949703 | 111017508 | https://engine.hive.pizza | — |
+| true | 755 | 63949703 | 111017508 | https://herpc.actifit.io | — |
+| true | 843 | 63949703 | 111017508 | https://heapi.c0ff33a.uk | — |
+| true | 892 | 63949703 | 111017508 | https://he.c0ff33a.uk | — |
+| true | 913 | 63949703 | 111017508 | https://herpc.filoz.info | — |
+| true | 928 | 63949703 | 111017508 | https://api.hive-engine.com/rpc/ | — |
+| true | 931 | 63949702 | 111017507 | https://api2.hive-engine.com/rpc/ | — |
+| true | 1025 | 63949703 | 111017508 | https://herpc.kanibot.com | — |
+| true | 1041 | 63949703 | 111017508 | https://herpc.liotes.com | — |
+| true | 1043 | 63949703 | 111017508 | https://api.primersion.com | — |
+| true | 1102 | 63949703 | 111017508 | https://herpc.dtools.dev | — |
+| true | 1205 | 63949703 | 111017508 | https://he.atexoras.com:2083 | — |
